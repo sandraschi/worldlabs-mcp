@@ -1,6 +1,70 @@
-// API client for worldlabs-mcp backend (FastAPI bridge on port 10865)
-
 const BASE = '/api';
+
+// ── Asset types ───────────────────────────────────────────────────────────────
+
+export interface SpzUrls {
+    '100k': string;
+    '500k': string;
+    full_res: string;
+}
+
+export interface WorldAssets {
+    caption?: string;
+    thumbnail_url?: string;
+    splats?: { spz_urls: SpzUrls };
+    mesh?: { collider_mesh_url: string };
+    imagery?: { pano_url: string };
+    /** Normalised flat URLs injected by the bridge */
+    _assets?: FlatAssets;
+}
+
+export interface FlatAssets {
+    splat_100k?: string;
+    splat_500k?: string;
+    splat_full?: string;
+    mesh?: string;
+    panorama?: string;
+    thumbnail?: string;
+    caption?: string;
+}
+
+export type AssetType = 'splat_100k' | 'splat_500k' | 'splat_full' | 'mesh' | 'panorama';
+
+export interface World {
+    id: string;
+    display_name?: string;
+    world_marble_url?: string;
+    model?: string;
+    assets?: WorldAssets;
+    _assets?: FlatAssets;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface OperationProgress {
+    status: 'IN_PROGRESS' | 'SUCCEEDED' | 'FAILED';
+    description?: string;
+}
+
+export interface OperationMetadata {
+    progress?: OperationProgress;
+    world_id?: string;
+}
+
+export interface Operation {
+    operation_id: string;
+    created_at?: string;
+    done: boolean;
+    error?: string | null;
+    metadata?: OperationMetadata | null;
+    response?: World | null;
+}
+
+export interface ToolInfo {
+    name: string;
+    description: string;
+    parameters: Record<string, unknown>;
+}
 
 export interface SystemInfo {
     name: string;
@@ -11,60 +75,48 @@ export interface SystemInfo {
     base_url: string;
 }
 
-export interface ToolInfo {
-    name: string;
-    description: string;
-    parameters: Record<string, unknown>;
-}
-
 export interface HealthResponse {
     status: string;
-    timestamp: string;
-}
-
-export interface Operation {
-    name: string;
-    done: boolean;
-    metadata?: {
-        progress?: {
-            status: 'IN_PROGRESS' | 'SUCCEEDED' | 'FAILED';
-            progress_percent?: number;
-        };
-    };
-    response?: {
-        world?: World;
-    };
-    error?: {
-        code: number;
-        message: string;
-    };
-}
-
-export interface World {
-    name: string;
-    display_name: string;
-    create_time: string;
-    assets?: {
-        thumbnail_url?: string;
-        splat_url?: string;
-        mesh_url?: string;
-        panorama_url?: string;
-        caption?: string;
-    };
+    timestamp?: string;
 }
 
 export interface LlmModel {
     id: string;
     name: string;
-    provider: 'ollama' | 'lmstudio';
+    provider: string;
     size?: string;
     parameters?: string;
 }
 
-export interface LlmDiscoveryResult {
-    ollama: { available: boolean; models: LlmModel[]; url?: string };
-    lmstudio: { available: boolean; models: LlmModel[]; url?: string };
+export interface LlmProvider {
+    available: boolean;
+    models: LlmModel[];
+    url: string;
 }
+
+export interface LlmDiscoveryResult {
+    ollama: LlmProvider;
+    lmstudio: LlmProvider;
+}
+
+export interface ExportRequest {
+    world_id: string;
+    world_name?: string;
+    spz_url?: string;
+    mesh_url?: string;
+    splat_lod?: string;
+}
+
+export interface ExportResult {
+    status: string;
+    world_id: string;
+    target: string;
+    note?: string;
+    detail?: string;
+    [key: string]: unknown;
+}
+
+// ── HTTP helpers ──────────────────────────────────────────────────────────────
 
 async function get<T>(path: string): Promise<T> {
     const res = await fetch(`${BASE}${path}`);
@@ -82,15 +134,45 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     return res.json() as Promise<T>;
 }
 
+// ── Download helper ───────────────────────────────────────────────────────────
+
+export function downloadAssetUrl(worldId: string, assetType: AssetType, assetUrl: string): string {
+    const params = new URLSearchParams({ asset_type: assetType, url: assetUrl });
+    return `${BASE}/worlds/${worldId}/download?${params.toString()}`;
+}
+
+export function triggerDownload(worldId: string, assetType: AssetType, assetUrl: string): void {
+    const a = document.createElement('a');
+    a.href = downloadAssetUrl(worldId, assetType, assetUrl);
+    a.download = '';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// ── API client ────────────────────────────────────────────────────────────────
+
 export const api = {
     health: () => get<HealthResponse>('/health'),
     systemInfo: () => get<SystemInfo>('/system'),
+
+    // Operations
     getOperation: (id: string) => get<Operation>(`/operations/${id}`),
-    generateFromText: (prompt: string, name: string, model: string) =>
+    getWorld: (id: string) => get<{ world: World }>(`/worlds/${id}`),
+
+    // Generation
+    generateText: (prompt: string, name: string, model: string) =>
         post<Operation>('/generate/text', { prompt, name, model }),
-    generateFromImage: (url: string, prompt: string, name: string, model: string, isPano: boolean) =>
-        post<Operation>('/generate/image', { url, prompt, name, model, is_panorama: isPano }),
-    generateFromVideo: (url: string, prompt: string, name: string, model: string) =>
+    generateImage: (url: string, prompt: string, name: string, model: string, is_panorama: boolean) =>
+        post<Operation>('/generate/image', { url, prompt, name, model, is_panorama }),
+    generateVideo: (url: string, prompt: string, name: string, model: string) =>
         post<Operation>('/generate/video', { url, prompt, name, model }),
+
+    // LLM discovery
     discoverLlms: () => get<LlmDiscoveryResult>('/llm/discover'),
+
+    // DCC export
+    exportToBlender: (req: ExportRequest) => post<ExportResult>('/export/blender', req),
+    exportToUnity3D: (req: ExportRequest) => post<ExportResult>('/export/unity3d', req),
+    exportToResonite: (req: ExportRequest) => post<ExportResult>('/export/resonite', req),
 };

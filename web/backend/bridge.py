@@ -6,6 +6,7 @@ Runs on port 10865, serves API for the React frontend on port 10864.
 from __future__ import annotations
 
 import os
+import tempfile
 from pathlib import Path
 
 # Load .env from repo root (two levels up from web/backend/)
@@ -16,12 +17,14 @@ try:
     load_dotenv(_env_path, override=False)
 except ImportError:
     pass  # python-dotenv optional; use real env vars or start.ps1 injection
+
 import time
 from typing import Any
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 app = FastAPI(
@@ -39,9 +42,8 @@ app.add_middleware(
 )
 
 BASE_URL = os.getenv("WORLDLABS_BASE_URL", "https://api.worldlabs.ai/marble/v1")
-SERVER_START = time.time()
 
-# ── Tool definitions mirrored from server.py ──────────────────────────────────
+# ── Tool definitions ──────────────────────────────────────────────────────────
 
 TOOLS = [
     {
@@ -147,6 +149,21 @@ def _headers() -> dict[str, str]:
     }
 
 
+def _extract_assets(world: dict[str, Any]) -> dict[str, str | None]:
+    """Normalise the Marble API world object into flat asset URLs."""
+    assets = world.get("assets", {})
+    spz = assets.get("splats", {}).get("spz_urls", {})
+    return {
+        "splat_100k": spz.get("100k"),
+        "splat_500k": spz.get("500k"),
+        "splat_full": spz.get("full_res"),
+        "mesh": assets.get("mesh", {}).get("collider_mesh_url"),
+        "panorama": assets.get("imagery", {}).get("pano_url"),
+        "thumbnail": assets.get("thumbnail_url"),
+        "caption": assets.get("caption"),
+    }
+
+
 # ── Health / System ───────────────────────────────────────────────────────────
 
 
@@ -180,7 +197,65 @@ async def get_operation(operation_id: str) -> dict[str, Any]:
         if resp.status_code == 401:
             raise HTTPException(status_code=401, detail="Invalid API key")
         resp.raise_for_status()
-        return resp.json()  # type: ignore[no-any-return]
+        data: dict[str, Any] = resp.json()
+        # Normalise nested world assets so frontend always gets flat urls
+        if data.get("done") and data.get("response"):
+            world = data["response"]
+            data["response"]["_assets"] = _extract_assets(world)
+        return data
+
+
+@app.get("/api/worlds/{world_id}")
+async def get_world(world_id: str) -> dict[str, Any]:
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.get(
+            f"{BASE_URL}/worlds/{world_id}",
+            headers=_headers(),
+        )
+        if resp.status_code == 401:
+            raise HTTPException(status_code=401, detail="Invalid API key")
+        resp.raise_for_status()
+        data: dict[str, Any] = resp.json()
+        world = data.get("world", data)
+        world["_assets"] = _extract_assets(world)
+        return data
+
+
+# ── Download proxy ────────────────────────────────────────────────────────────
+
+_ASSET_FILENAMES: dict[str, tuple[str, str]] = {
+    "splat_100k": ("world_{id}_100k.spz", "application/octet-stream"),
+    "splat_500k": ("world_{id}_500k.spz", "application/octet-stream"),
+    "splat_full": ("world_{id}_full.spz", "application/octet-stream"),
+    "mesh": ("world_{id}_collider.glb", "model/gltf-binary"),
+    "panorama": ("world_{id}_panorama.jpg", "image/jpeg"),
+}
+
+
+@app.get("/api/worlds/{world_id}/download")
+async def download_world_asset(
+    world_id: str,
+    asset_type: str = Query(..., description="splat_100k|splat_500k|splat_full|mesh|panorama"),
+    url: str = Query(..., description="Signed asset URL from completed operation"),
+) -> StreamingResponse:
+    if asset_type not in _ASSET_FILENAMES:
+        raise HTTPException(status_code=400, detail=f"Unknown asset_type: {asset_type}")
+
+    filename_template, media_type = _ASSET_FILENAMES[asset_type]
+    filename = filename_template.replace("{id}", world_id[:8])
+
+    async def _stream() -> Any:
+        async with httpx.AsyncClient(timeout=120, follow_redirects=True) as client:
+            async with client.stream("GET", url) as resp:
+                resp.raise_for_status()
+                async for chunk in resp.aiter_bytes(65536):
+                    yield chunk
+
+    return StreamingResponse(
+        _stream(),
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 # ── Generation ────────────────────────────────────────────────────────────────
@@ -256,6 +331,163 @@ async def generate_from_video(req: VideoGenRequest) -> dict[str, Any]:
         resp = await client.post(f"{BASE_URL}/worlds:generate", headers=_headers(), json=payload)
         resp.raise_for_status()
         return resp.json()  # type: ignore[no-any-return]
+
+
+# ── DCC Export ────────────────────────────────────────────────────────────────
+
+
+class ExportRequest(BaseModel):
+    world_id: str
+    world_name: str = "WorldLabs_World"
+    spz_url: str = ""
+    mesh_url: str = ""
+    splat_lod: str = "500k"  # 100k | 500k | full_res
+
+
+async def _download_to_temp(url: str, suffix: str) -> str:
+    """Download a URL to a temp file and return the local path."""
+    tmp_dir = Path(tempfile.gettempdir()) / "worldlabs"
+    tmp_dir.mkdir(exist_ok=True)
+    dest = tmp_dir / f"wl_{abs(hash(url)) % 10**8}{suffix}"
+    if dest.exists():
+        return str(dest)
+    async with httpx.AsyncClient(timeout=300, follow_redirects=True) as client:
+        async with client.stream("GET", url) as resp:
+            resp.raise_for_status()
+            with open(dest, "wb") as f:
+                async for chunk in resp.aiter_bytes(65536):
+                    f.write(chunk)
+    return str(dest)
+
+
+@app.post("/api/export/blender")
+async def export_to_blender(req: ExportRequest) -> dict[str, Any]:
+    """Download SPZ splat + GLB mesh locally then call blender-mcp bridge."""
+    blender_port = int(os.getenv("BLENDER_MCP_PORT", "10700"))
+    results: dict[str, Any] = {"world_id": req.world_id, "target": "blender"}
+
+    # Download SPZ if provided
+    if req.spz_url:
+        try:
+            spz_path = await _download_to_temp(req.spz_url, ".spz")
+            results["spz_local"] = spz_path
+            # Call blender-mcp HTTP bridge
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.post(
+                    f"http://localhost:{blender_port}/api/import/splat",
+                    json={"file_path": spz_path, "sh_degree": 3, "setup_proxy": True},
+                )
+                if resp.status_code == 200:
+                    results["splat_import"] = resp.json()
+                else:
+                    results["splat_import"] = {"status": "error", "detail": resp.text}
+        except Exception as e:
+            results["splat_import"] = {"status": "error", "detail": str(e)}
+
+    # Download + import GLB
+    if req.mesh_url:
+        try:
+            glb_path = await _download_to_temp(req.mesh_url, ".glb")
+            results["mesh_local"] = glb_path
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.post(
+                    f"http://localhost:{blender_port}/api/import/file",
+                    json={"filepath": glb_path, "file_format": "GLB"},
+                )
+                if resp.status_code == 200:
+                    results["mesh_import"] = resp.json()
+                else:
+                    results["mesh_import"] = {"status": "error", "detail": resp.text}
+        except Exception as e:
+            results["mesh_import"] = {"status": "error", "detail": str(e)}
+
+    results["status"] = "ok"
+    results["note"] = "Blender must be running with blender-mcp connected."
+    return results
+
+
+@app.post("/api/export/unity3d")
+async def export_to_unity3d(req: ExportRequest) -> dict[str, Any]:
+    """Copy GLB + SPZ into the Unity project via unity3d-mcp bridge."""
+    unity_port = int(os.getenv("UNITY3D_MCP_PORT", "10730"))
+    unity_project = os.getenv("UNITY_PROJECT_PATH", "")
+    results: dict[str, Any] = {"world_id": req.world_id, "target": "unity3d"}
+
+    if not unity_project:
+        results["status"] = "error"
+        results["note"] = "Set UNITY_PROJECT_PATH env var to your Unity project root."
+        return results
+
+    assets_to_fetch = []
+    if req.mesh_url:
+        assets_to_fetch.append((req.mesh_url, ".glb", "mesh"))
+    if req.spz_url:
+        assets_to_fetch.append((req.spz_url, ".spz", "splat"))
+
+    for url, suffix, kind in assets_to_fetch:
+        try:
+            local_path = await _download_to_temp(url, suffix)
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.post(
+                    f"http://localhost:{unity_port}/api/worldlabs/import",
+                    json={
+                        "source_path": local_path,
+                        "project_path": unity_project,
+                        "asset_name": req.world_name,
+                    },
+                )
+                if resp.status_code == 200:
+                    results[f"{kind}_import"] = resp.json()
+                else:
+                    results[f"{kind}_import"] = {"status": "error", "detail": resp.text}
+        except Exception as e:
+            results[f"{kind}_import"] = {"status": "error", "detail": str(e)}
+
+    results["status"] = "ok"
+    results["note"] = "Unity3D must be open with unity3d-mcp running."
+    return results
+
+
+@app.post("/api/export/resonite")
+async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
+    """Send world asset URL to a running Resonite client via OSC."""
+    import socket
+    import struct
+
+    osc_host = os.getenv("RESONITE_OSC_HOST", "127.0.0.1")
+    osc_port = int(os.getenv("RESONITE_OSC_PORT", "9000"))
+
+    # Build minimal OSC message for /worldlabs/import with mesh_url as string arg
+    def _encode_osc_string(s: str) -> bytes:
+        b = s.encode("utf-8") + b"\x00"
+        pad = (4 - len(b) % 4) % 4
+        return b + b"\x00" * pad
+
+    address = "/worldlabs/import"
+    type_tag = ",ss"
+    msg = (
+        _encode_osc_string(address)
+        + _encode_osc_string(type_tag)
+        + _encode_osc_string(req.mesh_url or "")
+        + _encode_osc_string(req.world_name)
+    )
+
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.sendto(msg, (osc_host, osc_port))
+        sock.close()
+        return {
+            "status": "ok",
+            "world_id": req.world_id,
+            "target": "resonite",
+            "osc_address": address,
+            "osc_host": osc_host,
+            "osc_port": osc_port,
+            "mesh_url": req.mesh_url,
+            "note": "OSC message sent. Resonite must be running with a /worldlabs/import OSC receiver.",
+        }
+    except Exception as e:
+        return {"status": "error", "world_id": req.world_id, "detail": str(e)}
 
 
 # ── Local LLM Discovery ───────────────────────────────────────────────────────

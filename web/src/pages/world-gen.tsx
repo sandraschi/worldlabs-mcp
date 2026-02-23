@@ -1,295 +1,385 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Globe2, Download, ExternalLink, Cpu, Zap, ChevronDown, ChevronRight, Upload } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
-import {
-    Globe2, Image as ImageIcon, Video, Send, Loader2,
-    CheckCircle2, XCircle, Clock, Copy, ExternalLink,
-} from 'lucide-react';
-import { api, type Operation } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import {
+    api,
+    type Operation,
+    type FlatAssets,
+    type AssetType,
+    type ExportRequest,
+    triggerDownload,
+} from '@/lib/api';
 
-type Mode = 'text' | 'image' | 'video';
-type ModelId = 'Marble 0.1-plus' | 'Marble 0.1-mini';
+const MODELS = ['Marble 0.1-plus', 'Marble 0.1-mini'] as const;
+type GenMode = 'text' | 'image' | 'video';
 
-const models: { id: ModelId; label: string; eta: string }[] = [
-    { id: 'Marble 0.1-plus', label: 'Plus', eta: '~5 min' },
-    { id: 'Marble 0.1-mini', label: 'Mini', eta: '~45 sec' },
-];
+// ── Asset Panel ───────────────────────────────────────────────────────────────
 
-function OperationCard({ op }: { op: Operation }) {
-    const status = op.metadata?.progress?.status ?? (op.done ? 'SUCCEEDED' : 'IN_PROGRESS');
-    const world = op.response?.world;
+function AssetPanel({ op, assets }: { op: Operation; assets: FlatAssets }) {
+    const worldId = op.response?.id ?? op.metadata?.world_id ?? '';
+    const worldName = op.response?.display_name ?? `World_${worldId.slice(0, 8)}`;
+    const [exportState, setExportState] = useState<Record<string, 'idle' | 'loading' | 'ok' | 'error'>>({});
 
-    const copy = (text: string) => void navigator.clipboard.writeText(text);
+    const setEs = (key: string, s: 'idle' | 'loading' | 'ok' | 'error') =>
+        setExportState(p => ({ ...p, [key]: s }));
+
+    const exportReq: ExportRequest = {
+        world_id: worldId,
+        world_name: worldName,
+        spz_url: assets.splat_500k ?? assets.splat_full ?? '',
+        mesh_url: assets.mesh ?? '',
+        splat_lod: '500k',
+    };
+
+    async function handleExport(target: 'blender' | 'unity3d' | 'resonite') {
+        setEs(target, 'loading');
+        try {
+            const fn = target === 'blender' ? api.exportToBlender
+                : target === 'unity3d' ? api.exportToUnity3D
+                    : api.exportToResonite;
+            const res = await fn(exportReq);
+            setEs(target, res.status === 'ok' ? 'ok' : 'error');
+        } catch {
+            setEs(target, 'error');
+        }
+        setTimeout(() => setEs(target, 'idle'), 3500);
+    }
+
+    const downloads: Array<{ key: AssetType; label: string; hint: string }> = [
+        { key: 'splat_100k', label: 'SPZ 100k', hint: 'Fast preview' },
+        { key: 'splat_500k', label: 'SPZ 500k', hint: 'Balanced' },
+        { key: 'splat_full', label: 'SPZ Full', hint: 'Max quality' },
+        { key: 'mesh', label: 'GLB Mesh', hint: 'Collider' },
+        { key: 'panorama', label: 'Panorama', hint: '360° image' },
+    ];
+
+    const exports: Array<{ key: 'blender' | 'unity3d' | 'resonite'; label: string; icon: string }> = [
+        { key: 'blender', label: 'Blender', icon: '🎨' },
+        { key: 'unity3d', label: 'Unity3D', icon: '🎮' },
+        { key: 'resonite', label: 'Resonite', icon: '🌐' },
+    ];
 
     return (
-        <div className={cn(
-            'glass-card p-5 space-y-3',
-            status === 'SUCCEEDED' && 'border-aurora-500/20',
-            status === 'FAILED' && 'border-red-500/20',
-        )}>
-            <div className="flex items-center gap-3">
-                {status === 'SUCCEEDED' && <CheckCircle2 className="w-5 h-5 text-aurora-400 flex-shrink-0" aria-hidden="true" />}
-                {status === 'FAILED' && <XCircle className="w-5 h-5 text-red-400 flex-shrink-0" aria-hidden="true" />}
-                {status === 'IN_PROGRESS' && <Loader2 className="w-5 h-5 text-cosmos-400 animate-spin flex-shrink-0" aria-label="Loading" />}
-                <div className="flex-1">
-                    <div className="text-sm font-semibold text-slate-200">
-                        {world?.display_name || 'World Generation'}
-                    </div>
-                    <div className="text-xs text-slate-500 font-mono mt-0.5 truncate">{op.name}</div>
+        <div className="mt-4 border-t border-white/[0.06] pt-4 space-y-4">
+            {/* Downloads */}
+            <div>
+                <p className="section-label mb-2">Download assets</p>
+                <div className="flex flex-wrap gap-2">
+                    {downloads.map(({ key, label, hint }) => {
+                        const url = assets[key];
+                        if (!url) return null;
+                        return (
+                            <button
+                                key={key}
+                                onClick={() => triggerDownload(worldId, key, url)}
+                                title={hint}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.07] hover:border-cosmos-500/40 text-xs text-slate-300 hover:text-white transition-all"
+                            >
+                                <Download className="w-3 h-3" aria-hidden="true" />
+                                {label}
+                            </button>
+                        );
+                    })}
+                    {assets.mesh && (
+                        <a
+                            href={op.response?.world_marble_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cosmos-600/20 hover:bg-cosmos-600/30 border border-cosmos-500/30 text-xs text-cosmos-300 hover:text-cosmos-200 transition-all"
+                        >
+                            <ExternalLink className="w-3 h-3" aria-hidden="true" />
+                            View in Marble
+                        </a>
+                    )}
                 </div>
-                <span className={cn(
-                    status === 'SUCCEEDED' && 'badge-success',
-                    status === 'FAILED' && 'badge-error',
-                    status === 'IN_PROGRESS' && 'badge-pending',
-                )}>
-                    {status === 'IN_PROGRESS' ? 'In Progress' : status === 'SUCCEEDED' ? 'Done' : 'Failed'}
-                </span>
             </div>
 
-            {/* Progress bar */}
-            {status === 'IN_PROGRESS' && (
-                <div className="w-full h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-                    <div className="h-full w-1/3 bg-gradient-to-r from-cosmos-500 to-void-500 rounded-full animate-pulse" />
+            {/* DCC Exports */}
+            <div>
+                <p className="section-label mb-2">Export to DCC</p>
+                <div className="flex flex-wrap gap-2">
+                    {exports.map(({ key, label, icon }) => {
+                        const state = exportState[key] ?? 'idle';
+                        return (
+                            <button
+                                key={key}
+                                onClick={() => handleExport(key)}
+                                disabled={state === 'loading'}
+                                aria-label={`Export to ${label}`}
+                                className={cn(
+                                    'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all',
+                                    state === 'loading' && 'opacity-60 cursor-not-allowed',
+                                    state === 'ok' && 'bg-aurora-500/20 border-aurora-500/40 text-aurora-300',
+                                    state === 'error' && 'bg-red-500/20 border-red-500/40 text-red-300',
+                                    state === 'idle' && 'bg-white/[0.04] border-white/[0.08] text-slate-300 hover:bg-white/[0.08] hover:text-white',
+                                )}
+                            >
+                                <span>{icon}</span>
+                                {state === 'loading' ? 'Sending…' : state === 'ok' ? `${label} ✓` : state === 'error' ? `${label} ✗` : label}
+                            </button>
+                        );
+                    })}
+                    {/* Link to in-app viewer */}
+                    {(assets.splat_500k || assets.splat_full) && (
+                        <a
+                            href={`/viewer?url=${encodeURIComponent(assets.splat_500k ?? assets.splat_full ?? '')}&name=${encodeURIComponent(worldName)}`}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-void-600/20 hover:bg-void-600/30 border border-void-500/30 text-xs text-void-300 hover:text-void-200 transition-all"
+                        >
+                            <Globe2 className="w-3 h-3" aria-hidden="true" />
+                            View in Splat Viewer
+                        </a>
+                    )}
                 </div>
+            </div>
+        </div>
+    );
+}
+
+// ── Operation card ────────────────────────────────────────────────────────────
+
+function OperationCard({ op }: { op: Operation }) {
+    const [expanded, setExpanded] = useState(false);
+    const done = op.done;
+    const failed = !!op.error || op.metadata?.progress?.status === 'FAILED';
+    const progress = op.metadata?.progress;
+    const world = op.response;
+    const assets: FlatAssets = (world as Record<string, unknown>)?._assets as FlatAssets ?? {};
+
+    return (
+        <div className={cn('glass-card p-4 space-y-2 transition-all', done && !failed && 'border-aurora-500/20')}>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    {failed ? (
+                        <span className="badge-error">Failed</span>
+                    ) : done ? (
+                        <span className="badge-success">Done</span>
+                    ) : (
+                        <span className="badge-pending animate-pulse">Generating…</span>
+                    )}
+                    <code className="text-xs font-mono text-slate-500">{op.operation_id.slice(0, 16)}…</code>
+                </div>
+                <button
+                    onClick={() => setExpanded(p => !p)}
+                    aria-expanded={expanded}
+                    aria-label="Toggle operation details"
+                    className="text-slate-500 hover:text-slate-300 transition-colors"
+                >
+                    {expanded ? <ChevronDown className="w-4 h-4" aria-hidden="true" /> : <ChevronRight className="w-4 h-4" aria-hidden="true" />}
+                </button>
+            </div>
+
+            {/* Progress description */}
+            {progress?.description && (
+                <p className="text-xs text-slate-500">{progress.description}</p>
             )}
 
             {/* Thumbnail */}
-            {world?.assets?.thumbnail_url && (
+            {done && !failed && assets.thumbnail && (
                 <img
-                    src={world.assets.thumbnail_url}
-                    alt={world.display_name ?? 'Generated world thumbnail'}
-                    className="w-full h-40 object-cover rounded-lg border border-white/[0.06]"
+                    src={assets.thumbnail}
+                    alt="World thumbnail"
+                    className="w-full rounded-lg object-cover max-h-48"
                 />
             )}
 
             {/* Caption */}
-            {world?.assets?.caption && (
-                <p className="text-xs text-slate-400 italic">{world.assets.caption}</p>
+            {done && !failed && assets.caption && (
+                <p className="text-xs text-slate-400 leading-relaxed">{assets.caption}</p>
             )}
 
-            {/* Links */}
-            {world?.assets && (
-                <div className="flex flex-wrap gap-2">
-                    {world.assets.splat_url && (
-                        <a href={world.assets.splat_url} target="_blank" rel="noopener noreferrer"
-                            className="badge-info gap-1 cursor-pointer hover:opacity-80 transition-opacity">
-                            <ExternalLink className="w-3 h-3" aria-hidden="true" /> Splat
-                        </a>
-                    )}
-                    {world.assets.mesh_url && (
-                        <a href={world.assets.mesh_url} target="_blank" rel="noopener noreferrer"
-                            className="badge-info gap-1 cursor-pointer hover:opacity-80 transition-opacity">
-                            <ExternalLink className="w-3 h-3" aria-hidden="true" /> Mesh
-                        </a>
-                    )}
-                    {world.assets.panorama_url && (
-                        <a href={world.assets.panorama_url} target="_blank" rel="noopener noreferrer"
-                            className="badge-info gap-1 cursor-pointer hover:opacity-80 transition-opacity">
-                            <ExternalLink className="w-3 h-3" aria-hidden="true" /> Panorama
-                        </a>
-                    )}
-                </div>
+            {/* Error */}
+            {failed && (
+                <p className="text-xs text-red-400">{op.error ?? 'Generation failed'}</p>
             )}
 
-            {/* Copy operation ID */}
-            <button
-                onClick={() => copy(op.name)}
-                title="Copy operation ID"
-                aria-label="Copy operation ID"
-                className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
-            >
-                <Copy className="w-3 h-3" aria-hidden="true" /> Copy operation ID
-            </button>
+            {/* Asset panel */}
+            {done && !failed && (
+                <AssetPanel op={op} assets={assets} />
+            )}
 
-            {op.error && (
-                <div className="text-xs text-red-400 bg-red-500/10 rounded-lg px-3 py-2">
-                    Error {op.error.code}: {op.error.message}
-                </div>
+            {/* Raw JSON */}
+            {expanded && (
+                <pre className="text-[10px] font-mono text-slate-600 overflow-auto max-h-48 bg-black/20 rounded p-2">
+                    {JSON.stringify(op, null, 2)}
+                </pre>
             )}
         </div>
     );
 }
 
+// ── Main page ─────────────────────────────────────────────────────────────────
+
 export function WorldGen() {
-    const [mode, setMode] = useState<Mode>('text');
-    const [model, setModel] = useState<ModelId>('Marble 0.1-plus');
-    const [textPrompt, setTextPrompt] = useState('');
-    const [displayName, setDisplayName] = useState('');
+    const [mode, setMode] = useState<GenMode>('text');
+    const [model, setModel] = useState<string>(MODELS[0]);
+    const [prompt, setPrompt] = useState('');
     const [mediaUrl, setMediaUrl] = useState('');
-    const [isPano, setIsPano] = useState(false);
-    const [results, setResults] = useState<Operation[]>([]);
+    const [name, setName] = useState('');
+    const [isPanorama, setIsPanorama] = useState(false);
+    const [operations, setOperations] = useState<Operation[]>([]);
+    const pollMap = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
+
+    const startPolling = useCallback((opId: string) => {
+        if (pollMap.current.has(opId)) return;
+        const iv = setInterval(async () => {
+            try {
+                const op = await api.getOperation(opId);
+                setOperations(prev => prev.map(o => o.operation_id === opId ? op : o));
+                if (op.done || op.error) {
+                    clearInterval(iv);
+                    pollMap.current.delete(opId);
+                }
+            } catch { /* network blip — keep polling */ }
+        }, 8000);
+        pollMap.current.set(opId, iv);
+    }, []);
+
+    useEffect(() => () => { pollMap.current.forEach(iv => clearInterval(iv)); }, []);
+
+    const addOp = (op: Operation) => {
+        setOperations(prev => [op, ...prev]);
+        if (!op.done) startPolling(op.operation_id);
+    };
 
     const generateMutation = useMutation({
         mutationFn: async () => {
-            if (mode === 'text') return api.generateFromText(textPrompt, displayName, model);
-            if (mode === 'image') return api.generateFromImage(mediaUrl, textPrompt, displayName, model, isPano);
-            return api.generateFromVideo(mediaUrl, textPrompt, displayName, model);
+            switch (mode) {
+                case 'text': return api.generateText(prompt, name, model);
+                case 'image': return api.generateImage(mediaUrl, prompt, name, model, isPanorama);
+                case 'video': return api.generateVideo(mediaUrl, prompt, name, model);
+            }
         },
-        onSuccess: (data) => {
-            setResults(prev => [data, ...prev]);
-        },
+        onSuccess: addOp,
     });
 
-    const canSubmit = mode === 'text' ? textPrompt.trim().length > 0 : mediaUrl.trim().length > 0;
-
-    const modeButtons: { id: Mode; label: string; icon: React.ElementType }[] = [
-        { id: 'text', label: 'Text', icon: Globe2 },
-        { id: 'image', label: 'Image', icon: ImageIcon },
-        { id: 'video', label: 'Video', icon: Video },
-    ];
+    const canSubmit = mode === 'text' ? prompt.trim().length > 0 : mediaUrl.trim().length > 0;
 
     return (
-        <div className="space-y-6 page-enter max-w-4xl mx-auto">
-            <div>
-                <h2 className="text-lg font-bold gradient-text">World Generation</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Generate 3D spatial worlds via the Marble API</p>
+        <div className="space-y-6 page-enter">
+            <div className="flex items-center gap-3">
+                <Globe2 className="w-5 h-5 text-cosmos-400" aria-hidden="true" />
+                <div>
+                    <h2 className="text-lg font-bold gradient-text">World Generation</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">Generate 3D worlds with the Marble API</p>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Form */}
-                <div className="space-y-4">
-                    {/* Mode tabs */}
-                    <div className="glass-card p-1 flex gap-1" role="tablist" aria-label="Generation mode">
-                        {modeButtons.map(({ id, label, icon: Icon }) => (
-                            <button
-                                key={id}
-                                role="tab"
-                                aria-selected={mode === id}
-                                onClick={() => setMode(id)}
-                                className={cn(
-                                    'flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all',
-                                    mode === id
-                                        ? 'bg-cosmos-600/40 text-cosmos-300 border border-cosmos-500/30'
-                                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]',
-                                )}
-                            >
-                                <Icon className="w-4 h-4" aria-hidden="true" />
-                                {label}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Model select */}
-                    <div className="glass-card p-4 space-y-3">
-                        <label className="section-label">Model</label>
-                        <div className="flex gap-2">
-                            {models.map(m => (
-                                <button
-                                    key={m.id}
-                                    onClick={() => setModel(m.id)}
-                                    className={cn(
-                                        'flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-all',
-                                        model === m.id
-                                            ? 'bg-void-600/30 text-void-300 border-void-500/40'
-                                            : 'text-slate-400 border-white/[0.06] hover:bg-white/[0.04]',
-                                    )}
-                                    aria-pressed={model === m.id}
-                                >
-                                    {m.label}
-                                    <span className="ml-1.5 text-[10px] text-slate-500">({m.eta})</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Input fields */}
-                    <div className="glass-card p-4 space-y-3">
-                        {(mode === 'image' || mode === 'video') && (
-                            <div className="space-y-1.5">
-                                <label htmlFor="media-url" className="section-label block">
-                                    {mode === 'image' ? 'Image URL' : 'Video URL'}
-                                </label>
-                                <input
-                                    id="media-url"
-                                    type="url"
-                                    className="input-glass"
-                                    placeholder={mode === 'image' ? 'https://example.com/photo.jpg' : 'https://example.com/video.mp4'}
-                                    value={mediaUrl}
-                                    onChange={e => setMediaUrl(e.target.value)}
-                                />
-                                {mode === 'image' && (
-                                    <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer mt-1">
-                                        <input
-                                            type="checkbox"
-                                            checked={isPano}
-                                            onChange={e => setIsPano(e.target.checked)}
-                                            className="accent-cosmos-500"
-                                            aria-label="Is panorama image"
-                                        />
-                                        360° Panorama image
-                                    </label>
-                                )}
-                            </div>
-                        )}
-
-                        <div className="space-y-1.5">
-                            <label htmlFor="text-prompt" className="section-label block">
-                                {mode === 'text' ? 'World Description *' : 'Text Hint (optional)'}
-                            </label>
-                            <textarea
-                                id="text-prompt"
-                                className="input-glass min-h-[100px] resize-none"
-                                placeholder={mode === 'text'
-                                    ? 'A tranquil Japanese garden with a koi pond, mossy stones and maple trees in autumn…'
-                                    : 'Optional text hint to guide the generation…'
-                                }
-                                value={textPrompt}
-                                onChange={e => setTextPrompt(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <label htmlFor="display-name" className="section-label block">World Name (optional)</label>
-                            <input
-                                id="display-name"
-                                type="text"
-                                className="input-glass"
-                                placeholder="My Autumn Garden"
-                                value={displayName}
-                                onChange={e => setDisplayName(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Submit */}
-                    <button
-                        onClick={() => generateMutation.mutate()}
-                        disabled={!canSubmit || generateMutation.isPending}
-                        className={cn(
-                            'w-full btn-glow flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white transition-all',
-                            (!canSubmit || generateMutation.isPending) && 'opacity-50 cursor-not-allowed',
-                        )}
-                    >
-                        {generateMutation.isPending
-                            ? <><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> Generating…</>
-                            : <><Send className="w-4 h-4" aria-hidden="true" /> Generate World</>
-                        }
-                    </button>
-
-                    {generateMutation.isError && (
-                        <div className="glass-card p-3 border-red-500/20 text-sm text-red-400">
-                            {String(generateMutation.error)}
-                        </div>
-                    )}
-                </div>
-
-                {/* Results */}
-                <div className="space-y-3">
-                    <h3 className="section-label flex items-center gap-2">
-                        <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-                        Results ({results.length})
-                    </h3>
-                    {results.length === 0 && (
-                        <div className="glass-card p-8 text-center text-sm text-slate-500">
-                            <Globe2 className="w-8 h-8 text-slate-700 mx-auto mb-3" aria-hidden="true" />
-                            Operations will appear here after generation starts.
-                        </div>
-                    )}
-                    {results.map((op, i) => (
-                        <OperationCard key={op.name ?? i} op={op} />
+            {/* Controls */}
+            <div className="glass-card p-5 space-y-4">
+                {/* Mode tabs */}
+                <div className="flex gap-1 p-1 bg-black/20 rounded-lg w-fit" role="tablist" aria-label="Generation mode">
+                    {(['text', 'image', 'video'] as GenMode[]).map(m => (
+                        <button
+                            key={m}
+                            role="tab"
+                            aria-selected={mode === m}
+                            onClick={() => setMode(m)}
+                            className={cn(
+                                'px-4 py-1.5 rounded-md text-xs font-medium capitalize transition-all',
+                                mode === m
+                                    ? 'bg-cosmos-600 text-white shadow'
+                                    : 'text-slate-500 hover:text-slate-300',
+                            )}
+                        >
+                            {m}
+                        </button>
                     ))}
                 </div>
+
+                {/* Model selector */}
+                <div className="flex gap-2 flex-wrap">
+                    {MODELS.map(m => (
+                        <button
+                            key={m}
+                            aria-pressed={model === m}
+                            onClick={() => setModel(m)}
+                            className={cn(
+                                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all',
+                                model === m
+                                    ? 'border-cosmos-500/60 bg-cosmos-600/20 text-cosmos-300'
+                                    : 'border-white/[0.08] text-slate-500 hover:text-slate-300',
+                            )}
+                        >
+                            {m.includes('plus') ? <Zap className="w-3 h-3" aria-hidden="true" /> : <Cpu className="w-3 h-3" aria-hidden="true" />}
+                            {m}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Text prompt */}
+                <textarea
+                    value={prompt}
+                    onChange={e => setPrompt(e.target.value)}
+                    placeholder={mode === 'text' ? 'Describe the world to generate…' : 'Optional: describe adjustments…'}
+                    rows={3}
+                    className="input-glass resize-none"
+                    aria-label="World description prompt"
+                />
+
+                {/* Media URL (image / video) */}
+                {mode !== 'text' && (
+                    <input
+                        type="url"
+                        value={mediaUrl}
+                        onChange={e => setMediaUrl(e.target.value)}
+                        placeholder={mode === 'image' ? 'https://…/image.jpg' : 'https://…/video.mp4'}
+                        className="input-glass"
+                        aria-label={mode === 'image' ? 'Image URL' : 'Video URL'}
+                    />
+                )}
+
+                {/* Panorama toggle (image only) */}
+                {mode === 'image' && (
+                    <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer select-none w-fit">
+                        <input
+                            type="checkbox"
+                            checked={isPanorama}
+                            onChange={e => setIsPanorama(e.target.checked)}
+                            className="rounded border-white/20 bg-white/[0.05]"
+                            aria-label="Input image is a 360° panorama"
+                        />
+                        Input is a 360° panorama
+                    </label>
+                )}
+
+                {/* Optional name */}
+                <input
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder="Display name (optional)"
+                    className="input-glass"
+                    aria-label="World display name"
+                />
+
+                {/* Generate button */}
+                <button
+                    onClick={() => generateMutation.mutate()}
+                    disabled={!canSubmit || generateMutation.isPending}
+                    aria-label="Generate world"
+                    className={cn(
+                        'btn-glow px-6 py-2.5 rounded-xl text-sm font-bold text-white w-full transition-all',
+                        (!canSubmit || generateMutation.isPending) && 'opacity-50 cursor-not-allowed',
+                    )}
+                >
+                    {generateMutation.isPending ? 'Submitting…' : 'Generate World'}
+                </button>
+
+                {generateMutation.error instanceof Error && (
+                    <p className="text-xs text-red-400">{generateMutation.error.message}</p>
+                )}
             </div>
+
+            {/* Operations */}
+            {operations.length > 0 && (
+                <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-slate-400">Generations</h3>
+                    {operations.map(op => (
+                        <OperationCard key={op.operation_id} op={op} />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
