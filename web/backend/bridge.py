@@ -6,6 +6,16 @@ Runs on port 10865, serves API for the React frontend on port 10864.
 from __future__ import annotations
 
 import os
+from pathlib import Path
+
+# Load .env from repo root (two levels up from web/backend/)
+try:
+    from dotenv import load_dotenv
+
+    _env_path = Path(__file__).parent.parent.parent / ".env"
+    load_dotenv(_env_path, override=False)
+except ImportError:
+    pass  # python-dotenv optional; use real env vars or start.ps1 injection
 import time
 from typing import Any
 
