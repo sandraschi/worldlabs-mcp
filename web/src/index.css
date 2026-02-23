@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        color-scheme: dark;
+    }
+
+    * {
+        @apply border-cosmos-800/40;
+    }
+
+    body {
+        @apply bg-[#0a0812] text-slate-100 font-sans antialiased;
+        background-image:
+            radial-gradient(ellipse 80% 60% at 50% -20%, rgba(92, 84, 255, 0.12) 0%, transparent 70%),
+            radial-gradient(ellipse 40% 40% at 90% 10%, rgba(116, 68, 255, 0.08) 0%, transparent 60%);
+    }
+
+    ::-webkit-scrollbar {
+        @apply w-1.5;
+    }
+
+    ::-webkit-scrollbar-track {
+        @apply bg-transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        @apply bg-cosmos-700/60 rounded-full;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-cosmos-600/80;
+    }
+}
+
+@layer components {
+
+    /* Glass card — core glassmorphism component */
+    .glass-card {
+        @apply bg-white/[0.04] backdrop-blur-sm border border-white/[0.06] rounded-xl;
+    }
+
+    .glass-card-hover {
+        @apply glass-card transition-all duration-200 hover:bg-white/[0.07] hover:border-white/[0.1] hover:shadow-lg hover:shadow-cosmos-900/30;
+    }
+
+    /* Gradient text */
+    .gradient-text {
+        @apply bg-gradient-to-r from-cosmos-400 via-void-400 to-nebula-400 bg-clip-text text-transparent;
+    }
+
+    /* Glow button */
+    .btn-glow {
+        @apply relative overflow-hidden transition-all duration-200 bg-gradient-to-r from-cosmos-600 to-void-600 hover:from-cosmos-500 hover:to-void-500;
+        box-shadow: 0 0 20px rgba(92, 84, 255, 0.25);
+    }
+
+    .btn-glow:hover {
+        box-shadow: 0 0 30px rgba(92, 84, 255, 0.4);
+    }
+
+    /* Status badges */
+    .badge-success {
+        @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-aurora-500/20 text-aurora-400 border border-aurora-500/30;
+    }
+
+    .badge-pending {
+        @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30;
+    }
+
+    .badge-error {
+        @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30;
+    }
+
+    .badge-info {
+        @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-cosmos-500/20 text-cosmos-400 border border-cosmos-500/30;
+    }
+
+    /* Page transition */
+    .page-enter {
+        @apply animate-fade-in;
+    }
+
+    /* Input styles */
+    .input-glass {
+        @apply w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cosmos-500/50 focus:bg-white/[0.07] transition-all duration-200;
+    }
+
+    /* Section header */
+    .section-label {
+        @apply text-[10px] font-semibold uppercase tracking-widest text-slate-500;
+    }
+}
