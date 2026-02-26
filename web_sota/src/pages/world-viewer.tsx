@@ -37,6 +37,12 @@ export function WorldViewer() {
         if (!mountRef.current) return;
         setStatus('loading');
         setError('');
+
+        // Cleanup previous object URLs if they were transient
+        if (urlInput.startsWith('blob:') && urlInput !== url) {
+            URL.revokeObjectURL(urlInput);
+        }
+
         destroyViewer();
 
         try {
@@ -47,17 +53,22 @@ export function WorldViewer() {
                 rootElement: mountRef.current,
                 sceneRevealMode: GaussianSplats3D.SceneRevealMode.Gradual,
                 selfDrivenMode: true,
+                antialiased: true,
+                transparentBackground: true,
+                integerCascadedLOD: false,
             });
 
             await viewer.addSplatScene(url, {
                 splatAlphaRemovalThreshold: 5,
                 showLoadingUI: false,
+                streamView: true,
             });
 
             viewer.start();
             viewerRef.current = viewer;
             setStatus('ready');
         } catch (e) {
+            console.error('Splat load error:', e);
             setError(String(e));
             setStatus('error');
         }
@@ -67,7 +78,8 @@ export function WorldViewer() {
         const file = e.target.files?.[0];
         if (!file) return;
         setLoadedName(file.name);
-        const objectUrl = URL.createObjectURL(file);
+        // Append format hint for blob URLs so the viewer knows it's an SPZ file
+        const objectUrl = URL.createObjectURL(file) + (file.name.endsWith('.spz') ? '#.spz' : '');
         setUrlInput(objectUrl);
         void loadFromUrl(objectUrl);
     }
@@ -84,7 +96,8 @@ export function WorldViewer() {
 
     function handleLoadUrl() {
         if (urlInput.trim()) {
-            setLoadedName(new URL(urlInput).pathname.split('/').at(-1) ?? 'World');
+            const segments = new URL(urlInput).pathname.split('/');
+            setLoadedName(segments[segments.length - 1] || 'World');
             void loadFromUrl(urlInput.trim());
         }
     }

@@ -3,8 +3,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Dashboard } from '@/pages/dashboard';
 import { Status } from '@/pages/status';
-import { WorldGen } from '@/pages/world-gen';
-import { WorldViewer } from '@/pages/world-viewer';
+import { Tools } from '@/pages/tools';
+import Architect from '@/pages/world-gen';
+import { WorldViewer as Library } from '@/pages/world-viewer';
 import { ToolsExplorer } from '@/pages/tools-explorer';
 import { LocalLlm } from '@/pages/local-llm';
 import { Apps } from '@/pages/apps';
@@ -25,8 +26,9 @@ function App() {
                     <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/status" element={<Status />} />
-                        <Route path="/tools" element={<WorldGen />} />
-                        <Route path="/viewer" element={<WorldViewer />} />
+                        <Route path="/tools" element={<Tools />} />
+                        <Route path="/architect" element={<Architect />} />
+                        <Route path="/library" element={<Library />} />
                         <Route path="/tools-explorer" element={<ToolsExplorer />} />
                         <Route path="/local-llm" element={<LocalLlm />} />
                         <Route path="/apps" element={<Apps />} />

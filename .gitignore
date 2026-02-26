@@ -9,15 +9,19 @@ dist/
 venv/
 .env
 
-# uv
+# uv - .python-version is local config, uv.lock should be committed (reproducible installs)
 .python-version
-uv.lock
 
-# Node / frontend
+# Node / frontend — web/ is deprecated; web_sota/ is the active webapp
 web/node_modules/
 web/dist/
 web/.vite-cache/
 web/*.tsbuildinfo
+web/**/*.tsbuildinfo
+web_sota/node_modules/
+web_sota/dist/
+web_sota/.vite-cache/
+web_sota/*.tsbuildinfo
 
 # Build artifacts
 *.mcpb
@@ -39,3 +43,10 @@ Thumbs.db
 # Secrets
 .env
 .env.local
+
+# Bridge data (stored in %APPDATA%\worldlabs-mcp, not in repo)
+web_sota/backend/history.json
+web_sota/backend/prompts.json
+
+# fileops backup files
+*.bak

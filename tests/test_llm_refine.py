@@ -1,0 +1,49 @@
+import sys
+
+import pytest
+from pytest_httpx import HTTPXMock
+
+# Use absolute path to backend
+BACKEND_PATH = r"d:\Dev\repos\worldlabs-mcp\web_sota\backend"
+if BACKEND_PATH not in sys.path:
+    sys.path.append(BACKEND_PATH)
+
+
+@pytest.mark.asyncio
+async def test_refine_prompt_ollama(httpx_mock: HTTPXMock):
+    from bridge import app
+    from httpx import AsyncClient
+
+    httpx_mock.add_response(
+        method="POST",
+        url="http://localhost:11434/api/chat",
+        json={"message": {"content": "Descriptive refined prompt"}},
+    )
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post(
+            "/api/llm/refine", json={"prompt": "forest", "provider": "ollama", "model": "llama3"}
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"refined": "Descriptive refined prompt"}
+
+
+@pytest.mark.asyncio
+async def test_refine_prompt_lmstudio(httpx_mock: HTTPXMock):
+    from bridge import app
+    from httpx import AsyncClient
+
+    httpx_mock.add_response(
+        method="POST",
+        url="http://localhost:1234/v1/chat/completions",
+        json={"choices": [{"message": {"content": "Pro world design prompt"}}]},
+    )
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post(
+            "/api/llm/refine", json={"prompt": "city", "provider": "lmstudio", "model": "qwen2"}
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"refined": "Pro world design prompt"}

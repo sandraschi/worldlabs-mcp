@@ -13,6 +13,7 @@ import {
     ChevronRight,
     Zap,
     Menu,
+    Wand2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -31,14 +32,12 @@ export function useSidebar() {
 }
 
 const navItems = [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/status', label: 'Status', icon: Activity },
-    { to: '/tools', label: 'World Gen', icon: Globe2 },
-    { to: '/tools-explorer', label: 'Tools', icon: Wrench },
-    { to: '/local-llm', label: 'Local LLM', icon: Cpu },
-    { to: '/apps', label: 'Apps', icon: Grid3x3 },
-    { to: '/help', label: 'Help', icon: HelpCircle },
-    { to: '/settings', label: 'Settings', icon: Settings },
+    { to: '/', label: 'Overview', icon: LayoutDashboard },
+    { to: '/status', label: 'Bridge Health', icon: Activity },
+    { to: '/tools', label: 'Spatial Tools', icon: Wrench },
+    { to: '/architect', label: 'World Architect', icon: Wand2 },
+    { to: '/library', label: 'World Library', icon: Globe2 },
+    { to: '/settings', label: 'Configuration', icon: Settings },
 ];
 
 function Sidebar() {
@@ -66,7 +65,7 @@ function Sidebar() {
                 {!collapsed && (
                     <div className="animate-fade-in min-w-0">
                         <div className="text-sm font-bold text-white truncate">World Labs</div>
-                        <div className="text-[10px] text-cosmos-400 font-medium truncate">MCP Server</div>
+                        <div className="text-[11px] text-cosmos-300 font-medium truncate">MCP Server</div>
                     </div>
                 )}
             </div>
@@ -107,7 +106,7 @@ function Sidebar() {
                 <div className="px-3 py-3 border-t border-white/[0.06]">
                     <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white/[0.03]">
                         <Zap className="w-3 h-3 text-cosmos-400 flex-shrink-0" aria-hidden="true" />
-                        <span className="text-[11px] text-slate-500">Marble API v1</span>
+                        <span className="text-xs text-slate-400">Marble API v1</span>
                     </div>
                 </div>
             )}
@@ -170,7 +169,7 @@ function Topbar() {
             {/* Status pill */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-aurora-500/10 border border-aurora-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-aurora-400 animate-pulse-slow" aria-hidden="true" />
-                <span className="text-[11px] font-medium text-aurora-400">Live</span>
+                <span className="text-xs font-semibold text-aurora-400">Live</span>
             </div>
 
             {/* World Labs link */}
@@ -178,7 +177,7 @@ function Topbar() {
                 href="https://platform.worldlabs.ai"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] text-slate-400 hover:text-white hover:bg-white/[0.06] transition-all"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all"
                 title="World Labs Platform"
             >
                 <Globe2 className="w-3.5 h-3.5" aria-hidden="true" />

@@ -60,6 +60,16 @@ export interface Operation {
     response?: World | null;
 }
 
+/** Payload emitted by the SSE /api/operations/{id}/stream endpoint */
+export interface OperationStreamEvent {
+    operation_id: string;
+    done: boolean;
+    status: 'IN_PROGRESS' | 'SUCCEEDED' | 'FAILED' | 'POLL_ERROR' | 'TIMEOUT';
+    description?: string;
+    elapsed_seconds?: number;
+    response?: World | null;
+}
+
 export interface ToolInfo {
     name: string;
     description: string;
@@ -107,6 +117,20 @@ export interface ExportRequest {
     splat_lod?: string;
 }
 
+export interface RefineRequest {
+    prompt: string;
+    style?: string;
+    provider: string;
+    model: string;
+}
+
+export interface HandoffRequest {
+    world_id: string;
+    target: 'resonite' | 'unity3d' | 'blender';
+    asset_type: 'splat' | 'mesh';
+    asset_url: string;
+}
+
 export interface ExportResult {
     status: string;
     world_id: string;
@@ -114,6 +138,22 @@ export interface ExportResult {
     note?: string;
     detail?: string;
     [key: string]: unknown;
+}
+
+export interface PromptEntry {
+    id: string;
+    text: string;
+    style: string;
+    timestamp: string;
+    fave: boolean;
+    star: boolean;
+    comment: string;
+}
+
+export interface PromptUpdate {
+    fave?: boolean;
+    star?: boolean;
+    comment?: string;
 }
 
 // ── HTTP helpers ──────────────────────────────────────────────────────────────
@@ -134,6 +174,24 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     return res.json() as Promise<T>;
 }
 
+async function patch<T>(path: string, body: unknown): Promise<T> {
+    const res = await fetch(`${BASE}${path}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+    return res.json() as Promise<T>;
+}
+
+async function del<T>(path: string): Promise<T> {
+    const res = await fetch(`${BASE}${path}`, {
+        method: 'DELETE',
+    });
+    if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+    return res.json() as Promise<T>;
+}
+
 // ── Download helper ───────────────────────────────────────────────────────────
 
 export function downloadAssetUrl(worldId: string, assetType: AssetType, assetUrl: string): string {
@@ -148,6 +206,41 @@ export function triggerDownload(worldId: string, assetType: AssetType, assetUrl:
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+}
+
+// ── SSE streaming helper ──────────────────────────────────────────────────────
+
+/**
+ * Opens an SSE connection to the bridge's stream endpoint and calls
+ * onEvent for each update until done=true or the stream errors.
+ * Returns a cleanup function to close the connection early.
+ */
+export function streamOperation(
+    operationId: string,
+    onEvent: (event: OperationStreamEvent) => void,
+    onError?: (err: Event) => void,
+): () => void {
+    const url = `${BASE}/operations/${operationId}/stream`;
+    const es = new EventSource(url);
+
+    es.onmessage = (msg) => {
+        try {
+            const event = JSON.parse(msg.data) as OperationStreamEvent;
+            onEvent(event);
+            if (event.done) {
+                es.close();
+            }
+        } catch {
+            // ignore malformed events
+        }
+    };
+
+    es.onerror = (err) => {
+        es.close();
+        onError?.(err);
+    };
+
+    return () => es.close();
 }
 
 // ── API client ────────────────────────────────────────────────────────────────
@@ -170,9 +263,22 @@ export const api = {
 
     // LLM discovery
     discoverLlms: () => get<LlmDiscoveryResult>('/llm/discover'),
+    refinePrompt: (req: RefineRequest) => post<{ refined: string }>('/llm/refine', req),
 
     // DCC export
     exportToBlender: (req: ExportRequest) => post<ExportResult>('/export/blender', req),
     exportToUnity3D: (req: ExportRequest) => post<ExportResult>('/export/unity3d', req),
     exportToResonite: (req: ExportRequest) => post<ExportResult>('/export/resonite', req),
+
+    // Unified Handoff
+    handoffAsset: (req: HandoffRequest) => post<ExportResult>('/handoff', req),
+
+    // History
+    getHistory: () => get<Operation[]>('/history'),
+
+    // Prompt Memory
+    getPrompts: () => get<PromptEntry[]>('/prompts'),
+    createPrompt: (entry: Partial<PromptEntry>) => post<PromptEntry>('/prompts', entry),
+    updatePrompt: (id: string, update: PromptUpdate) => patch<PromptEntry>(`/prompts/${id}`, update),
+    deletePrompt: (id: string) => del<{ status: string }>(`/prompts/${id}`),
 };

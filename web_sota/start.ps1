@@ -3,9 +3,16 @@ $BackendPort = 10865
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $BackendDir = Join-Path $PSScriptRoot "backend"
 
-Write-Host "World Labs MCP Webapp Launcher" -ForegroundColor Cyan
-Write-Host "Frontend: http://localhost:$FrontendPort" -ForegroundColor White
-Write-Host "Backend:  http://localhost:$BackendPort" -ForegroundColor White
+# Data directory (matches bridge.py logic)
+$DataDir = Join-Path $env:APPDATA "worldlabs-mcp"
+
+Write-Host ""
+Write-Host "  World Labs MCP Webapp" -ForegroundColor Cyan
+Write-Host "  ----------------------" -ForegroundColor DarkGray
+Write-Host "  Frontend : http://localhost:$FrontendPort" -ForegroundColor White
+Write-Host "  Backend  : http://localhost:$BackendPort" -ForegroundColor White
+Write-Host "  Data dir : $DataDir" -ForegroundColor DarkGray
+Write-Host ""
 
 # 1. Clear ports
 Write-Host "Clearing ports..." -ForegroundColor Yellow
@@ -36,17 +43,26 @@ else {
     Write-Host "No .env found at $envFile -- continuing without it" -ForegroundColor DarkYellow
 }
 
+# Warn if API key is missing
+if (-not $env:WORLDLABS_API_KEY) {
+    Write-Host ""
+    Write-Host "  WARNING: WORLDLABS_API_KEY is not set." -ForegroundColor Red
+    Write-Host "  Add it to .env or set it in your environment." -ForegroundColor Red
+    Write-Host ""
+}
+
 # 3. Install Python deps
 Write-Host "Checking Python deps..." -ForegroundColor Yellow
 Set-Location $ProjectRoot
-uv pip install fastapi uvicorn httpx python-dotenv 2>$null | Out-Null
+uv pip install fastapi uvicorn httpx python-dotenv psutil 2>$null | Out-Null
 
 # 4. Start backend (non-blocking)
 Write-Host "Starting backend on :$BackendPort ..." -ForegroundColor Green
 $env:WEB_PORT = $BackendPort
+$env:FRONTEND_ORIGIN = "http://localhost:$FrontendPort"
 $bridgePath = Join-Path $BackendDir "bridge.py"
 Start-Process uv -ArgumentList "run", "--", "python", $bridgePath -WindowStyle Hidden
-Start-Sleep -Milliseconds 1200
+Start-Sleep -Milliseconds 1500
 
 # 5. Start frontend
 Write-Host "Starting frontend on :$FrontendPort ..." -ForegroundColor Green

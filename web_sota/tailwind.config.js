@@ -38,9 +38,11 @@ export default {
                     600: '#9333ea',
                 },
                 aurora: {
+                    300: '#6ee7b7',
                     400: '#34d399',
                     500: '#10b981',
                     600: '#059669',
+                    950: '#022c22',   // deep green for modal background
                 },
             },
             fontFamily: {
@@ -54,6 +56,7 @@ export default {
                 'float': 'float 6s ease-in-out infinite',
                 'glow': 'glow 2s ease-in-out infinite alternate',
                 'spin-slow': 'spin 8s linear infinite',
+                'progress-slide': 'progress-slide 1.8s ease-in-out infinite',
             },
             keyframes: {
                 'fade-in': {
@@ -71,6 +74,11 @@ export default {
                 glow: {
                     '0%': { boxShadow: '0 0 5px rgba(92,84,255,0.3)' },
                     '100%': { boxShadow: '0 0 20px rgba(92,84,255,0.7), 0 0 40px rgba(92,84,255,0.3)' },
+                },
+                'progress-slide': {
+                    '0%':   { transform: 'translateX(-100%)' },
+                    '60%':  { transform: 'translateX(250%)' },
+                    '100%': { transform: 'translateX(400%)' },
                 },
             },
             backdropBlur: { xs: '2px' },

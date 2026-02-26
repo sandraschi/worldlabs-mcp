@@ -1,0 +1,53 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "maintainers": ["sandraschi"],
+  "name": "worldlabs-mcp",
+  "description": "Generate explorable 3D worlds from text, images, and video using the World Labs Marble API. Supports Gaussian splat output (SPZ), collision mesh (GLB), panorama, and thumbnail assets.",
+  "type": "mcp_server",
+  "status": "beta",
+  "framework": "FastMCP 2.12+",
+  "tools": 11,
+  "transport": ["stdio"],
+  "keywords": [
+    "worldlabs",
+    "marble",
+    "3d-world-generation",
+    "gaussian-splat",
+    "spatial-intelligence",
+    "fastmcp",
+    "ai",
+    "image-to-3d",
+    "text-to-3d",
+    "video-to-3d"
+  ],
+  "features": {
+    "text_to_world": {
+      "enabled": true,
+      "description": "Generate 3D worlds from text prompts"
+    },
+    "image_to_world": {
+      "enabled": true,
+      "description": "Generate 3D worlds from images (including panoramas)"
+    },
+    "multi_image_to_world": {
+      "enabled": true,
+      "description": "Generate 3D worlds from multiple images at azimuth angles"
+    },
+    "video_to_world": {
+      "enabled": true,
+      "description": "Generate 3D worlds from video files"
+    },
+    "local_file_upload": {
+      "enabled": true,
+      "description": "Upload local files and generate worlds end-to-end"
+    },
+    "operation_polling": {
+      "enabled": true,
+      "description": "Poll and wait for async generation operations"
+    },
+    "world_management": {
+      "enabled": true,
+      "description": "List and retrieve world details and asset URLs"
+    }
+  }
+}
