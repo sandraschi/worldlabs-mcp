@@ -1,6 +1,6 @@
 import {
     HelpCircle, Globe2, Clock, Wrench, BookOpen,
-    Code2, MessageSquare, Key, ArrowRight,
+    Code2, MessageSquare, Key, ArrowRight, Layers,
 } from 'lucide-react';
 
 interface Section {
@@ -116,6 +116,44 @@ export function Help() {
                         <BookOpen className="w-3 h-3" aria-hidden="true" />
                         Get your API key →
                     </a>
+                </div>
+            ),
+        },
+        {
+            title: 'Spatial Intelligence Scene (2026)',
+            icon: Layers,
+            content: (
+                <div className="space-y-4 text-xs text-slate-400 leading-relaxed">
+                    <div className="glass-card p-3 border-cosmos-500/20 bg-cosmos-900/10">
+                        <p className="text-slate-300 font-medium mb-1">The "Models Must Know the World" Movement</p>
+                        <p>
+                            In 2026, AI has moved beyond text-only LLMs. <strong>Large World Models (LWMs)</strong> provide the 
+                            spatial grounding needed for <strong>Embodied Intelligence</strong> (robotics).
+                        </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <p className="text-cosmos-300 font-bold uppercase tracking-wider text-[10px]">Generative (Marble)</p>
+                            <p>World Labs leads in high-fidelity 3D persistence. Ideal for simulations and digital twins.</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-void-300 font-bold uppercase tracking-wider text-[10px]">Latent (LeWM/JEPA)</p>
+                            <p>Yann LeCun's AMI Labs focuses on predicting abstract dynamics in latent space for reasoning.</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-aurora-300 font-bold uppercase tracking-wider text-[10px]">Interactive (Genie 3)</p>
+                            <p>Google DeepMind's real-time engine for navigable, high-speed interactive simulation.</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Industrial (China Labs)</p>
+                            <p>Efficiency-first models from Alibaba/Baidu for autonomous fleets and smart cities.</p>
+                        </div>
+                    </div>
+
+                    <p className="italic text-[10px] text-slate-500 border-l border-white/10 pl-2">
+                        "Spatial intelligence (undestanding physics and causal relations) and embodied intelligence (inhabiting a robot via sensors and proprioception) are the two pillars of 2026 AGI."
+                    </p>
                 </div>
             ),
         },
