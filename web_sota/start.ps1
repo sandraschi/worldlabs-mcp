@@ -1,74 +1,38 @@
-$FrontendPort = 10864
+﻿# Webapp Start - Standardized SOTA (Auto-Repaired V2.5)
+$WebPort = 10864
 $BackendPort = 10865
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-$BackendDir = Join-Path $PSScriptRoot "backend"
 
-# Data directory (matches bridge.py logic)
-$DataDir = Join-Path $env:APPDATA "worldlabs-mcp"
-
-Write-Host ""
-Write-Host "  World Labs MCP Webapp" -ForegroundColor Cyan
-Write-Host "  ----------------------" -ForegroundColor DarkGray
-Write-Host "  Frontend : http://localhost:$FrontendPort" -ForegroundColor White
-Write-Host "  Backend  : http://localhost:$BackendPort" -ForegroundColor White
-Write-Host "  Data dir : $DataDir" -ForegroundColor DarkGray
-Write-Host ""
-
-# 1. Clear ports
-Write-Host "Clearing ports..." -ForegroundColor Yellow
-foreach ($p in @($FrontendPort, $BackendPort)) {
-    Get-NetTCPConnection -LocalPort $p -ErrorAction SilentlyContinue | ForEach-Object {
-        Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
-    }
+# 1. Kill any process squatting on the ports
+Write-Host "Checking for port squatters on $WebPort and $BackendPort..." -ForegroundColor Yellow
+$pids = Get-NetTCPConnection -LocalPort $WebPort, $BackendPort -ErrorAction SilentlyContinue | Where-Object { $_.OwningProcess -gt 4 } | Select-Object -ExpandProperty OwningProcess -Unique
+foreach ($p in $pids) {
+    Write-Host "Found squatter (PID: $p). Terminating..." -ForegroundColor Red
+    try { Stop-Process -Id $p -Force -ErrorAction Stop } catch { Write-Host "Warning: Could not terminate PID $p." -ForegroundColor Gray }
 }
 
-# 2. Load .env from project root into current session
-$envFile = Join-Path $ProjectRoot ".env"
-if (Test-Path $envFile) {
-    Write-Host "Loading .env from $envFile" -ForegroundColor Yellow
-    Get-Content $envFile | ForEach-Object {
-        $line = $_.Trim()
-        if ($line -and -not $line.StartsWith("#")) {
-            $parts = $line -split "=", 2
-            if ($parts.Count -eq 2) {
-                $varName = $parts[0].Trim()
-                $varValue = $parts[1].Trim().Trim('"').Trim("'")
-                [System.Environment]::SetEnvironmentVariable($varName, $varValue, "Process")
-                Write-Host "  Set $varName" -ForegroundColor DarkGray
-            }
-        }
-    }
-}
-else {
-    Write-Host "No .env found at $envFile -- continuing without it" -ForegroundColor DarkYellow
-}
-
-# Warn if API key is missing
-if (-not $env:WORLDLABS_API_KEY) {
-    Write-Host ""
-    Write-Host "  WARNING: WORLDLABS_API_KEY is not set." -ForegroundColor Red
-    Write-Host "  Add it to .env or set it in your environment." -ForegroundColor Red
-    Write-Host ""
-}
-
-# 3. Install Python deps
-Write-Host "Checking Python deps..." -ForegroundColor Yellow
-Set-Location $ProjectRoot
-uv pip install fastapi uvicorn httpx python-dotenv psutil 2>$null | Out-Null
-
-# 4. Start backend (non-blocking)
-Write-Host "Starting backend on :$BackendPort ..." -ForegroundColor Green
-$env:WEB_PORT = $BackendPort
-$env:FRONTEND_ORIGIN = "http://localhost:$FrontendPort"
-$bridgePath = Join-Path $BackendDir "bridge.py"
-Start-Process uv -ArgumentList "run", "--", "python", $bridgePath -WindowStyle Hidden
-Start-Sleep -Milliseconds 1500
-
-# 5. Start frontend
-Write-Host "Starting frontend on :$FrontendPort ..." -ForegroundColor Green
+# 2. Setup
 Set-Location $PSScriptRoot
-if (-not (Test-Path "node_modules")) {
-    Write-Host "Installing npm packages..." -ForegroundColor Yellow
-    npm install
-}
-npm run dev -- --port $FrontendPort --host
+if (-not (Test-Path "node_modules")) { npm install }
+
+# 3. Start the Python backend (Background)
+Write-Host "Starting Python backend on port $BackendPort ..." -ForegroundColor Cyan
+
+# Use TRIPLE backtick to ensure $env:PYTHONPATH reaches the REAL shell
+$backendCmd = "`$env:PYTHONPATH = '$PSScriptRoot;$PSScriptRoot\src'; Set-Location '$PSScriptRoot'; uv run uvicorn worldlabs_mcp.server:app --host 127.0.0.1 --port $BackendPort --log-level info"
+
+Start-Process powershell -ArgumentList "-NoExit", "-Command", $backendCmd -WindowStyle Normal
+
+# 4. Run server (Vite dev)
+Write-Host "Starting Vite frontend on port $WebPort ..." -ForegroundColor Green
+
+# 4b. Launch background task to open browser once frontend is ready (Auto-opened by Antigravity)
+$frontendUrl = "http://127.0.0.1:$WebPort/"
+$pollAndOpen = "for (`$i = 0; `$i -lt 60; `$i++) { try { `$null = Invoke-WebRequest -Uri '$frontendUrl' -TimeoutSec 2 -UseBasicParsing -ErrorAction Stop; Start-Process '$frontendUrl'; exit } catch { Start-Sleep -Seconds 1 } }"
+Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "-Command", $pollAndOpen
+
+Write-Host "Browser will open automatically when Vite is ready." -ForegroundColor Gray
+npm run dev -- --port $WebPort --host
+
+
+

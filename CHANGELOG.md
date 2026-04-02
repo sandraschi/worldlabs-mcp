@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-04-02
+
+### Changed
+- Synchronized core and dashboard versions to 0.2.1.
+- Updated documentation for local LLM refinement.
+
+### Fixed
+- **Dashboard Crash**: Resolved `TypeError` in `availableModels` useMemo hook when LLM providers are missing or offline.
+
 ## [0.2.0] - 2026-02-25
 
 ### Added

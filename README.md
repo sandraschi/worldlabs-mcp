@@ -1,6 +1,6 @@
 [![CI](https://github.com/sandraschi/worldlabs-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sandraschi/worldlabs-mcp/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![FastMCP](https://img.shields.io/badge/FastMCP-2.12%2B-green.svg)](https://github.com/jlowin/fastmcp)
+[![FastMCP](https://img.shields.io/badge/FastMCP-3.1.0%2B-green.svg)](https://github.com/jlowin/fastmcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![World Labs](https://img.shields.io/badge/World%20Labs-Marble%20API-purple.svg)](https://docs.worldlabs.ai/api)
 [![Glama](https://img.shields.io/badge/Glama-MCP%20Server-orange.svg)](https://glama.ai/mcp/servers?query=sandraschi)

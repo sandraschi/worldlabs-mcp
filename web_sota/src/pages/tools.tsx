@@ -1,4 +1,4 @@
-import { Box, Play, Sparkles } from 'lucide-react';
+import { Play, Sparkles } from 'lucide-react';
 
 const TOOLS = [
     { name: 'generate_world_from_text', description: 'Create rich 3D environments from simple natural language prompts.' },

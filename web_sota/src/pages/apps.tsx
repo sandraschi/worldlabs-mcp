@@ -58,6 +58,7 @@ const apps: AppLink[] = [
 function AppCard({ app }: { app: AppLink }) {
     const isExternal = app.badge === 'External' || app.badge === 'Local';
     const Tag = isExternal ? 'a' : 'a';
+    const Icon = app.icon;
 
     return (
         <Tag
@@ -66,7 +67,7 @@ function AppCard({ app }: { app: AppLink }) {
             className="glass-card-hover p-5 flex gap-4 group"
         >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cosmos-600/30 to-void-600/30 border border-cosmos-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <app.icon className="w-5 h-5 text-cosmos-400" aria-hidden="true" />
+                <Icon className="w-5 h-5 text-cosmos-400" aria-hidden="true" />
             </div>
             <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">

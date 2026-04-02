@@ -5,9 +5,6 @@ import {
     LayoutDashboard,
     Activity,
     Wrench,
-    Cpu,
-    Grid3x3,
-    HelpCircle,
     Settings,
     ChevronLeft,
     ChevronRight,
@@ -158,7 +155,10 @@ function Topbar() {
 
             {/* Page title */}
             <div className="flex items-center gap-2">
-                {currentPage && <currentPage.icon className="w-4 h-4 text-cosmos-400" aria-hidden="true" />}
+                {currentPage && (() => {
+                    const Icon = currentPage.icon;
+                    return <Icon className="w-4 h-4 text-cosmos-400" aria-hidden="true" />;
+                })()}
                 <h1 className="text-sm font-semibold text-slate-200">
                     {currentPage?.label ?? 'World Labs MCP'}
                 </h1>
@@ -200,11 +200,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <Sidebar />
                 <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                     <Topbar />
-                    <main
-                        className="flex-1 overflow-y-auto p-6"
-                        role="main"
-                        aria-label="Main content"
-                    >
+                    <main className="flex-1 overflow-y-auto p-6">
                         {children}
                     </main>
                 </div>

@@ -142,9 +142,16 @@ export function Settings() {
                         <div className="text-sm text-slate-200">Dark Mode</div>
                         <div className="text-xs text-slate-500">Always enabled for optimal viewing</div>
                     </div>
-                    <div className="w-10 h-5 rounded-full bg-cosmos-600 flex items-center justify-end px-0.5 cursor-not-allowed opacity-70">
+                    <button
+                        type="button"
+                        role="switch"
+                        aria-checked="true"
+                        aria-label="Dark Mode (Always enabled)"
+                        disabled
+                        className="w-10 h-5 rounded-full bg-cosmos-600 flex items-center justify-end px-0.5 cursor-not-allowed opacity-70"
+                    >
                         <div className="w-4 h-4 rounded-full bg-white shadow" />
-                    </div>
+                    </button>
                 </div>
             </div>
 

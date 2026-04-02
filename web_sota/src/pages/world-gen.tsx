@@ -641,8 +641,8 @@ export default function WorldGenPage() {
 
     const availableModels = useMemo(() => {
         if (!llmInfo) return [];
-        const ollama = (llmInfo.ollama.models || []).map(m => ({ ...m, name: `Ollama: ${m.name}` }));
-        const lms = (llmInfo.lmstudio.models || []).map(m => ({ ...m, name: `LM Studio: ${m.name}` }));
+        const ollama = (llmInfo.ollama?.models || []).map(m => ({ ...m, name: `Ollama: ${m.name}` }));
+        const lms = (llmInfo.lmstudio?.models || []).map(m => ({ ...m, name: `LM Studio: ${m.name}` }));
         return [...ollama, ...lms];
     }, [llmInfo]);
 

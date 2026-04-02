@@ -1,4 +1,4 @@
-import { Activity, Cpu, HardDrive, Database, Globe } from 'lucide-react';
+import { Cpu, HardDrive, Database, Globe } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface Stats {

@@ -1,7 +1,7 @@
 {
     "name": "worldlabs-mcp-web",
     "private": true,
-    "version": "0.1.0",
+    "version": "0.2.1",
     "type": "module",
     "scripts": {
         "dev": "vite",
@@ -36,7 +36,10 @@
         "@types/node": "^24.10.1",
         "@types/react": "^19.2.7",
         "@types/react-dom": "^19.2.3",
+        "@types/webgl-ext": "^0.0.37",
+        "@types/webgl2": "^0.0.12",
         "@vitejs/plugin-react": "^5.1.1",
+        "@webgpu/types": "^0.1.44",
         "autoprefixer": "^10.4.24",
         "eslint": "^9.39.1",
         "eslint-plugin-react-hooks": "^7.0.1",

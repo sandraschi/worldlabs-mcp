@@ -18,7 +18,6 @@ from fastmcp import FastMCP
 mcp = FastMCP(
     name="worldlabs-mcp",
     version="0.1.0",
-    description="Generate explorable 3D worlds using World Labs Marble API",
 )
 
 BASE_URL = "https://api.worldlabs.ai/marble/v1"
@@ -550,6 +549,27 @@ async def get_world(world_id: str) -> dict:
         )
         resp.raise_for_status()
         return resp.json()
+
+
+# ---------------------------------------------------------------------------
+# ASGI app for uvicorn (web_sota/start.ps1): worldlabs_mcp.server:app
+# REST /api/* for web_sota; MCP at / for protocol clients if needed.
+# ---------------------------------------------------------------------------
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from .api_bridge import router as api_router
+
+_web_app = FastAPI(title="worldlabs-mcp")
+_web_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+_web_app.include_router(api_router, prefix="/api")
+app = _web_app
 
 
 # ---------------------------------------------------------------------------

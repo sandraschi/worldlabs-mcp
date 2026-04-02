@@ -9,7 +9,7 @@ import { WorldViewer as Library } from '@/pages/world-viewer';
 import { ToolsExplorer } from '@/pages/tools-explorer';
 import { LocalLlm } from '@/pages/local-llm';
 import { Apps } from '@/pages/apps';
-import { Help } from '@/pages/help';
+import { Help } from '@/pages/help.jsx';
 import { Settings } from '@/pages/settings';
 
 const queryClient = new QueryClient({
