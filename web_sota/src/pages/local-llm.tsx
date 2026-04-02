@@ -5,6 +5,29 @@ import {
 } from 'lucide-react';
 import { api, type LlmModel } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import { Copy, Check } from 'lucide-react';
+
+function CopyButton({ text, label }: { text: string; label?: string }) {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <button
+            onClick={handleCopy}
+            className="p-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-all text-slate-400 hover:text-white"
+            title={label || `Copy: ${text}`}
+            aria-label={label || `Copy: ${text}`}
+        >
+            {copied ? <Check className="w-3.5 h-3.5 text-aurora-400" /> : <Copy className="w-3.5 h-3.5" />}
+        </button>
+    );
+}
 
 function ModelCard({ model, provider }: { model: LlmModel; provider: string }) {
     return (
@@ -25,6 +48,7 @@ function ModelCard({ model, provider }: { model: LlmModel; provider: string }) {
             {model.parameters && (
                 <span className="badge-info">{model.parameters}</span>
             )}
+            <CopyButton text={`ollama run ${model.id}`} label="Copy run command" />
         </div>
     );
 }
@@ -134,7 +158,10 @@ export function LocalLlm() {
                                 <CheckCircle2 className="w-3.5 h-3.5 text-aurora-400 flex-shrink-0" aria-hidden="true" />
                                 <span className="text-sm text-slate-300 font-mono">{r.model}</span>
                             </div>
-                            <span className="text-xs text-slate-500">{r.vram}</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-slate-500 w-12">{r.vram}</span>
+                                <CopyButton text={`ollama pull ${r.model.split(' ')[0].toLowerCase()}`} label={`Copy pull command for ${r.model}`} />
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -158,15 +185,15 @@ export function LocalLlm() {
                 <div className="space-y-4">
                     <ProviderSection
                         name="Ollama"
-                        available={data.ollama.available}
-                        models={data.ollama.models}
-                        url={data.ollama.url}
+                        available={data?.ollama?.available ?? false}
+                        models={data?.ollama?.models ?? []}
+                        url={data?.ollama?.url}
                     />
                     <ProviderSection
                         name="LM Studio"
-                        available={data.lmstudio.available}
-                        models={data.lmstudio.models}
-                        url={data.lmstudio.url}
+                        available={data?.lmstudio?.available ?? false}
+                        models={data?.lmstudio?.models ?? []}
+                        url={data?.lmstudio?.url}
                     />
                 </div>
             )}

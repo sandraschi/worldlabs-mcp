@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Globe2, Upload, FolderOpen, AlertCircle, Info } from 'lucide-react';
+import { Globe2, Upload, FolderOpen, AlertCircle, Info, Maximize2, Minimize2, Link, Check } from 'lucide-react';
 import * as GaussianSplats3D from '@mkkellogg/gaussian-splats-3d';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +12,8 @@ export function WorldViewer() {
     const [error, setError] = useState('');
     const [loadedName, setLoadedName] = useState('');
     const [urlInput, setUrlInput] = useState('');
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     // Pull ?url=... & ?name=... from the query string
     useEffect(() => {
@@ -102,6 +104,15 @@ export function WorldViewer() {
         }
     }
 
+    function handleCopyLink() {
+        const url = new URL(window.location.href);
+        if (urlInput) url.searchParams.set('url', urlInput);
+        if (loadedName) url.searchParams.set('name', loadedName);
+        void navigator.clipboard.writeText(url.toString());
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    }
+
     useEffect(() => () => destroyViewer(), []);
 
     return (
@@ -150,11 +161,31 @@ export function WorldViewer() {
                         onClick={handleLoadUrl}
                         disabled={!urlInput.trim()}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cosmos-600/40 hover:bg-cosmos-600/60 border border-cosmos-500/30 text-xs text-cosmos-300 disabled:opacity-40 transition-all"
+                        aria-label="Load world from URL"
                     >
                         <Upload className="w-3.5 h-3.5" aria-hidden="true" />
                         Load
                     </button>
                 </div>
+
+                <button
+                    onClick={handleCopyLink}
+                    disabled={!urlInput}
+                    className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-400 hover:text-white transition-all shadow-lg"
+                    title="Copy viewer link"
+                    aria-label="Copy viewer link"
+                >
+                    {copied ? <Check className="w-3.5 h-3.5 text-aurora-400" /> : <Link className="w-3.5 h-3.5" />}
+                </button>
+
+                <button
+                    onClick={() => setIsFullscreen(!isFullscreen)}
+                    className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-400 hover:text-white transition-all shadow-lg"
+                    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                    aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                >
+                    {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                </button>
 
                 {/* Status badge */}
                 {status === 'loading' && <span className="badge-pending animate-pulse">Loading…</span>}
@@ -170,7 +201,10 @@ export function WorldViewer() {
 
             {/* Canvas area */}
             <div
-                className="relative flex-1 min-h-0 rounded-xl overflow-hidden border border-white/[0.06] bg-black/40"
+                className={cn(
+                    "relative flex-1 min-h-0 rounded-xl overflow-hidden border border-white/[0.06] bg-black/40 transition-all duration-300",
+                    isFullscreen && "fixed inset-0 z-50 m-0 rounded-none border-0"
+                )}
                 onDrop={handleDrop}
                 onDragOver={e => e.preventDefault()}
             >
