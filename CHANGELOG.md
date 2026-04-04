@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.1] - 2026-04-04
+
+### Changed
+- **Billing Clarification**: Added prominent warnings across `README.md`, `CHANGELOG.md`, and the `worldlabs_help` tool regarding the separation of Web App and API Platform credits.
+- **Improved Error Messaging**: Hardened the 402 "Payment Required" exception handler to explicitly mention that web app credits are not valid for API access.
 
 ## [0.3.0] - 2026-04-04
 

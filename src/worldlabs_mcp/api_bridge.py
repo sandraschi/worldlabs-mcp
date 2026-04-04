@@ -7,7 +7,11 @@ import os
 from typing import Any
 
 import httpx
+from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
+
+# Load environment variables from .env if present
+load_dotenv()
 
 router = APIRouter()
 BASE_URL = "https://api.worldlabs.ai/marble/v1"
@@ -30,26 +34,66 @@ def _headers() -> dict[str, str]:
     }
 
 
+def _handle_http_error(e: httpx.HTTPStatusError) -> None:
+    """Provides explicit, human-readable error messages for common Marble API failures."""
+    response = e.response
+    status_code = response.status_code
+    
+    # Try to extract the error message from the World Labs JSON response
+    # Typical structure: {"error": {"message": "...", "code": "..."}} or {"detail": "..."}
+    try:
+        error_data = response.json()
+        api_message = error_data.get("error", {}).get("message") or error_data.get("detail")
+    except Exception:
+        api_message = None
+
+    if status_code == 401:
+        detail = f"World Labs API: 401 Unauthorized. Your WORLDLABS_API_KEY may be invalid. ({api_message or 'No additional details'})"
+        raise HTTPException(status_code=401, detail=detail)
+    
+    if status_code == 402:
+        detail = (
+            f"World Labs API: 402 Payment Required. {api_message or 'Insufficient credits.'} "
+            "IMPORTANT: Credits on marble.worldlabs.ai (web app) are SEPARATE from API Platform credits. "
+            "Please check your API balance at https://platform.worldlabs.ai/"
+        )
+        raise HTTPException(status_code=402, detail=detail)
+
+    if status_code == 429:
+        detail = f"World Labs API: 429 Too Many Requests. You have hit a rate limit. ({api_message or 'No details'})"
+        raise HTTPException(status_code=429, detail=detail)
+
+    # Generic handling for other errors
+    detail = f"World Labs API Error {status_code}: {api_message or response.text}"
+    raise HTTPException(status_code=status_code, detail=detail)
+
+
 async def _wl_get(path: str, params: dict[str, Any] | None = None) -> dict:
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.get(
-            f"{BASE_URL}{path}",
-            headers=_headers(),
-            params=params or {},
-        )
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            resp = await client.get(
+                f"{BASE_URL}{path}",
+                headers=_headers(),
+                params=params or {},
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_http_error(e)
 
 
 async def _wl_post(path: str, body: dict) -> dict:
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{BASE_URL}{path}",
-            headers=_headers(),
-            json=body,
-        )
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            resp = await client.post(
+                f"{BASE_URL}{path}",
+                headers=_headers(),
+                json=body,
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_http_error(e)
 
 
 @router.get("/health")

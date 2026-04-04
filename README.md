@@ -23,7 +23,10 @@ Exposes the World Labs Marble world-generation pipeline as MCP tools so Claude (
 ## Requirements
 
 - Python 3.10+
-- A World Labs account with API credits: https://platform.worldlabs.ai
+- A World Labs account with **API credits**: https://platform.worldlabs.ai
+  - > [!CAUTION]
+  - > **BILLING ALERT**: Credits purchased for the World Labs web app (`marble.worldlabs.ai`, e.g., the $30/month plan) are **NOT VALID** for the Marble API.
+  - > You must fund your API balance separately at [platform.worldlabs.ai/billing](https://platform.worldlabs.ai/billing) to use this MCP server.
 
 ## Setup
 

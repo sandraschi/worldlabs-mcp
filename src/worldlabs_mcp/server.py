@@ -10,7 +10,15 @@ import time
 from pathlib import Path
 
 import httpx
+from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastmcp import FastMCP
+
+from .api_bridge import router as api_router
+
+# Load environment variables from .env if present
+load_dotenv()
 
 # ---------------------------------------------------------------------------
 # Server setup
@@ -54,9 +62,37 @@ def _headers() -> dict:
     }
 
 
-def _upload_headers() -> dict:
-    """Headers for binary file uploads (no Content-Type - GCS sets it via signed URL)."""
-    return {"WLT-Api-Key": _get_api_key()}
+def _handle_status_error(e: httpx.HTTPStatusError) -> None:
+    """Raises a descriptive RuntimeError for common World Labs API failures."""
+    response = e.response
+    status_code = response.status_code
+    
+    try:
+        error_data = response.json()
+        api_message = error_data.get("error", {}).get("message") or error_data.get("detail")
+    except Exception:
+        api_message = None
+
+    if status_code == 401:
+        raise RuntimeError(
+            f"World Labs API: 401 Unauthorized. Your WORLDLABS_API_KEY may be invalid. "
+            f"({api_message or 'No details'})"
+        )
+    
+    if status_code == 402:
+        raise RuntimeError(
+            f"World Labs API: 402 Payment Required. {api_message or 'Insufficient credits.'} "
+            "IMPORTANT: Credits on marble.worldlabs.ai (web app) are SEPARATE from API Platform credits. "
+            "Please check your API balance at https://platform.worldlabs.ai/"
+        )
+
+    if status_code == 429:
+        raise RuntimeError(
+            f"World Labs API: 429 Too Many Requests. You have hit a rate limit. "
+            f"({api_message or 'No details'})"
+        )
+
+    raise RuntimeError(f"World Labs API Error {status_code}: {api_message or response.text}")
 
 
 def _check_error(data: dict, operation_id: str) -> None:
@@ -102,13 +138,16 @@ async def generate_world_from_text(
         },
     }
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{BASE_URL}/worlds:generate",
-            headers=_headers(),
-            json=payload,
-        )
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            resp = await client.post(
+                f"{BASE_URL}/worlds:generate",
+                headers=_headers(),
+                json=payload,
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_status_error(e)
 
 
 @mcp.tool()
@@ -151,13 +190,16 @@ async def generate_world_from_image(
         "world_prompt": world_prompt,
     }
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{BASE_URL}/worlds:generate",
-            headers=_headers(),
-            json=payload,
-        )
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            resp = await client.post(
+                f"{BASE_URL}/worlds:generate",
+                headers=_headers(),
+                json=payload,
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_status_error(e)
 
 
 @mcp.tool()
@@ -208,13 +250,16 @@ async def generate_world_from_multi_image(
         "world_prompt": world_prompt,
     }
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{BASE_URL}/worlds:generate",
-            headers=_headers(),
-            json=payload,
-        )
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            resp = await client.post(
+                f"{BASE_URL}/worlds:generate",
+                headers=_headers(),
+                json=payload,
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_status_error(e)
 
 
 @mcp.tool()
@@ -251,13 +296,16 @@ async def generate_world_from_video(
         "world_prompt": world_prompt,
     }
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{BASE_URL}/worlds:generate",
-            headers=_headers(),
-            json=payload,
-        )
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            resp = await client.post(
+                f"{BASE_URL}/worlds:generate",
+                headers=_headers(),
+                json=payload,
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_status_error(e)
 
 
 @mcp.tool()
@@ -307,17 +355,20 @@ async def upload_and_generate(
 
     async with httpx.AsyncClient(timeout=60) as client:
         # 1. Prepare upload
-        prepare_resp = await client.post(
-            f"{BASE_URL}/media-assets:prepare_upload",
-            headers=_headers(),
-            json={
-                "file_name": file_path.name,
-                "kind": kind,
-                "extension": extension,
-            },
-        )
-        prepare_resp.raise_for_status()
-        prepare_data = prepare_resp.json()
+        try:
+            prepare_resp = await client.post(
+                f"{BASE_URL}/media-assets:prepare_upload",
+                headers=_headers(),
+                json={
+                    "file_name": file_path.name,
+                    "kind": kind,
+                    "extension": extension,
+                },
+            )
+            prepare_resp.raise_for_status()
+            prepare_data = prepare_resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_status_error(e)
 
         media_asset_id: str = prepare_data["media_asset"]["id"]
         upload_info: dict = prepare_data["upload_info"]
@@ -325,12 +376,17 @@ async def upload_and_generate(
         upload_headers: dict = upload_info.get("headers", {})
 
         # 2. Upload file bytes via PUT to signed GCS URL
-        put_resp = await client.put(
-            upload_url,
-            content=file_bytes,
-            headers=upload_headers,
-        )
-        put_resp.raise_for_status()
+        try:
+            put_resp = await client.put(
+                upload_url,
+                content=file_bytes,
+                headers=upload_headers,
+            )
+            put_resp.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            # For GCS uploads, we might get generic 403/400.
+            # We still use the common handler, though 402 is unlikely here.
+            _handle_status_error(e)
 
     # 3. Generate world from uploaded asset
     return await generate_world_from_media_asset(
@@ -369,13 +425,16 @@ async def prepare_media_upload(
 
     payload = {"file_name": file_name, "kind": kind, "extension": extension}
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{BASE_URL}/media-assets:prepare_upload",
-            headers=_headers(),
-            json=payload,
-        )
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            resp = await client.post(
+                f"{BASE_URL}/media-assets:prepare_upload",
+                headers=_headers(),
+                json=payload,
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_status_error(e)
 
 
 @mcp.tool()
@@ -419,13 +478,16 @@ async def generate_world_from_media_asset(
 
     payload = {"display_name": display_name, "model": model, "world_prompt": world_prompt}
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{BASE_URL}/worlds:generate",
-            headers=_headers(),
-            json=payload,
-        )
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            resp = await client.post(
+                f"{BASE_URL}/worlds:generate",
+                headers=_headers(),
+                json=payload,
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_status_error(e)
 
 
 @mcp.tool()
@@ -445,12 +507,15 @@ async def get_operation(operation_id: str) -> dict:
         IN_PROGRESS, SUCCEEDED, or FAILED.
     """
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.get(
-            f"{BASE_URL}/operations/{operation_id}",
-            headers=_headers(),
-        )
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            resp = await client.get(
+                f"{BASE_URL}/operations/{operation_id}",
+                headers=_headers(),
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_status_error(e)
 
 
 @mcp.tool()
@@ -489,12 +554,15 @@ async def wait_for_world(
                     "Use get_operation to continue polling manually."
                 )
 
-            resp = await client.get(
-                f"{BASE_URL}/operations/{operation_id}",
-                headers=_headers(),
-            )
-            resp.raise_for_status()
-            data = resp.json()
+            try:
+                resp = await client.get(
+                    f"{BASE_URL}/operations/{operation_id}",
+                    headers=_headers(),
+                )
+                resp.raise_for_status()
+                data = resp.json()
+            except httpx.HTTPStatusError as e:
+                _handle_status_error(e)
 
             if data.get("done"):
                 _check_error(data, operation_id)
@@ -521,13 +589,16 @@ async def list_worlds(
         params["page_token"] = page_token
 
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.get(
-            f"{BASE_URL}/worlds",
-            headers=_headers(),
-            params=params,
-        )
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            resp = await client.get(
+                f"{BASE_URL}/worlds",
+                headers=_headers(),
+                params=params,
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_status_error(e)
 
 
 @mcp.tool()
@@ -543,12 +614,15 @@ async def get_world(world_id: str) -> dict:
         panorama, thumbnail, AI-generated caption.
     """
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.get(
-            f"{BASE_URL}/worlds/{world_id}",
-            headers=_headers(),
-        )
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            resp = await client.get(
+                f"{BASE_URL}/worlds/{world_id}",
+                headers=_headers(),
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_status_error(e)
 
 
 # ---------------------------------------------------------------------------
@@ -820,7 +894,8 @@ _WORLDLABS_CONTEXT = {
     "pricing_note": (
         "Credits are consumed per generation. Marble 0.1-mini costs fewer credits than plus. "
         "Check current rates and billing at https://platform.worldlabs.ai/billing. "
-        "The $30/month plan allows approximately 30 plus-model or ~100+ mini-model generations."
+        "IMPORTANT: Credits on marble.worldlabs.ai (web app) are SEPARATE from API Platform credits. "
+        "Your $30/month web subscription does NOT include API generations."
     ),
     "gallery": (
         "The Marble gallery at https://worldlabs.ai/gallery shows publicly shared worlds. "
@@ -917,13 +992,8 @@ async def worldlabs_help(
 
 # ---------------------------------------------------------------------------
 # ASGI app for uvicorn (web_sota/start.ps1): worldlabs_mcp.server:app
-# REST /api/* for web_sota; MCP at / for protocol clients if needed.
+# REST /api/* for web_sota
 # ---------------------------------------------------------------------------
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
-from .api_bridge import router as api_router
-
 _web_app = FastAPI(title="worldlabs-mcp")
 _web_app.add_middleware(
     CORSMiddleware,
