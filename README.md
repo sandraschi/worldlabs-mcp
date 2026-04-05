@@ -7,7 +7,7 @@
 
 # worldlabs-mcp
 
-MCP server wrapping the [World Labs Marble API](https://docs.worldlabs.ai/api) — generate navigable 3D worlds from text, images, and video.
+MCP server wrapping the [World Labs Marble API](https://docs.worldlabs.ai/api)  generate navigable 3D worlds from text, images, and video.
 
 ## What it does
 
@@ -79,13 +79,13 @@ For local development (without installing):
 
 | Tool | Description |
 |------|-------------|
-| `generate_world_from_text` | Text prompt → Operation |
-| `generate_world_from_image` | Public image URL → Operation (panorama support) |
-| `generate_world_from_multi_image` | Multiple images at azimuth angles → Operation |
-| `generate_world_from_video` | Public video URL → Operation |
-| `upload_and_generate` | Local file path → upload → Operation (end-to-end) |
+| `generate_world_from_text` | Text prompt  Operation |
+| `generate_world_from_image` | Public image URL  Operation (panorama support) |
+| `generate_world_from_multi_image` | Multiple images at azimuth angles  Operation |
+| `generate_world_from_video` | Public video URL  Operation |
+| `upload_and_generate` | Local file path  upload  Operation (end-to-end) |
 | `prepare_media_upload` | Get signed GCS upload URL for manual upload |
-| `generate_world_from_media_asset` | Uploaded asset ID → Operation |
+| `generate_world_from_media_asset` | Uploaded asset ID  Operation |
 | `get_operation` | Single poll of an operation status |
 | `wait_for_world` | Blocking poll until done (raises on error, TimeoutError) |
 | `list_worlds` | Paginated list of all generated worlds |
@@ -111,17 +111,17 @@ The dashboard runs on port **10864**, with the bridge server on **10865**.
 
 ## Models
 
-- `Marble 0.1-mini` — **default**, ~30-45 seconds, cheaper, good for iteration
-- `Marble 0.1-plus` — best quality, ~5 minutes per generation
+- `Marble 0.1-mini`  **default**, ~30-45 seconds, cheaper, good for iteration
+- `Marble 0.1-plus`   quality, ~5 minutes per generation
 
 ## World assets returned
 
-- `assets.splats.spz_urls` — Gaussian splat files (100k, 500k, full resolution)
-- `assets.mesh.collider_mesh_url` — collision mesh in GLB format
-- `assets.imagery.pano_url` — 360 panorama image
-- `assets.thumbnail_url` — thumbnail JPEG
-- `assets.caption` — AI-generated scene description
-- `world_marble_url` — direct link to view in Marble viewer
+- `assets.splats.spz_urls`  Gaussian splat files (100k, 500k, full resolution)
+- `assets.mesh.collider_mesh_url`  collision mesh in GLB format
+- `assets.imagery.pano_url`  360 panorama image
+- `assets.thumbnail_url`  thumbnail JPEG
+- `assets.caption`  AI-generated scene description
+- `world_marble_url`  direct link to view in Marble viewer
 
 ## Development
 

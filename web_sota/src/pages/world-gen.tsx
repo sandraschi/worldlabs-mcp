@@ -757,7 +757,7 @@ export default function WorldGenPage() {
                                 <button
                                     key={m}
                                     role="tab"
-                                    aria-selected={mode === m}
+                                    aria-selected={mode === m ? "true" : "false"}
                                     onClick={() => setMode(m)}
                                     className={cn(
                                         'px-4 py-1.5 rounded-md text-xs font-medium capitalize transition-all',
@@ -776,7 +776,7 @@ export default function WorldGenPage() {
                             {MODELS.map(m => (
                                 <button
                                     key={m}
-                                    aria-pressed={model === m}
+                                    aria-pressed={model === m ? "true" : "false"}
                                     onClick={() => setModel(m)}
                                     className={cn(
                                         'flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all',
