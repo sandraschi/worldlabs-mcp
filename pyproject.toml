@@ -29,6 +29,7 @@ dependencies = [
     "fastapi>=0.115.0",
     "httpx>=0.27.0",
     "python-dotenv>=1.0.1",
+    "prefab-ui>=0.14.0",
 ]
 
 [project.optional-dependencies]
