@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "worldlabs-mcp"
-version = "0.3.0"
-description = "MCP server wrapping the World Labs Marble API for 3D world generation"
+version = "0.4.0"
+description = "MCP server wrapping the World Labs Marble API for 3D world generation and the Spark 2.0 spatial viewer"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -13,23 +13,25 @@ authors = [
     {name = "Sandra Schipal", email = "sandra@sandraschi.dev"}
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Multimedia :: Graphics :: 3D Modeling",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-keywords = ["mcp", "worldlabs", "marble", "3d", "world-generation", "ai", "spatial-intelligence"]
+keywords = ["mcp", "worldlabs", "marble", "3d", "world-generation", "ai", "spatial-intelligence", "spark", "gaussian-splatting"]
 
 dependencies = [
-    "fastmcp>=3.1.0,<4",
+    "fastmcp>=3.2.0,<4",
     "fastapi>=0.115.0",
     "httpx>=0.27.0",
     "python-dotenv>=1.0.1",
-    "prefab-ui>=0.14.0",
+    "prefab-ui>=0.18.0",
+    "psutil>=5.9",
 ]
 
 [project.optional-dependencies]
@@ -55,7 +57,7 @@ where = ["src"]
 include = ["worldlabs_mcp", "worldlabs_mcp.*"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

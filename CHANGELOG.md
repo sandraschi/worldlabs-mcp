@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-04-18
+
+### Added
+- **Spark 2.0 viewer page** (`web_sota/src/pages/spark-viewer.tsx`) using `@sparkjsdev/spark@2.0.0` with `.RAD` LoD streaming, `.spz`/`.ply`/`.ksplat` fallback, WebAudio HRTF listener, local file drag-and-drop.
+- **Local asset bridge** — `GET /api/local-assets/{filename}` serves `.spz` / `.rad` / `.ply` / `.ksplat` / `.splat` from `WORLDLABS_LOCAL_PATH` (defaults to `~/Downloads`, portable).
+- **Narration SSE stream** — `GET /api/narration/stream` + `POST /api/narration` for scene events (`speech` / `audio` / `video` / `avatar`).
+- **Four speculative spatial tools** registered on the MCP surface and documented in `_TOOL_CATALOG` under a new `spatial` group: `broadcast_spatial_notification`, `broadcast_spatial_audio`, `place_world_tv`, `spawn_agent_avatar`. End-to-end voice path needs `speech-mcp`.
+- `test_tool_count_matches_catalog` — new test enforcing that `_TOOL_CATALOG` and the MCP registry stay in sync.
+
+### Changed
+- **Bridge consolidation**: `src/worldlabs_mcp/api_bridge.py` is now the single source of truth for the `/api/*` surface. The previous standalone `web_sota/backend/bridge.py` (which had the production-quality history persistence, LLM discovery, real DCC exports, and SSE operation status, but was orphaned from the start.ps1 boot path) has been merged in. `web_sota/backend/bridge.py` is now a thin re-export so `uvicorn web_sota.backend.bridge:app` still works for webapp-only development. `web_sota/start.ps1` unchanged — it already ran `worldlabs_mcp.server:app` on 10865.
+- **Port story resolved**: `WORLDLABS_BRIDGE_URL` now defaults to `http://localhost:10865` (was `:10718` — never correct). The four spatial tools post narration events to the bridge served by the same MCP server process. Documented in `docs/ARCHITECTURE.md` and `.env.example`.
+- **CORS tightened**: `server.py`'s ASGI wrapper no longer uses `allow_origins=["*"]` with `allow_credentials=True` (invalid per CORS spec). Uses explicit `FRONTEND_ORIGIN` env var (default `http://localhost:10864`) plus `127.0.0.1:10864`.
+- **Model defaults updated**: all generate tools now default to `marble-1.1` instead of the non-existent `Marble 0.1-mini`. Plus variant is `marble-1.1-plus` (auto-expanding, variable cost 1500 + 300/dynamic cube up to 5 cubes). Pricing notes in `worldlabs_help` verbose mode corrected.
+- **FastMCP bumped** from `>=3.1.0` to `>=3.2.0,<4`; `prefab-ui` bumped to `>=0.18.0`. Matches fleet SOTA (mcp-central-docs §2.2 Prefab mandate).
+- **Python versions aligned**: `.python-version` → 3.13, mypy target 3.13; ruff target stays at py312 for compatibility.
+- **README** rewritten with honest feature tiers (shipping vs speculative), accurate tool count (16), removed fictional "Built by Google DeepMind team" line.
+- **docs/ARCHITECTURE.md** rewritten with real port table, real component diagram, real data flow for the voice agent.
+- **docs/SPARK_V2.md** rewritten against real Spark 2.0 docs — LoD splat tree (tiny-lod / bhatt-lod), `.RAD` format, virtual splat paging, composite LoD worlds, ExtSplats. Removed fictional "native programmable physics" claim.
+- **docs/TTS.md** corrected — model is `gemini-3.1-flash-tts-preview` (not "Gemini 3.1 Pro"). Added known-gaps section, clarified the speech-mcp dependency.
+- **`.env.example`** expanded to document the full config surface (bridge URL, local assets path, DCC targets).
+
+### Added
+- **`GET /api/capabilities`** — runtime feature-gating endpoint per AGENT_PROTOCOLS §1.4.
+- **`GET /api/history/remote`** — Marble account-wide world listing (was conflated with local history before).
+
+### Fixed
+- **`Context` import** — `src/worldlabs_mcp/server.py` used `Context` as a type hint without importing it. Added `from fastmcp import Context` and changed signatures to `ctx: Context | None = None` so tool registration doesn't treat it as required.
+- **`spark-viewer.tsx` compile errors** — added missing `useEffect`, `useRef`, `useState` from `react`; added all referenced `lucide-react` icons (`Globe2`, `Volume2`, `FolderOpen`, `Maximize2`, `Minimize2`, `Check`, `Link`, `AlertCircle`, `Info`); switched `GLTFLoader` import from the deprecated `three/examples/jsm/loaders/GLTFLoader` path to `three/addons/loaders/GLTFLoader.js`.
+- **Hardcoded user path** — `api_bridge.py:get_local_asset` no longer falls back to `C:/Users/sandr/Downloads`; uses `os.path.expanduser("~/Downloads")`.
+- **glama.json drift** — corrected `framework` (FastMCP 3.2+) and `tools` count (16).
+
 ## [0.3.1] - 2026-04-04
 
 ### Changed

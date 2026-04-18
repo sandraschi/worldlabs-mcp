@@ -4,7 +4,8 @@
       "command": "uvx",
       "args": ["worldlabs-mcp"],
       "env": {
-        "WORLDLABS_API_KEY": "your-api-key-here"
+        "WORLDLABS_API_KEY": "your-api-key-here",
+        "WORLDLABS_BRIDGE_URL": "http://localhost:10865"
       }
     }
   }

@@ -13,7 +13,7 @@ import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastmcp import FastMCP
+from fastmcp import Context, FastMCP
 
 from .api_bridge import router as api_router
 
@@ -25,15 +25,16 @@ load_dotenv()
 # ---------------------------------------------------------------------------
 mcp = FastMCP(
     name="worldlabs-mcp",
-    version="0.3.0",
+    version="0.4.0",
 )
 
 BASE_URL = "https://api.worldlabs.ai/marble/v1"
 DEFAULT_POLL_INTERVAL = 15  # seconds between polls
 # NOTE: 90s is a safe default that fits inside MCP client timeouts (~120s).
-# World generation (especially Marble 0.1-plus, ~5 min) will not complete in
-# this window.  Use get_operation to poll manually for long jobs, or increase
-# timeout_seconds explicitly if your client supports long-running tool calls.
+# World generation (especially marble-1.1-plus, which auto-expands, can be
+# several minutes) will not complete in this window.  Use get_operation to
+# poll manually for long jobs, or increase timeout_seconds explicitly if your
+# client supports long-running tool calls.
 DEFAULT_TIMEOUT = 90
 
 VALID_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
@@ -113,7 +114,7 @@ def _check_error(data: dict, operation_id: str) -> None:
 async def generate_world_from_text(
     text_prompt: str,
     display_name: str = "",
-    model: str = "Marble 0.1-mini",
+    model: str = "marble-1.1",
 ) -> dict:
     """
     Generate a 3D world from a text description.
@@ -124,7 +125,7 @@ async def generate_world_from_text(
     Args:
         text_prompt: Description of the world to generate.
         display_name: Optional human-readable name for the world.
-        model: 'Marble 0.1-mini' (fast, ~30-45s) or 'Marble 0.1-plus' (quality, ~5min).
+        model: 'marble-1.1' (default, 1500 credits) or 'marble-1.1-plus' (auto-expanding, 1500 + 300/dynamic-cube).
 
     Returns:
         Operation object with operation_id for polling.
@@ -156,7 +157,7 @@ async def generate_world_from_image(
     text_prompt: str = "",
     display_name: str = "",
     is_panorama: bool = False,
-    model: str = "Marble 0.1-mini",
+    model: str = "marble-1.1",
 ) -> dict:
     """
     Generate a 3D world from a public image URL.
@@ -168,7 +169,7 @@ async def generate_world_from_image(
         text_prompt: Optional text to guide generation.
         display_name: Optional name for the world.
         is_panorama: Set True if image is a 360-degree panorama.
-        model: 'Marble 0.1-mini' or 'Marble 0.1-plus'.
+        model: 'marble-1.1' or 'marble-1.1-plus'.
 
     Returns:
         Operation object with operation_id for polling.
@@ -208,7 +209,7 @@ async def generate_world_from_multi_image(
     azimuths_deg: list[float],
     text_prompt: str = "",
     display_name: str = "",
-    model: str = "Marble 0.1-mini",
+    model: str = "marble-1.1",
 ) -> dict:
     """
     Generate a 3D world from multiple images at specified azimuth angles.
@@ -219,7 +220,7 @@ async def generate_world_from_multi_image(
                       Example: [0, 90, 180, 270] for 4 images at cardinal directions.
         text_prompt: Optional guiding text.
         display_name: Optional name for the world.
-        model: 'Marble 0.1-mini' or 'Marble 0.1-plus'.
+        model: 'marble-1.1' or 'marble-1.1-plus'.
 
     Returns:
         Operation object with operation_id for polling.
@@ -267,7 +268,7 @@ async def generate_world_from_video(
     video_url: str,
     text_prompt: str = "",
     display_name: str = "",
-    model: str = "Marble 0.1-mini",
+    model: str = "marble-1.1",
 ) -> dict:
     """
     Generate a 3D world from a public video URL.
@@ -278,7 +279,7 @@ async def generate_world_from_video(
         video_url: Public URL of the source video (mp4, mov, mkv).
         text_prompt: Optional text to guide generation.
         display_name: Optional name for the world.
-        model: 'Marble 0.1-mini' or 'Marble 0.1-plus'.
+        model: 'marble-1.1' or 'marble-1.1-plus'.
 
     Returns:
         Operation object with operation_id for polling.
@@ -315,7 +316,7 @@ async def upload_and_generate(
     text_prompt: str = "",
     display_name: str = "",
     is_panorama: bool = False,
-    model: str = "Marble 0.1-mini",
+    model: str = "marble-1.1",
 ) -> dict:
     """
     Upload a local file and generate a 3D world from it (end-to-end).
@@ -329,7 +330,7 @@ async def upload_and_generate(
         text_prompt: Optional guiding text.
         display_name: Optional name for the world.
         is_panorama: True if image is a 360-degree panorama (image only).
-        model: 'Marble 0.1-mini' or 'Marble 0.1-plus'.
+        model: 'marble-1.1' or 'marble-1.1-plus'.
 
     Returns:
         Operation object with operation_id for polling.
@@ -444,7 +445,7 @@ async def generate_world_from_media_asset(
     text_prompt: str = "",
     display_name: str = "",
     is_panorama: bool = False,
-    model: str = "Marble 0.1-mini",
+    model: str = "marble-1.1",
 ) -> dict:
     """
     Generate a world from a previously uploaded media asset.
@@ -455,7 +456,7 @@ async def generate_world_from_media_asset(
         text_prompt: Optional guiding text.
         display_name: Optional name for the world.
         is_panorama: True if image is a panorama (image kind only).
-        model: 'Marble 0.1-mini' or 'Marble 0.1-plus'.
+        model: 'marble-1.1' or 'marble-1.1-plus'.
 
     Returns:
         Operation object with operation_id for polling.
@@ -495,7 +496,7 @@ async def get_operation(operation_id: str) -> dict:
     """
     Poll a generation operation for its current status.
 
-    Recommended for long-running jobs (Marble 0.1-plus ~5 min).
+    Recommended for long-running jobs (marble-1.1-plus, auto-expanding, multi-minute).
     Call repeatedly until done=True rather than using wait_for_world.
 
     Args:
@@ -528,8 +529,8 @@ async def wait_for_world(
     Block-poll an operation until it completes, fails, or times out.
 
     WARNING: Default timeout is 90 seconds to stay within MCP client limits.
-    For Marble 0.1-plus jobs (~5 min), use get_operation manually instead,
-    or increase timeout_seconds (e.g. 360) if your client supports it.
+    For marble-1.1-plus jobs (often multi-minute), use get_operation manually instead,
+    or increase timeout_seconds explicitly (e.g. 600) if your client supports it.
 
     Args:
         operation_id: The operation_id to wait on.
@@ -546,14 +547,7 @@ async def wait_for_world(
     deadline = time.monotonic() + timeout_seconds
     async with httpx.AsyncClient(timeout=30) as client:
         while True:
-            await asyncio.sleep(poll_interval_seconds)
-
-            if time.monotonic() > deadline:
-                raise TimeoutError(
-                    f"Operation {operation_id} did not complete within {timeout_seconds}s. "
-                    "Use get_operation to continue polling manually."
-                )
-
+            # 1. Attempt the poll
             try:
                 resp = await client.get(
                     f"{BASE_URL}/operations/{operation_id}",
@@ -564,9 +558,19 @@ async def wait_for_world(
             except httpx.HTTPStatusError as e:
                 _handle_status_error(e)
 
+            # 2. Check for completion
             if data.get("done"):
                 _check_error(data, operation_id)
                 return data
+
+            # 3. Check for timeout and sleep
+            if time.monotonic() > deadline:
+                raise TimeoutError(
+                    f"Operation {operation_id} did not complete within {timeout_seconds}s. "
+                    "Use get_operation to continue polling manually."
+                )
+
+            await asyncio.sleep(poll_interval_seconds)
 
 
 @mcp.tool()
@@ -637,14 +641,14 @@ _TOOL_CATALOG = [
         "args": {
             "text_prompt": "str — scene description",
             "display_name": "str (optional) — human-readable label",
-            "model": "str — 'Marble 0.1-mini' (default) or 'Marble 0.1-plus'",
+            "model": "str — 'marble-1.1' (default) or 'marble-1.1-plus'",
         },
         "returns": "Operation dict with operation_id for polling",
         "example": 'generate_world_from_text(text_prompt="A gothic cathedral interior at night")',
         "docstring": (
             "Submits a text-to-world request to the Marble API. Returns immediately with "
             "an in-progress operation. Poll with get_operation or block with wait_for_world. "
-            "Marble 0.1-mini completes in ~30-45s. Marble 0.1-plus in ~5 min."
+            "marble-1.1 completes in roughly 1-3 min. marble-1.1-plus auto-expands and may take longer."
         ),
         "notes": "Credits are consumed per generation. Check billing at platform.worldlabs.ai.",
     },
@@ -777,9 +781,9 @@ _TOOL_CATALOG = [
         "example": 'get_operation("op-abc123")',
         "docstring": (
             "One-shot poll. Returns immediately with current state. "
-            "Call in a loop for long-running Marble 0.1-plus jobs (~5 min)."
+            "Call in a loop for long-running marble-1.1-plus jobs (often multi-minute)."
         ),
-        "notes": "Preferred over wait_for_world for Marble 0.1-plus to avoid MCP timeouts.",
+        "notes": "Preferred over wait_for_world for marble-1.1-plus to avoid MCP timeouts.",
     },
     {
         "name": "wait_for_world",
@@ -795,7 +799,7 @@ _TOOL_CATALOG = [
         "docstring": (
             "Blocks until done or timeout. Raises RuntimeError on API failure, "
             "TimeoutError if timeout_seconds elapses. Default 90s is safe for "
-            "Marble 0.1-mini. For Marble 0.1-plus use get_operation in a loop."
+            "marble-1.1. For marble-1.1-plus use get_operation in a loop."
         ),
         "notes": "MCP client timeouts (~120s) limit how long this can block.",
     },
@@ -832,29 +836,105 @@ _TOOL_CATALOG = [
         "group": "meta",
         "args": {
             "detail": "'quick' | 'standard' (default) | 'verbose'",
-            "topic": "str (optional) — filter by group: generate, upload, poll, world, meta",
+            "topic": "str (optional) — filter by group: generate, upload, poll, world, spatial, meta",
         },
         "returns": "Structured help dict",
         "example": 'worldlabs_help(detail="verbose", topic="generate")',
         "docstring": "Returns structured documentation at three detail levels. Use topic to filter by tool group.",
         "notes": "",
     },
+    # ------------------------------------------------------------------
+    # SPECULATIVE / IN-DEVELOPMENT — Spatial Voice Agent + multimodal scene
+    # These tools post events to the narration bridge (WORLDLABS_BRIDGE_URL,
+    # default http://localhost:10865 — the same FastAPI served by
+    # web_sota/start.ps1) which the Spark 2.0 viewer consumes via SSE.
+    # The viewer-side wiring is partial and the end-to-end demo requires
+    # speech-mcp running separately.  Kept in the tool surface so the
+    # contract is stable while we finish the implementation.
+    # ------------------------------------------------------------------
+    {
+        "name": "broadcast_spatial_notification",
+        "description": "Speak text at a 3D coordinate via the Spatial Voice Agent (speculative)",
+        "group": "spatial",
+        "args": {
+            "text": "str — message to be spoken",
+            "x": "float — scene X (default 0.0)",
+            "y": "float — scene Y (default 0.0)",
+            "z": "float — scene Z (default 0.0)",
+        },
+        "returns": "Status string with recipient count",
+        "example": 'broadcast_spatial_notification(text="Welcome to the garden", x=-5.2, y=1.5, z=12.0)',
+        "docstring": (
+            "Posts a narration event to the narration bridge SSE stream. The Spark 2.0 "
+            "viewer fetches a WAV from speech-mcp (Gemini Flash TTS) and plays it back "
+            "through a PannerNode at the given coordinates (HRTF spatial audio)."
+        ),
+        "notes": "Requires the narration bridge and speech-mcp. Both are optional dependencies.",
+    },
+    {
+        "name": "broadcast_spatial_audio",
+        "description": "Broadcast a music/ambience track at a 3D coordinate (speculative)",
+        "group": "spatial",
+        "args": {
+            "prompt_or_url": "str — URL to audio file, or future: text prompt for Lyria generation",
+            "x": "float", "y": "float", "z": "float",
+            "is_loop": "bool (default True)",
+        },
+        "returns": "Status string",
+        "example": 'broadcast_spatial_audio(prompt_or_url="https://.../ambience.mp3", x=0, y=0, z=0)',
+        "docstring": "Places a looping spatial audio source in the scene at the given coordinates.",
+        "notes": "Prompt-driven music generation (Lyria) is not wired up yet; URLs work.",
+    },
+    {
+        "name": "place_world_tv",
+        "description": "Place a virtual TV screen playing a video in the scene (speculative)",
+        "group": "spatial",
+        "args": {
+            "video_url": "str — URL to an mp4/webm",
+            "x": "float (default 0.0)",
+            "y": "float (default 1.6)",
+            "z": "float (default 0.0)",
+            "rotation_y": "float — yaw in radians",
+            "scale": "float (default 1.0)",
+        },
+        "returns": "Status string",
+        "example": 'place_world_tv(video_url="https://.../clip.mp4", x=0, y=1.6, z=-5)',
+        "docstring": "Spawns a 16:9 plane with a VideoTexture at the given pose.",
+        "notes": "Requires viewer connected; video must be CORS-accessible.",
+    },
+    {
+        "name": "spawn_agent_avatar",
+        "description": "Materialise an animated agent avatar in the scene (speculative)",
+        "group": "spatial",
+        "args": {
+            "avatar_url": "str — URL to a glTF, or 'default_agent'",
+            "x": "float", "y": "float", "z": "float",
+            "rotation": "float — yaw in radians",
+        },
+        "returns": "Status string",
+        "example": 'spawn_agent_avatar(avatar_url="default_agent", x=0, y=0, z=0)',
+        "docstring": (
+            "Loads a glTF avatar into the scene. The viewer raycasts onto the splat "
+            "collider mesh to ground the avatar to the local surface height."
+        ),
+        "notes": "Grounding works best when the Marble GLB collider is loaded alongside the splats.",
+    },
 ]
 
 _MODELS = [
     {
-        "name": "Marble 0.1-mini",
-        "time": "~30-45 seconds",
-        "quality": "Fast iteration, lower geometric fidelity. Good for prompt development.",
-        "cost": "Lower credit cost",
-        "use_when": "Exploring prompts, high-volume generation (30/month plan)",
+        "name": "marble-1.1",
+        "time": "typically 1-3 minutes",
+        "quality": "Default model. Improved fidelity over marble-1.0 at the same fixed cost.",
+        "cost": "1500 credits per world (fixed)",
+        "use_when": "Most generations. Drop-in replacement for marble-1.0.",
     },
     {
-        "name": "Marble 0.1-plus",
-        "time": "~5 minutes",
-        "quality": "High fidelity, detailed geometry, better material separation.",
-        "cost": "Higher credit cost",
-        "use_when": "Final assets, architectural visualization, export to Blender/Unity",
+        "name": "marble-1.1-plus",
+        "time": "variable; longer for larger worlds",
+        "quality": "Auto-expanding — produces larger worlds in a single pass when the scene allows.",
+        "cost": "1500 base + 300 per additional dynamic cube (up to 5 cubes)",
+        "use_when": "Outdoor scenes, large indoor spaces, architectural visualisation.",
     },
 ]
 
@@ -874,14 +954,18 @@ _WORLDLABS_CONTEXT = {
     ),
     "marble_api": (
         "Marble is the World Labs world-generation API. It takes text, image, or video as input "
-        "and outputs navigable 3D Gaussian splat scenes. The splat format (SPZ) is a compressed "
-        "representation of millions of coloured 3D Gaussians, renderable in real time in WebGL "
-        "viewers, Unity, Blender (with plugin), and VR headsets."
+        "and outputs navigable 3D Gaussian splat scenes. The core rendering engine, Spark 2.0, "
+        "is built with WebGL2 and Rust for SOTA 100M+ splat streaming and WebXR support."
     ),
     "output_formats": {
+        "rad": (
+            "Spark 2.0 Progressive Streaming format. Supports Level-of-Detail (LoD) "
+            "loading and 100M+ splat rendering directly in-browser."
+        ),
+        "ksplat": "Optimized Gaussian Splat format for mobile and VR hardware (Meta/Pico).",
         "spz": (
-            "Compressed Gaussian splat. Multiple resolutions (100k, 500k, full). "
-            "View in the Marble web viewer or import into Blender/Unity."
+            "Standard compressed Gaussian splat. Multiple resolutions (100k, 500k, full). "
+            "View in legacy viewers or import into Blender/Unity."
         ),
         "glb": "Collision mesh in GLTF Binary format. Simplified polygon mesh for physics.",
         "panorama": "360-degree equirectangular JPEG of the generated scene.",
@@ -892,7 +976,8 @@ _WORLDLABS_CONTEXT = {
     "platform_url": "https://platform.worldlabs.ai",
     "api_docs_url": "https://docs.worldlabs.ai/api",
     "pricing_note": (
-        "Credits are consumed per generation. Marble 0.1-mini costs fewer credits than plus. "
+        "Credits are consumed per generation. marble-1.1 is a fixed 1500 credits; "
+        "marble-1.1-plus is 1500 + 300 per dynamic cube (up to 5 cubes). "
         "Check current rates and billing at https://platform.worldlabs.ai/billing. "
         "IMPORTANT: Credits on marble.worldlabs.ai (web app) are SEPARATE from API Platform credits. "
         "Your $30/month web subscription does NOT include API generations."
@@ -913,6 +998,120 @@ _WORLDLABS_CONTEXT = {
         "import, and use in production rather than scenes that only exist inside a model's latent space."
     ),
 }
+
+
+
+@mcp.tool()
+async def broadcast_spatial_audio(
+    prompt_or_url: str,
+    x: float = 0.0,
+    y: float = 0.0,
+    z: float = 0.0,
+    is_loop: bool = True,
+    ctx: Context | None = None,
+) -> str:
+    """
+    Broadcast spatial audio (Music/Ambience) to the scene.
+    If a prompt is provided, it will attempt to generate via Lyria 3 (VeoGen).
+    """
+    bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
+    
+    # If it's a prompt (no http/extension), we'd normally call music-mcp here.
+    # For now, we pass the URL/Prompt to the viewer which handles the fetch.
+    payload = {
+        "type": "audio",
+        "url": prompt_or_url, 
+        "x": x, "y": y, "z": z, 
+        "is_loop": is_loop
+    }
+    
+    async with httpx.AsyncClient() as client:
+        res = await client.post(f"{bridge_url}/api/narration", json=payload)
+        res.raise_for_status()
+        return f"Audio broadcasted: {prompt_or_url} at [{x}, {y}, {z}]"
+
+@mcp.tool()
+async def place_world_tv(
+    video_url: str,
+    x: float = 0.0,
+    y: float = 1.6,
+    z: float = 0.0,
+    rotation_y: float = 0.0,
+    scale: float = 1.0,
+) -> str:
+    """
+    Place a virtual TV screen in the 3D world playing a Veo 3.1 video.
+    """
+    bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
+    payload = {
+        "type": "video",
+        "url": video_url,
+        "x": x, "y": y, "z": z,
+        "rotation": rotation_y,
+        "scale": scale
+    }
+    async with httpx.AsyncClient() as client:
+        res = await client.post(f"{bridge_url}/api/narration", json=payload)
+        res.raise_for_status()
+        return f"TV Materialized at [{x}, {y}, {z}] with video: {video_url}"
+
+@mcp.tool()
+async def spawn_agent_avatar(
+    avatar_url: str = "default_agent",
+    x: float = 0.0,
+    y: float = 0.0,
+    z: float = 0.0,
+    rotation: float = 0.0,
+) -> str:
+    """
+    Materialize an animated agent avatar in the 3D scene.
+    The viewer will attempt to ground the avatar on the collider mesh.
+    """
+    bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
+    payload = {
+        "type": "avatar",
+        "url": avatar_url,
+        "x": x, "y": y, "z": z,
+        "rotation": rotation
+    }
+    async with httpx.AsyncClient() as client:
+        res = await client.post(f"{bridge_url}/api/narration", json=payload)
+        res.raise_for_status()
+        return f"Avatar materialized at [{x}, {y}, {z}]"
+
+
+@mcp.tool()
+async def broadcast_spatial_notification(
+    text: str,
+    x: float = 0.0,
+    y: float = 0.0,
+    z: float = 0.0,
+    ctx: Context | None = None,
+) -> str:
+    """
+    Broadcast a spatial voice notification to the active World Labs Spark Viewer.
+    Connects to the Spatial Voice Agent to narrate specific locations in the 3D world.
+    
+    Args:
+        text: The message to be spoken by Gemini TTS.
+        x: X coordinate in the 3D scene (Default 0.0).
+        y: Y coordinate in the 3D scene (Default 0.0).
+        z: Z coordinate in the 3D scene (Default 0.0).
+    """
+    bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
+    payload = {"text": text, "x": x, "y": y, "z": z}
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            res = await client.post(f"{bridge_url}/api/narration", json=payload)
+            res.raise_for_status()
+            data = res.json()
+            msg = f"Spatial narration broadcasted: '{text}' at [{x}, {y}, {z}]"
+            if ctx:
+                await ctx.info(msg)
+            return f"Success: {msg} (Recipients: {data.get('recipients', 0)})"
+        except Exception as e:
+            return f"Error broadcasting narration: {str(e)}"
 
 
 @mcp.tool()
@@ -992,12 +1191,14 @@ async def worldlabs_help(
 
 # ---------------------------------------------------------------------------
 # ASGI app for uvicorn (web_sota/start.ps1): worldlabs_mcp.server:app
-# REST /api/* for web_sota
+# REST /api/* for web_sota + Spatial Voice Agent narration stream
 # ---------------------------------------------------------------------------
-_web_app = FastAPI(title="worldlabs-mcp")
+_web_app = FastAPI(title="worldlabs-mcp", version="0.4.0")
+_FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:10864")
 _web_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # Wildcard origin + allow_credentials=True is invalid per CORS spec; use explicit list.
+    allow_origins=[_FRONTEND_ORIGIN, "http://127.0.0.1:10864"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

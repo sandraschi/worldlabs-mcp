@@ -18,7 +18,8 @@ export interface WorldAssets {
     _assets?: FlatAssets;
 }
 
-export interface FlatAssets {
+    rad?: string;
+    ksplat?: string;
     splat_100k?: string;
     splat_500k?: string;
     splat_full?: string;
@@ -28,7 +29,7 @@ export interface FlatAssets {
     caption?: string;
 }
 
-export type AssetType = 'splat_100k' | 'splat_500k' | 'splat_full' | 'mesh' | 'panorama';
+export type AssetType = 'rad' | 'ksplat' | 'splat_100k' | 'splat_500k' | 'splat_full' | 'mesh' | 'panorama';
 
 export interface World {
     id: string;

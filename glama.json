@@ -2,32 +2,36 @@
   "$schema": "https://glama.ai/mcp/schemas/server.json",
   "maintainers": ["sandraschi"],
   "name": "worldlabs-mcp",
-  "description": "Generate explorable 3D worlds from text, images, and video using the World Labs Marble API. Supports Gaussian splat output (SPZ), collision mesh (GLB), panorama, and thumbnail assets.",
+  "description": "Generate explorable 3D worlds from text, images, panoramas, multi-view sets, or video via the World Labs Marble API (marble-1.1 / marble-1.1-plus). Includes a Spark 2.0 splat viewer and a scaffolded Spatial Voice Agent.",
   "type": "mcp_server",
   "status": "beta",
-  "framework": "FastMCP 2.12+",
-  "tools": 11,
+  "framework": "FastMCP 3.2+",
+  "tools": 16,
   "transport": ["stdio"],
   "keywords": [
     "worldlabs",
     "marble",
     "3d-world-generation",
     "gaussian-splat",
+    "spark",
     "spatial-intelligence",
     "fastmcp",
     "ai",
     "image-to-3d",
     "text-to-3d",
-    "video-to-3d"
+    "video-to-3d",
+    "webxr",
+    "tts",
+    "spatial-audio"
   ],
   "features": {
     "text_to_world": {
       "enabled": true,
-      "description": "Generate 3D worlds from text prompts"
+      "description": "Generate 3D worlds from text prompts (marble-1.1 / marble-1.1-plus)"
     },
     "image_to_world": {
       "enabled": true,
-      "description": "Generate 3D worlds from images (including panoramas)"
+      "description": "Generate 3D worlds from images (including 360° panoramas)"
     },
     "multi_image_to_world": {
       "enabled": true,
@@ -47,7 +51,16 @@
     },
     "world_management": {
       "enabled": true,
-      "description": "List and retrieve world details and asset URLs"
+      "description": "List and retrieve world details and asset URLs (SPZ, GLB, panorama, thumbnail, caption)"
+    },
+    "spark_viewer": {
+      "enabled": true,
+      "description": "In-browser Spark 2.0 viewer with .RAD LoD streaming and HRTF spatial audio"
+    },
+    "spatial_voice_agent": {
+      "enabled": false,
+      "description": "Coordinate-anchored TTS via Gemini 3.1 Flash TTS + speech-mcp (speculative — end-to-end not fully wired)"
     }
   }
 }
+

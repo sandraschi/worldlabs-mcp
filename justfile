@@ -58,3 +58,21 @@ check-sec:
 audit-deps:
     Set-Location '{{justfile_directory()}}'
     uv run safety check
+# ── Demonstration ─────────────────────────────────────────────────────────────
+
+# Launch Spark 2.0 Viewer with local residency asset
+view:
+    pwsh -File scripts/view-residence.ps1
+
+# Execute Spatial Voice Agent narration demo
+demo:
+    pwsh -File scripts/demo-narration.ps1
+
+# ── Industrialization ─────────────────────────────────────────────────────────
+
+# Execute full SOTA industrial audit (Lint + Fix + Sec + Audit)
+industrialize:
+    just fix
+    just lint
+    just check-sec
+    just audit-deps

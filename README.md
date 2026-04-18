@@ -1,151 +1,51 @@
-[![CI](https://github.com/sandraschi/worldlabs-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sandraschi/worldlabs-mcp/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![FastMCP](https://img.shields.io/badge/FastMCP-3.1.0%2B-green.svg)](https://github.com/jlowin/fastmcp)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![World Labs](https://img.shields.io/badge/World%20Labs-Marble%20API-purple.svg)](https://docs.worldlabs.ai/api)
-[![Glama](https://img.shields.io/badge/Glama-MCP%20Server-orange.svg)](https://glama.ai/mcp/servers?query=sandraschi)
+[![FastMCP Version](https://img.shields.io/badge/FastMCP-3.2.0-blue?style=flat-square&logo=python&logoColor=white)](https://github.com/sandraschi/fastmcp) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Linted with Biome](https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat-square&logo=biome&logoColor=white)](https://biomejs.dev/) [![Built with Just](https://img.shields.io/badge/Built_with-Just-000000?style=flat-square&logo=gnu-bash&logoColor=white)](https://github.com/casey/just)
 
-# worldlabs-mcp
+# worldlabs-mcp (v0.4.0)
 
-MCP server wrapping the [World Labs Marble API](https://docs.worldlabs.ai/api)  generate navigable 3D worlds from text, images, and video.
+**MCP gateway to World Labs Marble + Spark 2.0.** Generate navigable 3D worlds from text, images, panoramas, multi-view sets, or video; view them with a streaming Gaussian-splat renderer; and (work-in-progress) ground a voice agent in scene coordinates.
 
-## What it does
+## 🚀 Quick Start
 
-Exposes the World Labs Marble world-generation pipeline as MCP tools so Claude (or any MCP client) can:
+1. **Setup**: `uv pip install -e ".[dev]"`
+2. **Key**: Set `WORLDLABS_API_KEY` environment variable (get one at https://platform.worldlabs.ai/api-keys).
+3. **Launch**: `python scripts/run_server.py`
 
-- Generate 3D worlds from a text prompt
-- Lift images or panoramas into explorable 3D spaces
-- Generate from multiple images with azimuth angles
-- Convert video into navigable environments
-- Upload local media files and generate end-to-end
-- Poll operations and retrieve world assets (Gaussian splats, mesh, panorama, thumbnail)
+## 💎 Features
 
-## Requirements
+### Shipping
+- **Marble 1.1 + 1.1-plus** world generation from text, image, multi-image, video, or local file upload.
+- **Operation polling** (single-shot `get_operation` + blocking `wait_for_world`) with World Labs-specific 401/402/429 error handling.
+- **Local bridge webapp** (Vite + React + TS under `web_sota/`, FastAPI on port 10865) with prompt history, LLM-refined prompts via Ollama/LM Studio, and DCC handoff to Blender / Unity / Resonite.
+- **`worldlabs_help` tool** with three detail levels (quick / standard / verbose) and topic filtering.
 
-- Python 3.10+
-- A World Labs account with **API credits**: https://platform.worldlabs.ai
-  - > [!CAUTION]
-  - > **BILLING ALERT**: Credits purchased for the World Labs web app (`marble.worldlabs.ai`, e.g., the $30/month plan) are **NOT VALID** for the Marble API.
-  - > You must fund your API balance separately at [platform.worldlabs.ai/billing](https://platform.worldlabs.ai/billing) to use this MCP server.
+### Speculative (scaffolded, not fully wired)
+- **Spark 2.0 viewer page** — streams `.rad` / `.spz` Gaussian-splat worlds using `@sparkjsdev/spark@2.0.0`, with in-browser LoD, WebXR-ready.
+- **Spatial Voice Agent** — posts narration events to an SSE bridge; the viewer plays the audio through a WebAudio `PannerNode` (HRTF) at scene coordinates. End-to-end needs `speech-mcp` for TTS output.
+- **Scene primitives** — `broadcast_spatial_audio`, `place_world_tv`, `spawn_agent_avatar` for agent-driven scene composition.
 
-## Setup
+## 📚 Documentation
 
-```bash
-cd worldlabs-mcp
-uv pip install -e ".[dev]"
-```
+- 📥 **[Installation](./docs/INSTALL.md)**
+- 🏗️ **[Architecture](./docs/ARCHITECTURE.md)**
+- 🌐 **[World Modeling](./docs/WORLD_MODELING.md)** — spatial intelligence market context
+- 🎙️ **[Spatial Voice & TTS](./docs/TTS.md)** — Gemini 3.1 Flash TTS + WebAudio HRTF
+- 🥽 **[VR & WebXR](./docs/WEBXR.md)**
+- ⚡ **[Spark 2.0](./docs/SPARK_V2.md)** — LoD splat tree, `.RAD` streaming format
 
-Set your API key (environment variable):
-```
-WORLDLABS_API_KEY=your_key_here
-```
+## 🛠️ Tools (16)
 
-Get a key at https://platform.worldlabs.ai/api-keys
+| Group | Tool |
+|-------|------|
+| generate | `generate_world_from_text`, `generate_world_from_image`, `generate_world_from_multi_image`, `generate_world_from_video`, `generate_world_from_media_asset` |
+| upload | `upload_and_generate`, `prepare_media_upload` |
+| poll | `get_operation`, `wait_for_world` |
+| world | `list_worlds`, `get_world` |
+| spatial *(speculative)* | `broadcast_spatial_notification`, `broadcast_spatial_audio`, `place_world_tv`, `spawn_agent_avatar` |
+| meta | `worldlabs_help` |
 
-## Claude Desktop config
+## 🛡️ Quality
 
-Add to `claude_desktop_config.json` (or copy from `mcp_config.json`):
+Ruff for Python, Biome for Web, Just for automation. Pytest + pytest-httpx for the Marble wrapper. FastMCP 3.2+ with Prefab UI for in-chat rich tool results.
 
-```json
-{
-  "mcpServers": {
-    "worldlabs-mcp": {
-      "command": "uvx",
-      "args": ["worldlabs-mcp"],
-      "env": {
-        "WORLDLABS_API_KEY": "your_key_here"
-      }
-    }
-  }
-}
-```
-
-For local development (without installing):
-```json
-{
-  "mcpServers": {
-    "worldlabs-mcp": {
-      "command": "python",
-      "args": ["D:/Dev/repos/worldlabs-mcp/scripts/run_server.py"],
-      "env": {
-        "WORLDLABS_API_KEY": "your_key_here"
-      }
-    }
-  }
-}
-```
-
-## Tools
-
-| Tool | Description |
-|------|-------------|
-| `generate_world_from_text` | Text prompt  Operation |
-| `generate_world_from_image` | Public image URL  Operation (panorama support) |
-| `generate_world_from_multi_image` | Multiple images at azimuth angles  Operation |
-| `generate_world_from_video` | Public video URL  Operation |
-| `upload_and_generate` | Local file path  upload  Operation (end-to-end) |
-| `prepare_media_upload` | Get signed GCS upload URL for manual upload |
-| `generate_world_from_media_asset` | Uploaded asset ID  Operation |
-| `get_operation` | Single poll of an operation status |
-| `wait_for_world` | Blocking poll until done (raises on error, TimeoutError) |
-| `list_worlds` | Paginated list of all generated worlds |
-| `get_world` | Fetch latest world details and asset URLs by ID |
-
-## SOTA 2026 Dashboard
-
-The project includes a state-of-the-art web dashboard for managing 3D world generation, history, and DCC exports.
-
-### Features
-- **Prompt Refinement**: Integrate with local LLMs (Ollama/LM Studio) to transform short prompts into highly detailed 20-line WorldLabs-optimized technical descriptions.
-- **Generation History**: Persisted session history with real-time operation polling.
-- **DCC Export**: One-click asset handoff to Resonite (OSC), Unity3D (Assets folder), and Blender (v10740 bridge).
-- **Premium Aesthetics**: Glassmorphism, dark mode, and micro-animations.
-
-### Running the Dashboard
-```powershell
-# In the web_sota directory
-npm install
-./start.ps1
-```
-The dashboard runs on port **10864**, with the bridge server on **10865**.
-
-## Models
-
-- `Marble 0.1-mini`  **default**, ~30-45 seconds, cheaper, good for iteration
-- `Marble 0.1-plus`   quality, ~5 minutes per generation
-
-## World assets returned
-
-- `assets.splats.spz_urls`  Gaussian splat files (100k, 500k, full resolution)
-- `assets.mesh.collider_mesh_url`  collision mesh in GLB format
-- `assets.imagery.pano_url`  360 panorama image
-- `assets.thumbnail_url`  thumbnail JPEG
-- `assets.caption`  AI-generated scene description
-- `world_marble_url`  direct link to view in Marble viewer
-
-## Development
-
-```bash
-# Run tests
-pytest tests/ -v
-
-# Lint
-ruff check src/ tests/
-
-# Run server (stdio)
-python scripts/run_server.py
-
-# Run server (HTTP for testing)
-python scripts/run_server.py --http --port 8000
-```
-
-## Notes
-
-- World generation is async. All `generate_*` tools return an Operation immediately.
-  Use `wait_for_world` if you want to block until done.
-- Credits are consumed per generation. Check https://platform.worldlabs.ai/billing.
-- Default model is `Marble 0.1-mini` for fast iteration. Pass `model="Marble 0.1-plus"` for quality.
-
-## License
-
-MIT
+---
+MIT License • Maintained by [sandraschi](https://github.com/sandraschi). Not affiliated with World Labs.

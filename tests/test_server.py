@@ -71,7 +71,7 @@ async def test_generate_world_from_text_plus_model(httpx_mock: HTTPXMock, fake_o
     )
     result = await generate_world_from_text(
         text_prompt="A mountain scene",
-        model="Marble 0.1-plus",
+        model="marble-1.1-plus",
     )
     assert result["name"] == "operations/op-123"
 
@@ -249,7 +249,7 @@ async def test_get_world(httpx_mock: HTTPXMock, fake_world):
 async def test_list_worlds(httpx_mock: HTTPXMock):
     httpx_mock.add_response(
         method="GET",
-        url=f"{BASE_URL}/worlds",
+        url=f"{BASE_URL}/worlds?page_size=20",
         json={"worlds": [], "next_page_token": ""},
     )
     result = await list_worlds()

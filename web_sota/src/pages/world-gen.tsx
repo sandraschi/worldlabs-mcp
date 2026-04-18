@@ -348,6 +348,8 @@ function AssetPanel({ op, assets }: { op: Operation; assets: FlatAssets }) {
     }
 
     const downloads: Array<{ key: AssetType; label: string; hint: string }> = [
+        { key: 'rad', label: 'RAD (Spark 2.0)', hint: 'Progressive High-Res' },
+        { key: 'ksplat', label: 'KSPLAT', hint: 'Optimized VR/Mobile' },
         { key: 'splat_100k', label: 'SPZ 100k', hint: 'Fast preview' },
         { key: 'splat_500k', label: 'SPZ 500k', hint: 'Balanced' },
         { key: 'splat_full', label: 'SPZ Full', hint: 'Max quality' },
@@ -456,7 +458,16 @@ function AssetPanel({ op, assets }: { op: Operation; assets: FlatAssets }) {
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-void-600/20 hover:bg-void-600/30 border border-void-500/30 text-xs text-void-300 hover:text-void-200 transition-all"
                     >
                         <Globe2 className="w-3 h-3" aria-hidden="true" />
-                        View in Splat Viewer
+                        Legacy Viewer
+                    </a>
+                )}
+                {(assets.rad || assets.ksplat || assets.splat_500k || assets.splat_full) && (
+                    <a
+                        href={`/spark-viewer?url=${encodeURIComponent(assets.rad ?? assets.ksplat ?? assets.splat_500k ?? assets.splat_full ?? '')}&name=${encodeURIComponent(worldName)}`}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-aurora-600/20 hover:bg-aurora-600/30 border border-aurora-500/30 text-xs text-aurora-300 hover:text-aurora-200 transition-all shadow-[0_0_10px_-2px_rgba(74,222,128,0.2)]"
+                    >
+                        <Zap className="w-3 h-3" aria-hidden="true" />
+                        Spark 2.0 (High-Fidelity)
                     </a>
                 )}
             </div>

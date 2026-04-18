@@ -9,16 +9,18 @@ from worldlabs_mcp.server import mcp
 # ---------------------------------------------------------------------------
 
 
-def _get_tool(name: str):
+async def _get_tool(name: str):
     """Find a registered tool by name."""
-    for tool in mcp._tool_manager._tools.values():
+    tools = await mcp.list_tools()
+    for tool in tools:
         if tool.name == name:
             return tool
     return None
 
 
-def _tool_names() -> set[str]:
-    return {t.name for t in mcp._tool_manager._tools.values()}
+async def _tool_names() -> set[str]:
+    tools = await mcp.list_tools()
+    return {t.name for t in tools}
 
 
 # ---------------------------------------------------------------------------
@@ -26,28 +28,55 @@ def _tool_names() -> set[str]:
 # ---------------------------------------------------------------------------
 
 
-def test_help_tool_registered():
-    assert "worldlabs_help" in _tool_names(), "worldlabs_help tool must be registered"
+@pytest.mark.asyncio
+async def test_help_tool_registered():
+    assert "worldlabs_help" in await _tool_names(), "worldlabs_help tool must be registered"
 
 
-def test_all_expected_tools_registered():
+@pytest.mark.asyncio
+async def test_all_expected_tools_registered():
     expected = {
+        # generate
         "generate_world_from_text",
         "generate_world_from_image",
         "generate_world_from_multi_image",
         "generate_world_from_video",
+        "generate_world_from_media_asset",
+        # upload
         "upload_and_generate",
         "prepare_media_upload",
-        "generate_world_from_media_asset",
+        # poll
         "get_operation",
         "wait_for_world",
+        # world
         "list_worlds",
         "get_world",
+        # spatial (speculative, wired into narration bridge)
+        "broadcast_spatial_notification",
+        "broadcast_spatial_audio",
+        "place_world_tv",
+        "spawn_agent_avatar",
+        # meta
         "worldlabs_help",
     }
-    registered = _tool_names()
+    registered = await _tool_names()
     missing = expected - registered
     assert not missing, f"Missing tools: {missing}"
+
+
+@pytest.mark.asyncio
+async def test_tool_count_matches_catalog():
+    """Catalog and registry must agree — the help tool shouldn't lie about the surface."""
+    from worldlabs_mcp.server import _TOOL_CATALOG
+
+    catalog_names = {t["name"] for t in _TOOL_CATALOG}
+    registered = await _tool_names()
+    # Every catalog entry must be a real registered tool
+    fictional = catalog_names - registered
+    assert not fictional, f"Catalog lists tools that aren't registered: {fictional}"
+    # Every registered tool must be in the catalog
+    undocumented = registered - catalog_names
+    assert not undocumented, f"Registered tools missing from catalog: {undocumented}"
 
 
 # ---------------------------------------------------------------------------
@@ -64,7 +93,7 @@ async def test_help_quick():
     assert result.get("level") == "quick"
     assert "tools" in result
     assert isinstance(result["tools"], list)
-    assert len(result["tools"]) >= 11
+    assert len(result["tools"]) >= 16
     # Quick mode: each entry has name and one-line description
     for entry in result["tools"]:
         assert "name" in entry
@@ -84,7 +113,7 @@ async def test_help_standard():
     result = await worldlabs_help(detail="standard")
     assert result.get("level") == "standard"
     tools = result["tools"]
-    assert len(tools) >= 11
+    assert len(tools) >= 16
 
     # Standard mode: includes args and return description
     gen_text = next((t for t in tools if t["name"] == "generate_world_from_text"), None)
@@ -196,7 +225,7 @@ async def test_help_topic_invalid_returns_all():
 
     result = await worldlabs_help(detail="quick", topic="xyzzy_nonexistent")
     # Falls back to all tools rather than crashing
-    assert len(result["tools"]) >= 11
+    assert len(result["tools"]) >= 16
 
 
 # ---------------------------------------------------------------------------

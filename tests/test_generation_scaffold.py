@@ -35,7 +35,7 @@ live = pytest.mark.skipif(
 )
 
 # ---------------------------------------------------------------------------
-# Interesting prompts — Marble 0.1-mini
+# Interesting prompts — marble-1.1
 # ---------------------------------------------------------------------------
 
 PROMPTS = [
@@ -87,7 +87,7 @@ async def _generate_and_poll(
     prompt: str,
     display_name: str,
     *,
-    model: str = "Marble 0.1-mini",
+    model: str = "marble-1.1",
     max_wait: int = 90,
     poll_interval: int = 10,
 ) -> dict:
