@@ -9,6 +9,7 @@ import { WorldViewer as Library } from '@/pages/world-viewer';
 import { SparkViewer } from '@/pages/spark-viewer';
 import { SparkDetail } from '@/pages/spark-detail';
 import { ChiselDetail } from '@/pages/chisel-detail';
+import { ImmersiveDetail } from '@/pages/immersive-detail';
 import { ToolsExplorer } from '@/pages/tools-explorer';
 import { LocalLlm } from '@/pages/local-llm';
 import { Apps } from '@/pages/apps';
@@ -35,6 +36,7 @@ function App() {
                         <Route path="/spark-viewer" element={<SparkViewer />} />
                         <Route path="/spark-v2" element={<SparkDetail />} />
                         <Route path="/chisel" element={<ChiselDetail />} />
+                        <Route path="/immersive" element={<ImmersiveDetail />} />
                         <Route path="/tools-explorer" element={<ToolsExplorer />} />
                         <Route path="/local-llm" element={<LocalLlm />} />
                         <Route path="/apps" element={<Apps />} />

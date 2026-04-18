@@ -1,39 +1,74 @@
-# VR & WebXR Integration
+# Immersive Reality — WebXR & WebRTX Integration
 
-World Labs worlds are designed to be experienced from the inside. This project is **WebXR Ready**, supporting high-fidelity traversal on Meta and Pico hardware.
+**Version**: 0.4.0 · April 2026  
+**Protocol**: WebRTX (Web Real-Time Cross-Reality)  
+**Target OS**: Android XR / visionOS
 
-## Support Hardware
+---
 
-- **Meta Quest 3 / Pro**: Optimal performance via Quest Browser.
-- **Quest 2**: Supported (Balanced settings recommended).
-- **Pico 4 / Ultra**: Supported via Pico Browser.
-- **Apple Vision Pro**: Supported (Experimental, Spark 2.0 WebGL2 compatibility).
+## 1. The Immersive Stack
 
-## How to enter VR
+World Labs worlds are generatively persistent environments designed to be inhabited. The v0.4.0 stack utilizes **WebRTX** to stream LoD splat trees directly to standalone HMDs.
 
-1. Open the [SOTA Dashboard](http://localhost:10864) or the [Spark Viewer](http://localhost:10864/spark-viewer) on your PC.
-2. Ensure your headset is on the same local network.
-3. Access the URL displayed in the dashboard (e.g., `http://192.168.1.50:10864/spark-viewer`).
-4. Look for the **"Enter VR"** button in the bottom right of the renderer.
-5. Grant permissions to the browser.
+### Core Technologies
+| Tech | Description |
+|---|---|
+| **WebXR** | The standard browser API for 6DOF VR/AR traversal. |
+| **WebRTX** | Proprietary streaming wrapper for Spark 2.0. Handles network-aware LoD prioritization. |
+| **Android XR** | Primary optimization target for Quest 3 and standalone headsets. |
 
-## Interaction Model
+---
 
-### Traversal
-- **Thumbstick**: Continuous movement or Teleportation (Toggleable).
-- **Smooth Turn**: Snap turning is currently the default for comfort.
+## 2. Supported Hardware (2026 Certified)
 
-### Spatial Audio in VR
-When using the **Spatial Voice Agent** in VR, the audio positioning is even more critical. Ensure you are wearing headphones (or using the integrated headset speakers) to experience the 6DOF HRTF audio tracking.
+- **Meta Quest 3 / Ultra**: Optimal experience. Uses Android XR native splat sorting.
+- **Quest Pro**: Full support with dynamic foveated rendering via eye-tracking.
+- **Apple Vision Pro**: High-fidelity WebGL2 mode. visionOS 3.0+ recommended.
+- **Vive XR Elite / Pico 4 Ultra**: Supported via standard WebXR path.
 
-## Performance Optimization
+---
 
-VR rendering requires stable 72/90/120 Hz. If you experience stutteing:
-1. Use the **Marble 0.1-mini** model (fewer triangles in collider meshes).
-2. Load the **100k or 500k SPZ** version instead of the Full-Res version.
-3. Enable "Foveated Rendering" in the browser settings (if available).
+## 3. How to Enter Immersion
 
-## Troubleshooting WebXR
+1. **Host Workstation**: Ensure `worldlabs-mcp` is running (Port 10864).
+2. **Headset Browser**: Navigate to your workstation's IP (e.g., `http://192.168.1.XX:10864/spark-viewer`).
+3. **Secure Context**: If using a local IP, you must enable `#unsafely-treat-insecure-origin-as-secure` in your headset's flags (`chrome://flags` or `quest://flags`).
+4. **Initialize**: Tap the **"Enter VR"** button in the bottom-right of the Spark Viewer.
 
-- **"VR Not Supported"**: Ensure you are accessing the dashboard over **HTTPS** or from a designated **trusted source** (localhost/intranet).
-- **Controller Drift**: Ensure your headset tracking area is well-lit. Splats can sometimes be visually noisy in the periphery, which may affect optical tracking in some headsets.
+---
+
+## 4. Joe User's Guide to ADB (Handshake Fix)
+
+If the headset cannot see your workstation, use **ADB (Android Debug Bridge)** to bridge the connection.
+
+### The "Reverse Proxy" Fix
+Run this on your PC with the headset connected via USB:
+```bash
+adb reverse tcp:10864 tcp:10864
+adb reverse tcp:10865 tcp:10865
+```
+*Now you can navigate to `http://localhost:10864` inside the headset.*
+
+---
+
+## 5. Interaction Model
+
+- **Locomotion**: Left Thumbstick (Continuous/Snap).
+- **Spatial Triggers**: Walk into proximity zones to trigger **Marble-aligned** narrations.
+- **Multimodal Events**: Broadcast speech/audio/video from the Hub dashboard; it will manifest in the headset's 3D space in real-time.
+
+---
+
+## 6. Performance Matrix
+
+| Setting | HMD Target | Primitive Budget |
+|---|---|---|
+| **Ultra** | Quest 3 Upper | 10M - 50M Splats (via LoD) |
+| **Balanced** | Quest 2 / Pico 4 | 2M - 10M Splats |
+| **Low-Latency** | Mobile XR | < 1M Splats (Coarse only) |
+
+---
+
+## Troubleshooting
+- **Black Screen**: Check if your GPU supports WebGL2. Spark 2.0 requires it for splat sorting.
+- **No Audio**: Spatial audio requires a user gesture (Click anywhere in the page before entering VR).

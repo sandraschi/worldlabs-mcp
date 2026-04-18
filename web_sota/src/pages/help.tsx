@@ -456,6 +456,34 @@ export function Help() {
                 </div>
             </Section>
 
+            {/* ---- Immersive Reality ---- */}
+            <Section title="Immersive Reality (WebRTX)" icon={Glasses} defaultOpen={false}>
+                <div className="space-y-4 text-sm text-slate-400 leading-relaxed">
+                    <p>
+                        World Labs worlds are <strong>WebXR Ready</strong>. Experience generatively persistent worlds from the inside using the v0.4.0 <strong>WebRTX</strong> protocol—proprietary real-time cross-reality streaming for Spark 2.0.
+                    </p>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="glass-card p-4 space-y-2">
+                            <h4 className="text-xs font-black uppercase text-aurora-300">Android XR Integration</h4>
+                            <p className="text-[11px] text-slate-500">Native optimization for Quest 3 Ultra. Optimized splat sorting and hand-tracking support.</p>
+                        </div>
+                        <div className="glass-card p-4 space-y-2">
+                            <h4 className="text-xs font-black uppercase text-cosmos-300">Spatialized Presence</h4>
+                            <p className="text-[11px] text-slate-500">Multimodal events (Speech/Audio/Video) are spatialized relative to the HMD position in real-time.</p>
+                        </div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-orange-500/5 border border-orange-500/20">
+                        <p className="text-xs font-bold text-orange-400 flex items-center gap-2">
+                            <Info className="w-4 h-4" />
+                            Security / Secure Context
+                        </p>
+                        <p className="text-[11px] text-slate-500 mt-1">
+                            Entering VR requires <strong>HTTPS</strong> or a trusted origin. If connecting to a local PC from a headset, use the <code className="text-orange-300 bg-black/30 px-1 rounded">adb reverse</code> utility found in the <strong>Reality Hub</strong>.
+                        </p>
+                    </div>
+                </div>
+            </Section>
+
             {/* ---- API Docs ---- */}
             <Section title="External Links" icon={BookOpen} defaultOpen={false}>
                 <div className="space-y-2 text-xs">

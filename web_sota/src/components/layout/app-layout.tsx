@@ -12,7 +12,8 @@ import {
     Menu,
     Wand2,
     Binary,
-    Triangle
+    Triangle,
+    Glasses
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -42,6 +43,10 @@ const navItems = [
 const engineItems = [
     { to: '/spark-v2', label: 'Spark Engine', icon: Binary },
     { to: '/chisel', label: 'Chiseling', icon: Triangle },
+];
+
+const xrItems = [
+    { to: '/immersive', label: 'Reality Hub', icon: Glasses },
 ];
 
 function Sidebar() {
@@ -129,6 +134,32 @@ function Sidebar() {
                         </NavLink>
                     );
                 })}
+
+                {!collapsed && (
+                    <div className="section-label px-2 pt-6 pb-2">Immersive Reality</div>
+                )}
+                {xrItems.map(({ to, label, icon: Icon }) => {
+                    const isActive = location.pathname.startsWith(to);
+                    return (
+                        <NavLink
+                            key={to}
+                            to={to}
+                            title={collapsed ? label : undefined}
+                            className={cn(
+                                'flex items-center gap-3 px-2 py-2 rounded-lg text-sm font-medium',
+                                'transition-all duration-150',
+                                collapsed && 'justify-center',
+                                isActive
+                                    ? 'bg-aurora-600/30 text-aurora-300 border border-aurora-500/30 shadow-[inset_0_1px_0_rgba(74,222,128,0.15)]'
+                                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]',
+                            )}
+                            aria-current={isActive ? 'page' : undefined}
+                        >
+                            <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                            {!collapsed && <span className="truncate">{label}</span>}
+                        </NavLink>
+                    );
+                })}
             </nav>
 
             {/* Footer: version badge */}
@@ -167,7 +198,7 @@ function Topbar() {
     const { setCollapsed, collapsed } = useSidebar();
     const location = useLocation();
 
-    const currentPage = [...navItems, ...engineItems].find(n =>
+    const currentPage = [...navItems, ...engineItems, ...xrItems].find(n =>
         n.to === '/' ? location.pathname === '/' : location.pathname.startsWith(n.to)
     );
 
