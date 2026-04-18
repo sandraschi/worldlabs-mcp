@@ -27,10 +27,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **docs/TTS.md** corrected — model is `gemini-3.1-flash-tts-preview` (not "Gemini 3.1 Pro"). Added known-gaps section, clarified the speech-mcp dependency.
 - **`.env.example`** expanded to document the full config surface (bridge URL, local assets path, DCC targets).
 
-### Industrial Milestones (v0.4.0)
-- **Core Engine Specs**: Added dedicated high-fidelity pages for **Spark v2** (`/spark-v2`) and **Chisel** (`/chisel`), grouped under a new "Core Engines" sidebar category.
-- **Deep Descriptions**: Integrated "Generative Persistence" and "Geometric Distillation" definitions across README and Help systems.
-- **Documentation Parity**: Reorganized root documentation into `docs/`. Modernized `EXPORT_GUIDE.md` to v0.4.0 standards.
+### Industrial Extensions (v0.4.0)
+- **Scene Persistence (Baking)** — Implemented `POST /api/scenes/bake` and `GET /api/scenes` for spatial manifest storage. Scenes are now persistent and can be restored across sessions.
+- **Blender Handshake** — Created `docs/BLENDER.md` guidelines for professional `.glb` exports; added a **Local Import** tab to the Toolbox for one-click manifestation from local workstation paths.
+- **Sovereign Art Gallery** — Deployed a curated collection of "Nano Banana" and "GSD Canine" 8k masterpieces to the Hub; implemented `handlePlacePicture` with native texture mapping and aspect-ratio preservation.
+- **Plex Cinema Integration** — Added an authenticated bridge to `plex-mcp` for library discovery and streaming. Movies can be manifested on world "Cinema" surfaces at a specialized 5.5m scale.
+- **Sovereign Command Console** — Introduced a high-fidelity in-world 3D terminal with live CPU/MEM/VRAM telemetry and raycasted button interactions (Bake/Restore/Void).
+- **Inter-World Portals** — Unified geofencing with world-switching; implemented torus-frame "Wormholes" with procedural ripple shaders and seamless transition logic.
+- **VRAM Telemetry** — Integrated `nvidia-smi` discovery for hardware-aware spatial orchestration on RTX platforms.
 
 ### Added
 - **`GET /api/capabilities`** — runtime feature-gating endpoint per AGENT_PROTOCOLS §1.4.

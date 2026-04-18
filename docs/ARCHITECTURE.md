@@ -37,8 +37,9 @@ worldlabs-mcp is three cooperating pieces plus two optional external servers.
 | 10864 | Vite dev server            | webapp frontend                                         |
 | 10865 | `worldlabs_mcp.server:app` | `/api/*` — Marble proxy + narration SSE + webapp state  |
 | 11434 | Ollama                     | local LLM for prompt refinement (optional)              |
-|  1234 | LM Studio                  | local LLM for prompt refinement (optional)              |
+| 1234 | LM Studio                  | local LLM for prompt refinement (optional)              |
 | 10918 | speech-mcp                 | Gemini Flash TTS backend for the voice agent (optional) |
+| 10710 | plex-mcp                   | Media streaming for the Cinema bridge (optional)         |
 | 10700 | blender-mcp                | DCC handoff (optional)                                  |
 | 10730 | unity3d-mcp                | DCC handoff (optional)                                  |
 |  9000 | Resonite                   | OSC receiver for handoff (optional)                     |
@@ -94,6 +95,9 @@ All generate tools default to `marble-1.1` (1500 credits/world). Pass
 - `/api/llm/discover` + `/api/llm/refine` — probes Ollama and LM Studio;
   refines a short prompt into a 20-line Marble-optimised technical spec
 - `/api/export/{blender,unity3d,resonite}` and `/api/handoff` — DCC handoff
+- `/api/scenes` — CRUD for spatial manifests (Baking/Restore persistence)
+- `/api/system/stats` — Real-time CPU/MEM/VRAM telemetry (via `psutil` and `nvidia-smi`)
+- `/api/plex` — Authenticated bridge to `plex-mcp` for in-world streaming
 - `/api/capabilities` — runtime feature gating for the frontend
 
 ## Data flow: Spatial Voice Agent
