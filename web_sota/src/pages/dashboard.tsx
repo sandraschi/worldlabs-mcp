@@ -43,11 +43,11 @@ export function Dashboard() {
 
             {/* Feature Grid */}
             <div className="grid gap-6 md:grid-cols-4">
-                <div className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-cyan-500/50 transition-all group">
-                    <Box className="h-12 w-12 text-cyan-400 mb-6 group-hover:scale-110 transition-transform" />
+                <Link to="/chisel" className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-void-500/50 transition-all group no-underline text-left">
+                    <Box className="h-12 w-12 text-void-400 mb-6 group-hover:scale-110 transition-transform" />
                     <h3 className="text-xl font-bold text-white mb-3 tracking-tight">Geometry Proxy</h3>
-                    <p className="text-slate-400 leading-snug">Auto-generate optimized collision meshes for game engines.</p>
-                </div>
+                    <p className="text-slate-400 leading-snug">Auto-generate optimized collision meshes for game engines via <strong>Chisel</strong>.</p>
+                </Link>
                 <div className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-blue-500/50 transition-all group">
                     <Sparkles className="h-12 w-12 text-blue-400 mb-6 group-hover:scale-110 transition-transform" />
                     <h3 className="text-xl font-bold text-white mb-3 tracking-tight">Multimodal Orchestration</h3>
@@ -58,11 +58,11 @@ export function Dashboard() {
                     <h3 className="text-xl font-bold text-white mb-3 tracking-tight">Sovereign Intelligence</h3>
                     <p className="text-slate-400 leading-snug">Optimize world prompts with local LLMs (Ollama/LM Studio).</p>
                 </div>
-                <div className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-magenta-500/50 transition-all group">
-                    <Zap className="h-12 w-12 text-magenta-400 mb-6 group-hover:scale-110 transition-transform" />
+                <Link to="/spark-v2" className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-cosmos-500/50 transition-all group no-underline text-left">
+                    <Zap className="h-12 w-12 text-cosmos-400 mb-6 group-hover:scale-110 transition-transform" />
                     <h3 className="text-xl font-bold text-white mb-3 tracking-tight">Spark 2.0 Engine</h3>
-                    <p className="text-slate-400 leading-snug">LoD Gaussian Splatting with 100M+ point budget.</p>
-                </div>
+                    <p className="text-slate-400 leading-snug">LoD Gaussian Splatting with 100M+ point budget and `.RAD` streaming.</p>
+                </Link>
             </div>
         </div>
     );

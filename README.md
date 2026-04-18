@@ -10,6 +10,11 @@
 2. **Key**: Set `WORLDLABS_API_KEY` environment variable (get one at https://platform.worldlabs.ai/api-keys).
 3. **Launch**: `python scripts/run_server.py`
 
+### 🏛️ Core Engines (v0.4.0)
+- **Marble (LWM)**: The Large World Model foundation. Generatively persistent reconstructed worlds with coordinate consistency.
+- **Spark 2.0 (Renderer)**: Hierarchical LoD splat trees with virtual GPU memory paging. Handles 100M+ primitives.
+- **Chisel (Geometry)**: Geometric distillation pipeline for extracting watertight physics proxies and triangular meshes from radiance fields.
+
 ## 💎 Features
 
 ### Shipping

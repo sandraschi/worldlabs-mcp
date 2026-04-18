@@ -10,7 +10,9 @@ import {
     ChevronRight,
     Zap,
     Menu,
-    Wand2
+    Wand2,
+    Binary,
+    Triangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -35,6 +37,11 @@ const navItems = [
     { to: '/architect', label: 'World Architect', icon: Wand2 },
     { to: '/library', label: 'World Library', icon: Globe2 },
     { to: '/settings', label: 'Configuration', icon: Settings },
+];
+
+const engineItems = [
+    { to: '/spark-v2', label: 'Spark Engine', icon: Binary },
+    { to: '/chisel', label: 'Chiseling', icon: Triangle },
 ];
 
 function Sidebar() {
@@ -96,6 +103,32 @@ function Sidebar() {
                         </NavLink>
                     );
                 })}
+
+                {!collapsed && (
+                    <div className="section-label px-2 pt-6 pb-2">Core Engines</div>
+                )}
+                {engineItems.map(({ to, label, icon: Icon }) => {
+                    const isActive = location.pathname.startsWith(to);
+                    return (
+                        <NavLink
+                            key={to}
+                            to={to}
+                            title={collapsed ? label : undefined}
+                            className={cn(
+                                'flex items-center gap-3 px-2 py-2 rounded-lg text-sm font-medium',
+                                'transition-all duration-150',
+                                collapsed && 'justify-center',
+                                isActive
+                                    ? 'bg-void-600/30 text-void-300 border border-void-500/30 shadow-[inset_0_1px_0_rgba(111,84,255,0.15)]'
+                                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]',
+                            )}
+                            aria-current={isActive ? 'page' : undefined}
+                        >
+                            <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                            {!collapsed && <span className="truncate">{label}</span>}
+                        </NavLink>
+                    );
+                })}
             </nav>
 
             {/* Footer: version badge */}
@@ -134,7 +167,7 @@ function Topbar() {
     const { setCollapsed, collapsed } = useSidebar();
     const location = useLocation();
 
-    const currentPage = navItems.find(n =>
+    const currentPage = [...navItems, ...engineItems].find(n =>
         n.to === '/' ? location.pathname === '/' : location.pathname.startsWith(n.to)
     );
 

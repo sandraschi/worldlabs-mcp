@@ -27,6 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **docs/TTS.md** corrected — model is `gemini-3.1-flash-tts-preview` (not "Gemini 3.1 Pro"). Added known-gaps section, clarified the speech-mcp dependency.
 - **`.env.example`** expanded to document the full config surface (bridge URL, local assets path, DCC targets).
 
+### Industrial Milestones (v0.4.0)
+- **Core Engine Specs**: Added dedicated high-fidelity pages for **Spark v2** (`/spark-v2`) and **Chisel** (`/chisel`), grouped under a new "Core Engines" sidebar category.
+- **Deep Descriptions**: Integrated "Generative Persistence" and "Geometric Distillation" definitions across README and Help systems.
+- **Documentation Parity**: Reorganized root documentation into `docs/`. Modernized `EXPORT_GUIDE.md` to v0.4.0 standards.
+
 ### Added
 - **`GET /api/capabilities`** — runtime feature-gating endpoint per AGENT_PROTOCOLS §1.4.
 - **`GET /api/history/remote`** — Marble account-wide world listing (was conflated with local history before).

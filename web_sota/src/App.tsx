@@ -7,6 +7,8 @@ import { Tools } from '@/pages/tools';
 import Architect from '@/pages/world-gen';
 import { WorldViewer as Library } from '@/pages/world-viewer';
 import { SparkViewer } from '@/pages/spark-viewer';
+import { SparkDetail } from '@/pages/spark-detail';
+import { ChiselDetail } from '@/pages/chisel-detail';
 import { ToolsExplorer } from '@/pages/tools-explorer';
 import { LocalLlm } from '@/pages/local-llm';
 import { Apps } from '@/pages/apps';
@@ -31,6 +33,8 @@ function App() {
                         <Route path="/architect" element={<Architect />} />
                         <Route path="/library" element={<Library />} />
                         <Route path="/spark-viewer" element={<SparkViewer />} />
+                        <Route path="/spark-v2" element={<SparkDetail />} />
+                        <Route path="/chisel" element={<ChiselDetail />} />
                         <Route path="/tools-explorer" element={<ToolsExplorer />} />
                         <Route path="/local-llm" element={<LocalLlm />} />
                         <Route path="/apps" element={<Apps />} />
