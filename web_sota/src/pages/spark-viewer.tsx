@@ -91,6 +91,8 @@ export function SparkViewer() {
     const [isSearchingPlex, setIsSearchingPlex] = useState(false);
     const [systemStats, setSystemStats] = useState<any>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const [lastConsoleClick, setLastConsoleClick] = useState(0);
+    const [consoleAlert, setConsoleAlert] = useState<string | null>(null);
 
     // Geofencing Refs
     const triggersRef = useRef<ProximityTrigger[]>([]);
@@ -697,6 +699,14 @@ export function SparkViewer() {
         ctx.fillStyle = '#060a0f';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
+        // Pulse effect on click
+        const timeSinceClick = Date.now() - lastConsoleClick;
+        if (timeSinceClick < 500) {
+            const intensity = 1 - (timeSinceClick / 500);
+            ctx.fillStyle = `rgba(255, 255, 255, ${intensity * 0.1})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
         // Border & Grid
         ctx.strokeStyle = '#22d3ee50';
         ctx.lineWidth = 10;
@@ -708,62 +718,138 @@ export function SparkViewer() {
         ctx.fillText('SOVEREIGN COMMAND CONSOLE', 80, 140);
         
         // Stats
-        ctx.font = 'bold 40px monospace';
+        ctx.font = 'bold 36px monospace';
         ctx.fillStyle = '#4ade80';
         ctx.fillText(`CPU: ${systemStats.cpu_percent}%`, 80, 240);
-        ctx.fillText(`MEM: ${systemStats.memory_percent}%`, 80, 300);
-        ctx.fillText(`SSE: ${systemStats.active_sse_clients} Active`, 80, 360);
+        ctx.fillText(`MEM: ${systemStats.memory_percent}%`, 80, 290);
+        ctx.fillText(`SSE: ${systemStats.active_sse_clients} Active`, 80, 340);
+        
+        // GPU Stats Refinement
+        if (systemStats.gpu) {
+            ctx.fillStyle = '#f472b6';
+            ctx.fillText(`GPU (VRAM): ${systemStats.gpu.vram_percent}%`, 500, 240);
+            ctx.fillText(`${systemStats.gpu.vram_used}/${systemStats.gpu.vram_total} MB`, 500, 290);
+            
+            // Usage Bar
+            ctx.strokeStyle = '#f472b640';
+            ctx.strokeRect(500, 310, 400, 30);
+            ctx.fillStyle = '#f472b690';
+            ctx.fillRect(500, 310, (systemStats.gpu.vram_percent / 100) * 400, 30);
+        }
+
+        // Alert Overlay
+        if (consoleAlert) {
+            ctx.fillStyle = '#0a0f1e';
+            ctx.fillRect(80, 400, 864, 80);
+            ctx.strokeStyle = '#4ade80';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(80, 400, 864, 80);
+            ctx.fillStyle = '#4ade80';
+            ctx.font = 'black 40px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(consoleAlert, 512, 455);
+            ctx.textAlign = 'left';
+        }
         
         // Buttons
         const buttons = [
-            { label: 'BAKE SCENE', color: '#facc15', y: 500 },
-            { label: 'RESTORE', color: '#818cf8', y: 620 },
-            { label: 'VOID ENTITIES', color: '#f87171', y: 740 }
+            { label: 'BAKE SCENE', color: '#facc15', y: 520 },
+            { label: 'RESTORE', color: '#818cf8', y: 640 },
+            { label: 'VOID ENTITIES', color: '#f87171', y: 760 }
         ];
 
         buttons.forEach(btn => {
             ctx.fillStyle = btn.color + '20';
             ctx.fillRect(80, btn.y, 864, 100);
             ctx.strokeStyle = btn.color;
+            ctx.lineWidth = 2;
             ctx.strokeRect(80, btn.y, 864, 100);
             ctx.fillStyle = btn.color;
-            ctx.fillText(btn.label, 360, btn.y + 65);
+            ctx.font = 'bold 36px monospace';
+            ctx.fillText(btn.label, 420, btn.y + 65);
         });
         
         ctx.font = 'italic 30px Inter';
         ctx.fillStyle = '#64748b';
-        ctx.fillText('SPARK v0.4.0 Engine • Local Intel', 80, 920);
+        ctx.fillText('SPARK v0.4.0 Engine • Titan Refined', 80, 920);
     }
 
     function handleConsoleButton(uv: THREE.Vector2) {
+        setLastConsoleClick(Date.now());
         // Simple mapping based on button Y positions
         const y = (1 - uv.y) * 1024; // Convert UV to canvas pixels
-        if (y > 500 && y < 600) void handleBakeScene();
-        else if (y > 620 && y < 720) void handleRestoreScene();
-        else if (y > 740 && y < 840) {
+        if (y > 500 && y < 600) {
+            void handleBakeScene();
+            setConsoleAlert('SCENE BAKED TO HUB');
+        } else if (y > 620 && y < 720) {
+            void handleRestoreScene();
+            setConsoleAlert('SCENE RESTORED');
+        } else if (y > 740 && y < 840) {
             // Void entities
             Object.values(videoSurfacesRef.current).forEach(m => sceneRef.current?.remove(m));
             Object.values(avatarsRef.current).forEach(m => sceneRef.current?.remove(m));
             videoSurfacesRef.current = {};
             avatarsRef.current = {};
+            setConsoleAlert('ENTITIES VOIDED');
         }
+        setTimeout(() => setConsoleAlert(null), 3000);
     }
 
     function handlePlacePortal(data: any) {
         if (!sceneRef.current) return;
-        const geometry = new THREE.TorusGeometry(1.2, 0.1, 16, 100);
-        const material = new THREE.MeshBasicMaterial({ color: 0x818cf8, emissive: 0x818cf8 });
-        const mesh = new THREE.Mesh(geometry, material);
         
-        mesh.position.set(data.x, data.y + 1.2, data.z);
-        mesh.rotation.y = data.rotation;
-        mesh.userData = { 
+        // Refinement: Ripple Shader Material
+        const vertexShader = `
+            varying vec2 vUv;
+            void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `;
+        const fragmentShader = `
+            uniform float time;
+            varying vec2 vUv;
+            void main() {
+                vec2 center = vec2(0.5, 0.5);
+                float dist = distance(vUv, center);
+                float ripple = sin(dist * 20.0 - time * 5.0) * 0.5 + 0.5;
+                gl_FragColor = vec4(0.5, 0.6, 1.0, ripple * 0.3);
+            }
+        `;
+
+        const geometry = new THREE.CircleGeometry(1.2, 64);
+        const shaderMaterial = new THREE.ShaderMaterial({
+            uniforms: { time: { value: 0 } },
+            vertexShader,
+            fragmentShader,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+
+        // Frame
+        const frameGeom = new THREE.TorusGeometry(1.2, 0.05, 16, 100);
+        const frameMat = new THREE.MeshBasicMaterial({ color: 0x818cf8 });
+        const frame = new THREE.Mesh(frameGeom, frameMat);
+        
+        const ripple = new THREE.Mesh(geometry, shaderMaterial);
+        const group = new THREE.Group();
+        group.add(frame);
+        group.add(ripple);
+        
+        group.position.set(data.x, data.y + 1.2, data.z);
+        group.rotation.y = data.rotation;
+        group.userData = { 
             type: 'portal', 
             target_world_url: data.target_world_url 
         };
         
-        sceneRef.current.add(mesh);
-        videoSurfacesRef.current[data.id] = mesh;
+        // Add ripple animation to the scene loop would be ideal, but for now we rely on needsUpdate
+        (ripple as any).onBeforeRender = () => {
+            shaderMaterial.uniforms.time.value = performance.now() / 1000;
+        };
+
+        sceneRef.current.add(group);
+        videoSurfacesRef.current[data.id] = group as any;
     }
 
     async function handlePortalAction(url: string) {

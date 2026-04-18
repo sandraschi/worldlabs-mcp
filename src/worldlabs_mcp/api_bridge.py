@@ -335,23 +335,31 @@ def _save_scenes(scenes: list[dict[str, Any]]) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _get_disk_usage_percent() -> float:
+def _get_vram_stats() -> dict[str, Any]:
+    """Get GPU VRAM info using nvidia-smi."""
     try:
-        if platform.system() == "Windows":
-            drive = str(DATA_DIR.anchor)  # e.g. "C:\\"
-        else:
-            drive = "/"
-        return psutil.disk_usage(drive).percent
+        # Run nvidia-smi to get used and total memory
+        cmd = "nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits"
+        import subprocess
+        output = subprocess.check_output(cmd, shell=True).decode("utf-8").strip()
+        used, total = map(int, output.split(","))
+        return {
+            "vram_used": used,
+            "vram_total": total,
+            "vram_percent": round((used / total) * 100, 1)
+        }
     except Exception:
-        return 0.0
+        return {"vram_used": 0, "vram_total": 0, "vram_percent": 0.0}
 
 
 def _get_system_stats() -> dict[str, Any]:
+    vram = _get_vram_stats()
     return {
         "cpu_percent": psutil.cpu_percent(),
         "memory_percent": psutil.virtual_memory().percent,
         "disk_percent": _get_disk_usage_percent(),
         "active_sse_clients": len(sse_queues),
+        "gpu": vram
     }
 
 
