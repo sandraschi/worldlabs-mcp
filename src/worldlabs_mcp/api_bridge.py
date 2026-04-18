@@ -42,8 +42,11 @@ from pydantic import BaseModel
 load_dotenv()
 
 router = APIRouter()
-BASE_URL = os.getenv("WORLDLABS_BASE_URL", "https://api.worldlabs.ai/marble/v1")
 DEFAULT_MODEL = "marble-1.1"
+
+# Plex Integration (from plex-mcp)
+PLEX_BASE_URL = os.getenv("PLEX_BASE_URL", "http://localhost:32400")
+PLEX_TOKEN = os.getenv("PLEX_TOKEN", "oGA9iEfVYh8ATXmzYrU8")
 
 
 # ---------------------------------------------------------------------------
@@ -1077,3 +1080,59 @@ async def delete_scene(scene_id: str) -> dict[str, Any]:
     new_scenes = [s for s in scenes if s["id"] != scene_id]
     _save_scenes(new_scenes)
     return {"status": "ok"}
+
+
+# ---------------------------------------------------------------------------
+# Plex Media Integration
+# ---------------------------------------------------------------------------
+
+
+@router.get("/plex/search")
+async def search_plex(q: str = Query(...)) -> list[dict[str, Any]]:
+    """Search Plex library for movies and shows."""
+    url = f"{PLEX_BASE_URL.rstrip('/')}/search"
+    params = {"query": q, "X-Plex-Token": PLEX_TOKEN}
+    headers = {"Accept": "application/json"}
+    
+    async with httpx.AsyncClient(timeout=10) as client:
+        try:
+            resp = await client.get(url, params=params, headers=headers)
+            resp.raise_for_status()
+            data = resp.json()
+            
+            items = data.get("MediaContainer", {}).get("Metadata", [])
+            results = []
+            for item in items:
+                # Construct thumbnail URL
+                thumb = item.get("thumb")
+                thumb_url = f"{PLEX_BASE_URL}/photo/:/transcode?width=300&height=450&minSize=1&url={thumb}&X-Plex-Token={PLEX_TOKEN}" if thumb else ""
+                
+                results.append({
+                    "id": item.get("ratingKey"),
+                    "title": item.get("title"),
+                    "type": item.get("type"),
+                    "summary": item.get("summary"),
+                    "year": item.get("year"),
+                    "thumb": thumb_url,
+                    "key": item.get("key")
+                })
+            return results
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Plex search failed: {e}")
+
+
+@router.get("/plex/stream_url")
+async def get_plex_stream_url(key: str = Query(...)) -> dict[str, Any]:
+    """Get an authenticated stream URL for a Plex item."""
+    # Universal Transcode URL for maximum compatibility with Three.js VideoTexture
+    # We use direct play if possible, but transcode to MP4/HLS for web context
+    stream_url = f"{PLEX_BASE_URL}{key}?X-Plex-Token={PLEX_TOKEN}"
+    
+    # For many browsers, a direct transcode to MP4 is safest for VideoTexture
+    transcode_url = (
+        f"{PLEX_BASE_URL}/video/:/transcode/universal/start.mp4?"
+        f"hasDirectPlay=1&protocol=http&path={key}&"
+        f"session={uuid.uuid4()}&X-Plex-Token={PLEX_TOKEN}"
+    )
+    
+    return {"url": transcode_url, "direct_url": stream_url}

@@ -30,7 +30,9 @@ import {
     ImageIcon,
     FolderPlus,
     LayoutGrid,
-    Search
+    Search,
+    Clapperboard,
+    Tv
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -74,8 +76,11 @@ export function SparkViewer() {
     const [isBroadcasting, setIsBroadcasting] = useState(false);
     const [worldId, setWorldId] = useState<string>('default-world');
     const [worldName, setWorldName] = useState<string>('');
-    const [toolboxTab, setToolboxTab] = useState<'studio' | 'gallery' | 'import'>('studio');
+    const [toolboxTab, setToolboxTab] = useState<'studio' | 'gallery' | 'import' | 'plex'>('studio');
     const [localAssets, setLocalAssets] = useState<string[]>([]);
+    const [plexResults, setPlexResults] = useState<any[]>([]);
+    const [plexQuery, setPlexQuery] = useState('');
+    const [isSearchingPlex, setIsSearchingPlex] = useState(false);
 
     // Geofencing Refs
     const triggersRef = useRef<ProximityTrigger[]>([]);
@@ -388,6 +393,8 @@ export function SparkViewer() {
                     void handleSpawnAvatar(data);
                 } else if (data.type === 'image') {
                     void handlePlacePicture(data);
+                } else if (data.type === 'cinema') {
+                    void handlePlaceCinema(data);
                 }
             } catch (err) {
                 console.error('SSE data parse error:', err);
@@ -557,6 +564,40 @@ export function SparkViewer() {
             setLocalAssets(files);
         } catch (err) {
             console.error('Failed to fetch local assets:', err);
+        }
+    }
+
+    async function handlePlaceCinema(data: any) {
+        // Cinema scale is typically much larger (5.5m wide)
+        await handleSpatialVideo({
+            ...data,
+            scale: 5.5,
+            rotation: data.rotation || 0,
+        });
+    }
+
+    async function handlePlexSearch() {
+        if (!plexQuery) return;
+        setIsSearchingPlex(true);
+        try {
+            const resp = await fetch(`http://localhost:10865/api/plex/search?q=${encodeURIComponent(plexQuery)}`);
+            const results = await resp.json();
+            setPlexResults(results);
+        } catch (err) {
+            console.error('Plex search failed:', err);
+        } finally {
+            setIsSearchingPlex(false);
+        }
+    }
+
+    async function handlePlexStream(movie: any) {
+        try {
+            const resp = await fetch(`http://localhost:10865/api/plex/stream_url?key=${encodeURIComponent(movie.key)}`);
+            const data = await resp.json();
+            setToolboxPrompt(data.url);
+            broadcastEvent('cinema');
+        } catch (err) {
+            console.error('Failed to get Plex stream URL:', err);
         }
     }
 
@@ -819,18 +860,19 @@ export function SparkViewer() {
                         </div>
 
                             <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 mb-4">
-                                {(['studio', 'gallery', 'import'] as const).map(t => (
+                                {(['studio', 'gallery', 'import', 'plex'] as const).map(t => (
                                     <button
                                         key={t}
                                         onClick={() => setToolboxTab(t)}
                                         className={cn(
-                                            "flex-1 text-[9px] font-black uppercase tracking-tighter py-1.5 rounded-lg transition-all",
+                                            "flex-1 text-[8px] font-black uppercase tracking-tighter py-1.5 rounded-lg transition-all",
                                             toolboxTab === t ? "bg-cosmos-500/20 text-cosmos-300 border border-cosmos-500/20" : "text-slate-500 font-bold"
                                         )}
                                     >
                                         {t === 'studio' && <Settings2 className="w-3 h-3 mx-auto mb-0.5" />}
                                         {t === 'gallery' && <LayoutGrid className="w-3 h-3 mx-auto mb-0.5" />}
-                                        {t === 'import' && <Search className="w-3 h-3 mx-auto mb-0.5" />}
+                                        {t === 'import' && <FolderPlus className="w-3 h-3 mx-auto mb-0.5" />}
+                                        {t === 'plex' && <Clapperboard className="w-3 h-3 mx-auto mb-0.5 text-orange-400" />}
                                         {t}
                                     </button>
                                 ))}
@@ -948,6 +990,59 @@ export function SparkViewer() {
                                     >
                                         Refresh Downloads
                                     </button>
+                                </div>
+                            )}
+
+                            {toolboxTab === 'plex' && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={plexQuery}
+                                            onChange={e => setPlexQuery(e.target.value)}
+                                            onKeyDown={e => e.key === 'Enter' && void handlePlexSearch()}
+                                            placeholder="Search Plex Library..."
+                                            className="input-glass text-[10px] py-1.5 pl-8 w-full"
+                                        />
+                                        <Search className="absolute left-2.5 top-2 w-3.5 h-3.5 text-slate-500 text-orange-400" />
+                                    </div>
+
+                                    <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
+                                        {isSearchingPlex ? (
+                                            <div className="py-8 text-center">
+                                                <div className="w-4 h-4 border-2 border-orange-500/50 border-t-orange-500 rounded-full animate-spin mx-auto mb-2" />
+                                                <span className="text-[9px] text-slate-500 uppercase font-bold animate-pulse">Scanning Library...</span>
+                                            </div>
+                                        ) : plexResults.length === 0 ? (
+                                            <div className="py-8 text-center text-[9px] text-slate-600 italic">
+                                                Ready to stream from Plex.
+                                            </div>
+                                        ) : (
+                                            plexResults.map(movie => (
+                                                <button
+                                                    key={movie.id}
+                                                    onClick={() => void handlePlexStream(movie)}
+                                                    className="w-full flex gap-2 p-1.5 rounded-lg hover:bg-orange-500/10 border border-transparent hover:border-orange-500/20 transition-all group group-hover:bg-black/20"
+                                                >
+                                                    <div className="w-10 h-14 bg-black/40 rounded overflow-hidden flex-shrink-0">
+                                                        {movie.thumb && <img src={movie.thumb} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />}
+                                                    </div>
+                                                    <div className="flex-1 text-left py-0.5 truncate">
+                                                        <div className="text-[10px] font-bold text-slate-300 group-hover:text-orange-300 transition-colors truncate">{movie.title}</div>
+                                                        <div className="text-[8px] text-slate-500 uppercase font-black tracking-widest">{movie.type} • {movie.year}</div>
+                                                        <div className="text-[8px] text-slate-600 line-clamp-1 mt-1 font-medium">{movie.summary}</div>
+                                                    </div>
+                                                </button>
+                                            ))
+                                        )}
+                                    </div>
+                                    <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                                        <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1">
+                                            <Tv className="w-2.5 h-2.5" />
+                                            Cinema Mode Active
+                                        </span>
+                                        <span className="text-[8px] text-orange-500 font-black">PLEX-MCP BRIDGE</span>
+                                    </div>
                                 </div>
                             )}
 
