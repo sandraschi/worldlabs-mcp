@@ -42,7 +42,7 @@ export function Dashboard() {
             </section>
 
             {/* Feature Grid */}
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-4">
                 <div className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-cyan-500/50 transition-all group">
                     <Box className="h-12 w-12 text-cyan-400 mb-6 group-hover:scale-110 transition-transform" />
                     <h3 className="text-xl font-bold text-white mb-3 tracking-tight">Geometry Proxy</h3>
@@ -50,13 +50,18 @@ export function Dashboard() {
                 </div>
                 <div className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-blue-500/50 transition-all group">
                     <Sparkles className="h-12 w-12 text-blue-400 mb-6 group-hover:scale-110 transition-transform" />
-                    <h3 className="text-xl font-bold text-white mb-3 tracking-tight">Splat Pipeline</h3>
-                    <p className="text-slate-400 leading-snug">Full support for SPZ Gaussian Splatting with Luma/VRS interoperability.</p>
+                    <h3 className="text-xl font-bold text-white mb-3 tracking-tight">Multimodal Orchestration</h3>
+                    <p className="text-slate-400 leading-snug">Trigger spatial audio, video textures, and avatars via SSE.</p>
                 </div>
                 <div className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-indigo-500/50 transition-all group">
                     <Activity className="h-12 w-12 text-indigo-400 mb-6 group-hover:scale-110 transition-transform" />
-                    <h3 className="text-xl font-bold text-white mb-3 tracking-tight">DCC Bridge</h3>
-                    <p className="text-slate-400 leading-snug">Synchronize spatial assets across Blender and Unity in real-time.</p>
+                    <h3 className="text-xl font-bold text-white mb-3 tracking-tight">Sovereign Intelligence</h3>
+                    <p className="text-slate-400 leading-snug">Optimize world prompts with local LLMs (Ollama/LM Studio).</p>
+                </div>
+                <div className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-magenta-500/50 transition-all group">
+                    <Zap className="h-12 w-12 text-magenta-400 mb-6 group-hover:scale-110 transition-transform" />
+                    <h3 className="text-xl font-bold text-white mb-3 tracking-tight">Spark 2.0 Engine</h3>
+                    <p className="text-slate-400 leading-snug">LoD Gaussian Splatting with 100M+ point budget.</p>
                 </div>
             </div>
         </div>

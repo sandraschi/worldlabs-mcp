@@ -157,6 +157,23 @@ export interface PromptUpdate {
     comment?: string;
 }
 
+export interface NarrationRequest {
+    type: 'speech' | 'audio' | 'video' | 'avatar' | 'event';
+    text?: string;
+    url?: string;
+    x?: number;
+    y?: number;
+    z?: number;
+    is_loop?: boolean;
+    rotation?: number;
+    scale?: number;
+}
+
+export interface NarrationResponse {
+    status: string;
+    recipients: number;
+}
+
 // ── HTTP helpers ──────────────────────────────────────────────────────────────
 
 async function get<T>(path: string): Promise<T> {
@@ -276,6 +293,9 @@ export const api = {
 
     // History
     getHistory: () => get<Operation[]>('/history'),
+
+    // Spatial Narration
+    broadcastNarration: (req: NarrationRequest) => post<NarrationResponse>('/narration', req),
 
     // Prompt Memory
     getPrompts: () => get<PromptEntry[]>('/prompts'),

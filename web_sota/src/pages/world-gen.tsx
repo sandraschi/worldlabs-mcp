@@ -13,7 +13,7 @@ import {
     triggerDownload,
 } from '@/lib/api';
 
-const MODELS = ['Marble 0.1-plus', 'Marble 0.1-mini'] as const;
+const MODELS = ['marble-1.1-plus', 'marble-1.1'] as const;
 type GenMode = 'text' | 'image' | 'video';
 
 // ── Generation Modal ──────────────────────────────────────────────────────────
@@ -556,7 +556,7 @@ function OperationCard({
 export default function WorldGenPage() {
     const [mode, setMode] = useState<GenMode>('text');
     const [prompt, setPrompt] = useState('');
-    const [model, setModel] = useState<(typeof MODELS)[number]>('Marble 0.1-plus');
+    const [model, setModel] = useState<(typeof MODELS)[number]>('marble-1.1-plus');
     const [imageUrl, setImageUrl] = useState('');
     const [videoUrl, setVideoUrl] = useState('');
     const [isPanorama, setIsPanorama] = useState(false);

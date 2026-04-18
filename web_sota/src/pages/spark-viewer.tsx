@@ -5,16 +5,23 @@ import { SparkRenderer, SplatMesh } from '@sparkjsdev/spark';
 import {
     AlertCircle,
     Check,
+    ChevronRight,
     FolderOpen,
     Globe2,
     Info,
     Link,
     Maximize2,
     Minimize2,
+    Monitor,
+    Music,
+    Settings2,
+    UserPlus,
     Volume2,
+    Wand2,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { api } from '@/lib/api';
 
 interface ProximityTrigger {
     id: string;
@@ -47,6 +54,10 @@ export function SparkViewer() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [spatialVoiceEnabled, setSpatialVoiceEnabled] = useState(false);
+    const [showToolbox, setShowToolbox] = useState(false);
+    const [toolboxPrompt, setToolboxPrompt] = useState('');
+    const [toolboxAssetUrl, setToolboxAssetUrl] = useState('');
+    const [isBroadcasting, setIsBroadcasting] = useState(false);
 
     // Geofencing Refs
     const triggersRef = useRef<ProximityTrigger[]>([]);
@@ -116,6 +127,30 @@ export function SparkViewer() {
             pannerRef.current = panner;
             
             console.log('Spatial Audio Engine Initialized');
+        }
+    }
+
+    async function broadcastEvent(type: 'speech' | 'audio' | 'video' | 'avatar') {
+        if (!cameraRef.current) return;
+        setIsBroadcasting(true);
+        try {
+            const pos = cameraRef.current.position;
+            const res = await api.broadcastNarration({
+                type,
+                text: type === 'speech' ? toolboxPrompt : undefined,
+                url: type !== 'speech' ? (toolboxAssetUrl || toolboxPrompt) : undefined,
+                x: pos.x,
+                y: pos.y,
+                z: pos.z,
+                is_loop: true
+            });
+            console.log('Broadcast Success:', res);
+        } catch (e) {
+            console.error('Broadcast Error:', e);
+        } finally {
+            setIsBroadcasting(false);
+            setToolboxPrompt('');
+            setToolboxAssetUrl('');
         }
     }
 
@@ -226,7 +261,7 @@ export function SparkViewer() {
                         id: 'pool-description',
                         position: new THREE.Vector3(5, -2, -4),
                         radius: 3,
-                        text: "This infinity pool was generated with high-fidelity surface reflections using the Marble 0.1-plus engine.",
+                        text: "This infinity pool was generated with high-fidelity surface reflections using the marble-1.1-plus engine.",
                         cooldown: 60000,
                         lastTriggered: 0
                     }
@@ -504,10 +539,16 @@ export function SparkViewer() {
                 </button>
 
                 <button
-                    onClick={() => setIsFullscreen(!isFullscreen)}
-                    className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-400 transition-all shadow-lg"
+                    onClick={() => setShowToolbox(!showToolbox)}
+                    className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all",
+                        showToolbox 
+                            ? "bg-cosmos-500/20 border-cosmos-500/50 text-cosmos-300" 
+                            : "bg-white/[0.06] hover:bg-white/[0.1] border-white/[0.08] text-slate-300"
+                    )}
                 >
-                    {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                    <Settings2 className="w-3.5 h-3.5" />
+                    Spatial Toolbox
                 </button>
 
                 {status === 'loading' && <span className="badge-pending animate-pulse">Streaming LoD…</span>}
@@ -565,6 +606,76 @@ export function SparkViewer() {
 
                 {/* The Canvas */}
                 <div ref={mountRef} className="w-full h-full cursor-move" />
+
+                {/* Spatial Toolbox Panel */}
+                {showToolbox && (
+                    <div className="absolute top-4 right-4 w-72 glass-card p-4 z-20 shadow-2xl animate-in slide-in-from-right-4 duration-300 border-cosmos-500/30">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xs font-black uppercase tracking-widest text-cosmos-300 flex items-center gap-2">
+                                <Settings2 className="w-4 h-4" />
+                                Spatial Command
+                            </h3>
+                            <button onClick={() => setShowToolbox(false)} className="text-slate-500 hover:text-white">
+                                <Minimize2 className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Direct Narration / Asset URL</label>
+                                <textarea
+                                    value={toolboxPrompt}
+                                    onChange={e => setToolboxPrompt(e.target.value)}
+                                    placeholder="Enter speech text or Veo/Lyria URL..."
+                                    className="input-glass text-xs py-2 w-full min-h-[60px] resize-none"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    onClick={() => broadcastEvent('speech')}
+                                    disabled={!toolboxPrompt || isBroadcasting}
+                                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-aurora-500/10 hover:border-aurora-500/30 hover:text-aurora-300 transition-all"
+                                >
+                                    <Volume2 className="w-3.5 h-3.5" />
+                                    Narrate
+                                </button>
+                                <button
+                                    onClick={() => broadcastEvent('audio')}
+                                    disabled={!toolboxPrompt || isBroadcasting}
+                                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-magenta-500/10 hover:border-magenta-500/30 hover:text-magenta-300 transition-all"
+                                >
+                                    <Music className="w-3.5 h-3.5" />
+                                    Audio
+                                </button>
+                                <button
+                                    onClick={() => broadcastEvent('video')}
+                                    disabled={!toolboxPrompt || isBroadcasting}
+                                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-cyan-500/10 hover:border-cyan-500/30 hover:text-cyan-300 transition-all"
+                                >
+                                    <Monitor className="w-3.5 h-3.5" />
+                                    Materialize TV
+                                </button>
+                                <button
+                                    onClick={() => broadcastEvent('avatar')}
+                                    disabled={!toolboxPrompt || isBroadcasting}
+                                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-cosmos-500/10 hover:border-cosmos-500/30 hover:text-cosmos-300 transition-all"
+                                >
+                                    <UserPlus className="w-3.5 h-3.5" />
+                                    Spawn Agent
+                                </button>
+                            </div>
+
+                            <div className="pt-2 border-t border-white/5 text-[9px] text-slate-500 flex items-center justify-between">
+                                <span className="flex items-center gap-1">
+                                    <Wand2 className="w-3 h-3" />
+                                    Grounding: Camera Pos
+                                </span>
+                                <span>v0.4.0 Engine</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Local Intelligence Overlay */}
                 <div className="absolute bottom-4 left-4 pointer-events-none">
