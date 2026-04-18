@@ -25,7 +25,12 @@ import {
     Video, 
     User, 
     Save, 
-    RotateCcw
+    RotateCcw,
+    FileCode,
+    ImageIcon,
+    FolderPlus,
+    LayoutGrid,
+    Search
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -69,6 +74,8 @@ export function SparkViewer() {
     const [isBroadcasting, setIsBroadcasting] = useState(false);
     const [worldId, setWorldId] = useState<string>('default-world');
     const [worldName, setWorldName] = useState<string>('');
+    const [toolboxTab, setToolboxTab] = useState<'studio' | 'gallery' | 'import'>('studio');
+    const [localAssets, setLocalAssets] = useState<string[]>([]);
 
     // Geofencing Refs
     const triggersRef = useRef<ProximityTrigger[]>([]);
@@ -379,6 +386,8 @@ export function SparkViewer() {
                     void handleSpatialVideo(data);
                 } else if (data.type === 'avatar') {
                     void handleSpawnAvatar(data);
+                } else if (data.type === 'image') {
+                    void handlePlacePicture(data);
                 }
             } catch (err) {
                 console.error('SSE data parse error:', err);
@@ -517,6 +526,40 @@ export function SparkViewer() {
         }
     }
 
+    async function handlePlacePicture(data: any) {
+        if (!sceneRef.current) return;
+        const loader = new THREE.TextureLoader();
+        loader.load(data.url, (texture) => {
+            const aspect = texture.image.width / texture.image.height;
+            const geometry = new THREE.PlaneGeometry(aspect * data.scale, data.scale);
+            const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+            const mesh = new THREE.Mesh(geometry, material);
+            
+            mesh.position.set(data.x, data.y, data.z);
+            mesh.rotation.y = data.rotation;
+            mesh.userData = { 
+                id: data.id, 
+                url: data.url, 
+                type: 'image',
+                rotation: data.rotation,
+                scale: data.scale
+            };
+            
+            sceneRef.current?.add(mesh);
+            videoSurfacesRef.current[data.id] = mesh; // reuse group for collection
+        });
+    }
+
+    async function fetchLocalAssets() {
+        try {
+            const resp = await fetch('http://localhost:10865/api/local-assets');
+            const files = await resp.json();
+            setLocalAssets(files);
+        } catch (err) {
+            console.error('Failed to fetch local assets:', err);
+        }
+    }
+
     async function handleSpatialVideo(data: any) {
         if (!sceneRef.current) return;
         try {
@@ -604,6 +647,9 @@ export function SparkViewer() {
             }
         };
         window.addEventListener('resize', handleResize);
+        // Fetch local assets for the import tab
+        void fetchLocalAssets();
+        
         return () => {
             window.removeEventListener('resize', handleResize);
             cleanup();
@@ -772,51 +818,138 @@ export function SparkViewer() {
                             </button>
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Direct Narration / Asset URL</label>
-                                <textarea
-                                    value={toolboxPrompt}
-                                    onChange={e => setToolboxPrompt(e.target.value)}
-                                    placeholder="Enter speech text or Veo/Lyria URL..."
-                                    className="input-glass text-xs py-2 w-full min-h-[60px] resize-none"
-                                />
+                            <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 mb-4">
+                                {(['studio', 'gallery', 'import'] as const).map(t => (
+                                    <button
+                                        key={t}
+                                        onClick={() => setToolboxTab(t)}
+                                        className={cn(
+                                            "flex-1 text-[9px] font-black uppercase tracking-tighter py-1.5 rounded-lg transition-all",
+                                            toolboxTab === t ? "bg-cosmos-500/20 text-cosmos-300 border border-cosmos-500/20" : "text-slate-500 font-bold"
+                                        )}
+                                    >
+                                        {t === 'studio' && <Settings2 className="w-3 h-3 mx-auto mb-0.5" />}
+                                        {t === 'gallery' && <LayoutGrid className="w-3 h-3 mx-auto mb-0.5" />}
+                                        {t === 'import' && <Search className="w-3 h-3 mx-auto mb-0.5" />}
+                                        {t}
+                                    </button>
+                                ))}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <button
-                                    onClick={() => broadcastEvent('speech')}
-                                    disabled={!toolboxPrompt || isBroadcasting}
-                                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-aurora-500/10 hover:border-aurora-500/30 hover:text-aurora-300 transition-all"
-                                >
-                                    <Volume2 className="w-3.5 h-3.5" />
-                                    Narrate
-                                </button>
-                                <button
-                                    onClick={() => broadcastEvent('audio')}
-                                    disabled={!toolboxPrompt || isBroadcasting}
-                                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-magenta-500/10 hover:border-magenta-500/30 hover:text-magenta-300 transition-all"
-                                >
-                                    <Music className="w-3.5 h-3.5" />
-                                    Audio
-                                </button>
-                                <button
-                                    onClick={() => broadcastEvent('video')}
-                                    disabled={!toolboxPrompt || isBroadcasting}
-                                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-cyan-500/10 hover:border-cyan-500/30 hover:text-cyan-300 transition-all"
-                                >
-                                    <Monitor className="w-3.5 h-3.5" />
-                                    Materialize TV
-                                </button>
-                                <button
-                                    onClick={() => broadcastEvent('avatar')}
-                                    disabled={!toolboxPrompt || isBroadcasting}
-                                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-cosmos-500/10 hover:border-cosmos-500/30 hover:text-cosmos-300 transition-all"
-                                >
-                                    <UserPlus className="w-3.5 h-3.5" />
-                                    Spawn Agent
-                                </button>
-                            </div>
+                            {toolboxTab === 'studio' && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Direct Narration / Asset URL</label>
+                                        <textarea
+                                            value={toolboxPrompt}
+                                            onChange={e => setToolboxPrompt(e.target.value)}
+                                            placeholder="Enter prompt or URL..."
+                                            className="input-glass text-xs py-2 w-full min-h-[60px] resize-none"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            onClick={() => broadcastEvent('speech')}
+                                            disabled={!toolboxPrompt || isBroadcasting}
+                                            className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-aurora-500/10 hover:border-aurora-500/30 hover:text-aurora-300 transition-all"
+                                        >
+                                            <Volume2 className="w-3.5 h-3.5" />
+                                            Narrate
+                                        </button>
+                                        <button
+                                            onClick={() => broadcastEvent('audio')}
+                                            disabled={!toolboxPrompt || isBroadcasting}
+                                            className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-magenta-500/10 hover:border-magenta-500/30 hover:text-magenta-300 transition-all"
+                                        >
+                                            <Music className="w-3.5 h-3.5" />
+                                            Audio
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const url = toolboxPrompt.toLowerCase();
+                                                const type = (url.endsWith('.glb') || url.endsWith('.gltf')) ? 'avatar' : 
+                                                           (url.endsWith('.jpg') || url.endsWith('.png') || url.endsWith('.webp')) ? 'image' : 'video';
+                                                broadcastEvent(type);
+                                            }}
+                                            disabled={!toolboxPrompt || isBroadcasting}
+                                            className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-cyan-500/10 hover:border-cyan-500/30 hover:text-cyan-300 transition-all"
+                                        >
+                                            <ImageIcon className="w-3.5 h-3.5" />
+                                            Materialize
+                                        </button>
+                                        <button
+                                            onClick={() => broadcastEvent('avatar')}
+                                            disabled={!toolboxPrompt || isBroadcasting}
+                                            className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-cosmos-500/10 hover:border-cosmos-500/30 hover:text-cosmos-300 transition-all"
+                                        >
+                                            <UserPlus className="w-3.5 h-3.5" />
+                                            Spawn Agent
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {toolboxTab === 'gallery' && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {[
+                                            { id: 'nb1', name: 'NB Masterpiece 1', url: '/assets/gallery/nb_1.png' },
+                                            { id: 'nb2', name: 'NB Abstract', url: '/assets/gallery/nb_2.png' },
+                                            { id: 'nb3', name: 'NB Moonrise', url: '/assets/gallery/nb_3.png' },
+                                            { id: 'gsd1', name: 'GSD Portrait', url: '/assets/gallery/gsd_1.png' },
+                                            { id: 'gsd2', name: 'GSD Puppy', url: '/assets/gallery/gsd_puppy.png' },
+                                        ].map(art => (
+                                            <button
+                                                key={art.id}
+                                                onClick={() => {
+                                                    setToolboxPrompt(art.url);
+                                                    broadcastEvent('image');
+                                                }}
+                                                className="group relative h-20 rounded-lg overflow-hidden border border-white/10 hover:border-cosmos-500/50 transition-all"
+                                            >
+                                                <img src={art.url} alt={art.name} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-2">
+                                                    <span className="text-[8px] font-black uppercase text-white truncate w-full">{art.name}</span>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {toolboxTab === 'import' && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="space-y-1 max-h-[160px] overflow-y-auto pr-1">
+                                        {localAssets.length === 0 ? (
+                                            <p className="text-[9px] text-slate-600 italic">No assets found in ~/Downloads...</p>
+                                        ) : (
+                                            localAssets.map(file => (
+                                                <button
+                                                    key={file}
+                                                    onClick={() => {
+                                                        const url = `http://localhost:10865/api/local-assets/${file}`;
+                                                        setToolboxPrompt(url);
+                                                        const type = (file.toLowerCase().endsWith('.glb') || file.toLowerCase().endsWith('.gltf')) ? 'avatar' : 
+                                                                   (file.toLowerCase().endsWith('.jpg') || file.toLowerCase().endsWith('.png') || file.toLowerCase().endsWith('.webp')) ? 'image' : 'video';
+                                                        broadcastEvent(type);
+                                                    }}
+                                                    className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 flex items-center gap-2 group transition-all"
+                                                >
+                                                    {(file.endsWith('.glb') || file.endsWith('.gltf')) ? <FileCode className="w-3 h-3 text-cosmos-400" /> : <ImageIcon className="w-3 h-3 text-cyan-400" />}
+                                                    <span className="text-[10px] text-slate-400 group-hover:text-white truncate">{file}</span>
+                                                </button>
+                                            ))
+                                        )}
+                                    </div>
+                                    <button 
+                                        onClick={fetchLocalAssets}
+                                        className="w-full py-1 text-[9px] font-bold uppercase text-slate-500 hover:text-white transition-colors border-t border-white/5 mt-2"
+                                    >
+                                        Refresh Downloads
+                                    </button>
+                                </div>
+                            )}
 
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-aurora-500 animate-pulse" />

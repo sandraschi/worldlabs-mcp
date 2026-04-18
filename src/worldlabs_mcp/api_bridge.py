@@ -455,31 +455,26 @@ async def capabilities() -> dict:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/local-assets/{filename:path}")
-async def get_local_asset(filename: str) -> FileResponse:
-    """
-    Serve local world assets from the filesystem.
+    return FileResponse(abs_path)
 
-    Root lookup order:
-      1. WORLDLABS_LOCAL_PATH env var (explicit user override)
-      2. ~/Downloads  (portable default)
-    """
+
+@router.get("/local-assets")
+async def list_local_assets() -> list[str]:
+    """List available assets in the local bridge folder."""
     default_root = os.path.expanduser("~/Downloads")
     local_root = os.environ.get("WORLDLABS_LOCAL_PATH", default_root)
-    file_path = os.path.join(local_root, filename)
+    if not os.path.exists(local_root):
+        return []
 
-    abs_path = os.path.abspath(file_path)
-    if not abs_path.startswith(os.path.abspath(local_root)):
-        raise HTTPException(status_code=403, detail="Access denied (path traversal)")
-
-    if not os.path.exists(abs_path):
-        raise HTTPException(status_code=404, detail=f"Asset not found: {filename}")
-
-    allowed_exts = {".spz", ".rad", ".ply", ".ksplat", ".splat"}
-    if os.path.splitext(abs_path)[1].lower() not in allowed_exts:
-        raise HTTPException(status_code=400, detail="Unsupported asset type")
-
-    return FileResponse(abs_path)
+    assets = []
+    allowed_exts = {".spz", ".rad", ".ply", ".ksplat", ".splat", ".glb", ".gltf", ".jpg", ".png", ".webp"}
+    for root, _, files in os.walk(local_root):
+        for file in files:
+            if os.path.splitext(file)[1].lower() in allowed_exts:
+                # Get path relative to local_root
+                rel_path = os.path.relpath(os.path.join(root, file), local_root)
+                assets.append(rel_path.replace("\\", "/"))
+    return sorted(assets)
 
 
 # ---------------------------------------------------------------------------
