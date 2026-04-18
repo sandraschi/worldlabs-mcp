@@ -74,6 +74,27 @@ export function ImmersiveDetail() {
                         your HMD with zero-latency handshakes and local TTS narration.
                     </p>
                 </div>
+                <div className="glass-card p-8 space-y-4 hover:border-cyan-500/50 transition-all group lg:col-span-3">
+                    <div className="flex items-start justify-between">
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                <Zap className="w-6 h-6 text-cyan-400" />
+                                Pico 4 / Ultra Specialized Optimization
+                            </h3>
+                            <p className="text-sm text-slate-500 leading-relaxed max-w-2xl">
+                                Dedicated support for the **Pico 4 Ultra** Passthrough API (MR). 
+                                Spark 2.0 now optimizes depth-sensing for the Pico 4 range, allowing 
+                                generatively persistent assets to "ground" accurately to your physical floor 
+                                using the PicoOS spatial mapping layer.
+                            </p>
+                            <ul className="flex flex-wrap gap-4">
+                                <li className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[10px] font-bold text-cyan-300 uppercase">Stereo Passthrough v2</li>
+                                <li className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[10px] font-bold text-cyan-300 uppercase">PicoOS Hand-Tracking</li>
+                                <li className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[10px] font-bold text-cyan-300 uppercase">WiFi-7 Optimized streaming</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Hardware Compatibility */}
@@ -111,12 +132,12 @@ export function ImmersiveDetail() {
                 </div>
 
                 <div className="grid gap-8 lg:grid-cols-2">
-                    <div className="glass-card p-8 bg-cosmos-600/5 border-cosmos-500/20 relative">
-                        <Terminal className="w-12 h-12 text-cosmos-400/20 absolute -right-4 -bottom-4 rotate-12" />
-                        <h4 className="text-lg font-bold text-cosmos-300 mb-4 flex items-center gap-2">
-                            <Terminal className="w-4 h-4" />
-                            ADB Connection Script
-                        </h4>
+                <div className="glass-card p-8 bg-cosmos-600/5 border-cosmos-500/20 relative">
+                    <Terminal className="w-12 h-12 text-cosmos-400/20 absolute -right-4 -bottom-4 rotate-12" />
+                    <h4 className="text-lg font-bold text-cosmos-300 mb-4 flex items-center gap-2">
+                        <Terminal className="w-4 h-4" />
+                        ADB Connection Script
+                    </h4>
                         <p className="text-sm text-slate-400 mb-6 leading-relaxed">
                             Run these commands in your PowerShell/Terminal to verify the headset 
                             is visible to your workstation. Ensure **Developer Mode** is ON in the Quest app.

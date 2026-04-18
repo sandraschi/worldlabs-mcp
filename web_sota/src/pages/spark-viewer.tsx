@@ -46,6 +46,7 @@ export function SparkViewer() {
     const audioCtxRef = useRef<AudioContext | null>(null);
     const pannerRef = useRef<PannerNode | null>(null);
     const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+    const clockRef = useRef<THREE.Clock>(new THREE.Clock());
 
     const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
     const [error, setError] = useState('');
@@ -67,6 +68,7 @@ export function SparkViewer() {
     const bgAudioRef = useRef<{ [id: string]: { source: AudioBufferSourceNode, gain: GainNode } }>({});
     const videoSurfacesRef = useRef<{ [id: string]: THREE.Mesh }>({});
     const avatarsRef = useRef<{ [id: string]: THREE.Group }>({});
+    const mixersRef = useRef<{ [id: string]: THREE.AnimationMixer }>({});
 
     // Pull ?url=... & ?name=... from the query string
     useEffect(() => {
@@ -99,6 +101,8 @@ export function SparkViewer() {
         if (splatRef.current) {
             splatRef.current.dispose();
         }
+        Object.values(mixersRef.current).forEach(m => m.stopAllAction());
+        mixersRef.current = {};
         if (mountRef.current) {
             mountRef.current.innerHTML = '';
         }
@@ -190,7 +194,11 @@ export function SparkViewer() {
 
             // 4. Render Loop
             renderer.setAnimationLoop(() => {
+                const delta = clockRef.current.getDelta();
                 spark.update(camera); // Update Spark LoD tree based on camera
+                
+                // Update Avatar Animations
+                Object.values(mixersRef.current).forEach(m => m.update(delta));
                 
                 // Update Audio Listener to match Camera
                 if (audioCtxRef.current && audioCtxRef.current.state === 'running') {
@@ -440,6 +448,16 @@ export function SparkViewer() {
             
             sceneRef.current?.add(model);
             avatarsRef.current[data.id] = model;
+
+            // ---- New: Animation Mixer Integration ----
+            if (gltf.animations && gltf.animations.length > 0) {
+                const mixer = new THREE.AnimationMixer(model);
+                // Play the first animation clip (usually 'Walk' or 'Idle')
+                const action = mixer.clipAction(gltf.animations[0]);
+                action.play();
+                mixersRef.current[data.id] = mixer;
+                console.log(`Initialized animation mixer for agent ${data.id} (${gltf.animations.length} clips)`);
+            }
         });
     }
 
