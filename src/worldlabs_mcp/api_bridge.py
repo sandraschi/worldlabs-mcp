@@ -59,6 +59,7 @@ else:
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 HISTORY_FILE = DATA_DIR / "history.json"
 PROMPTS_FILE = DATA_DIR / "prompts.json"
+SCENES_FILE = DATA_DIR / "scenes.json"
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +114,27 @@ class PromptUpdate(BaseModel):
     fave: bool | None = None
     star: bool | None = None
     comment: str | None = None
+
+
+class SceneEntity(BaseModel):
+    id: str
+    type: str  # "video" | "avatar" | "audio"
+    url: str
+    x: float
+    y: float
+    z: float
+    rotation: float
+    scale: float
+    is_loop: bool = False
+
+
+class SceneManifest(BaseModel):
+    id: str
+    name: str
+    world_id: str
+    world_name: str
+    timestamp: str
+    entities: list[SceneEntity]
 
 
 # ---------------------------------------------------------------------------
@@ -288,6 +310,20 @@ def _load_prompts() -> list[dict[str, Any]]:
 
 def _save_prompts(prompts: list[dict[str, Any]]) -> None:
     PROMPTS_FILE.write_text(json.dumps(prompts, indent=2), encoding="utf-8")
+
+
+def _load_scenes() -> list[dict[str, Any]]:
+    if not SCENES_FILE.exists():
+        return []
+    try:
+        data = json.loads(SCENES_FILE.read_text(encoding="utf-8"))
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def _save_scenes(scenes: list[dict[str, Any]]) -> None:
+    SCENES_FILE.write_text(json.dumps(scenes, indent=2), encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -1012,3 +1048,37 @@ async def handoff_asset(req: HandoffRequest) -> dict[str, Any]:
         results["detail"] = f"Unknown target: {req.target}"
 
     return results
+# ---------------------------------------------------------------------------
+# Scene Persistence (Baking)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/scenes")
+async def list_scenes(world_id: str | None = None) -> list[dict[str, Any]]:
+    scenes = _load_scenes()
+    if world_id:
+        return [s for s in scenes if s["world_id"] == world_id]
+    return scenes
+
+
+@router.post("/scenes/bake")
+async def bake_scene(scene: SceneManifest) -> dict[str, Any]:
+    scenes = _load_scenes()
+    # Replace if exists, else append
+    for i, s in enumerate(scenes):
+        if s["id"] == scene.id:
+            scenes[i] = scene.model_dump()
+            break
+    else:
+        scenes.insert(0, scene.model_dump())
+
+    _save_scenes(scenes)
+    return {"status": "ok", "scene_id": scene.id}
+
+
+@router.delete("/scenes/{scene_id}")
+async def delete_scene(scene_id: str) -> dict[str, Any]:
+    scenes = _load_scenes()
+    new_scenes = [s for s in scenes if s["id"] != scene_id]
+    _save_scenes(new_scenes)
+    return {"status": "ok"}

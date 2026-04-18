@@ -18,6 +18,14 @@ import {
     UserPlus,
     Volume2,
     Wand2,
+    Zap, 
+    ArrowLeft, 
+    Trash2, 
+    Play, 
+    Video, 
+    User, 
+    Save, 
+    RotateCcw
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -59,13 +67,15 @@ export function SparkViewer() {
     const [toolboxPrompt, setToolboxPrompt] = useState('');
     const [toolboxAssetUrl, setToolboxAssetUrl] = useState('');
     const [isBroadcasting, setIsBroadcasting] = useState(false);
+    const [worldId, setWorldId] = useState<string>('default-world');
+    const [worldName, setWorldName] = useState<string>('');
 
     // Geofencing Refs
     const triggersRef = useRef<ProximityTrigger[]>([]);
     const isNarratingRef = useRef(false);
 
     // Multimodal Refs
-    const bgAudioRef = useRef<{ [id: string]: { source: AudioBufferSourceNode, gain: GainNode } }>({});
+    const bgAudioRef = useRef<{ [id: string]: { source: AudioBufferSourceNode, gain: GainNode, metadata?: any } }>({});
     const videoSurfacesRef = useRef<{ [id: string]: THREE.Mesh }>({});
     const avatarsRef = useRef<{ [id: string]: THREE.Group }>({});
     const mixersRef = useRef<{ [id: string]: THREE.AnimationMixer }>({});
@@ -78,6 +88,7 @@ export function SparkViewer() {
         if (url) {
             setUrlInput(url);
             setLoadedName(name);
+            setWorldName(name);
             void loadWorld(url);
         } else {
             // Check for default local asset for development
@@ -85,6 +96,7 @@ export function SparkViewer() {
             const localUrl = `/api/local-assets/${defaultAsset}`;
             setUrlInput(localUrl);
             setLoadedName(defaultAsset);
+            setWorldName(defaultAsset);
             void loadWorld(localUrl);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -362,7 +374,7 @@ export function SparkViewer() {
                 if (data.type === 'speech') {
                     void playNarration(data.text, data.x, data.y, data.z);
                 } else if (data.type === 'audio') {
-                    void handleSpatialAudio(data);
+                    void handlePlayAudio(data);
                 } else if (data.type === 'video') {
                     void handleSpatialVideo(data);
                 } else if (data.type === 'avatar') {
@@ -376,28 +388,133 @@ export function SparkViewer() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [spatialVoiceEnabled]);
 
-    async function handleSpatialAudio(data: any) {
-        if (!spatialVoiceEnabled || !audioCtxRef.current) return;
+    async function handlePlayAudio(data: any) {
+        if (!audioCtxRef.current) return;
         try {
-            const url = data.url.startsWith('http') ? data.url : `http://localhost:10730/media/music/${encodeURIComponent(data.url)}`;
-            const response = await fetch(url);
-            const arrayBuffer = await response.arrayBuffer();
+            const resp = await fetch(data.url);
+            const arrayBuffer = await resp.arrayBuffer();
             const audioBuffer = await audioCtxRef.current.decodeAudioData(arrayBuffer);
-            
-            const panner = audioCtxRef.current.createPanner();
-            panner.positionX.value = data.x;
-            panner.positionY.value = data.y;
-            panner.positionZ.value = data.z;
-            panner.connect(audioCtxRef.current.destination);
             
             const source = audioCtxRef.current.createBufferSource();
             source.buffer = audioBuffer;
-            source.loop = data.is_loop !== false;
-            source.connect(panner);
-            source.start(0);
+            source.loop = data.is_loop;
             
-            bgAudioRef.current[data.id] = { source, gain: null as any };
-        } catch (e) { console.error('Audio load fail:', e); }
+            const panner = audioCtxRef.current.createPanner();
+            panner.panningModel = 'HRTF';
+            panner.positionX.value = data.x;
+            panner.positionY.value = data.y;
+            panner.positionZ.value = data.z;
+            
+            const gainNode = audioCtxRef.current.createGain();
+            
+            source.connect(panner);
+            panner.connect(gainNode);
+            gainNode.connect(audioCtxRef.current.destination);
+            
+            source.start();
+            bgAudioRef.current[data.id] = { source, gain: gainNode };
+
+            // Store metadata for baking
+            bgAudioRef.current[data.id].metadata = {
+                id: data.id,
+                url: data.url,
+                type: 'audio',
+                x: data.x,
+                y: data.y,
+                z: data.z,
+                is_loop: data.is_loop
+            } as any;
+
+        } catch (err) {
+            console.error('Failed to play spatial audio:', err);
+        }
+    }
+
+    async function handleBakeScene() {
+        if (!sceneRef.current || !worldId) return;
+        
+        const entities: any[] = [];
+        
+        // 1. Collect Avatars
+        Object.entries(avatarsRef.current).forEach(([id, model]) => {
+            if (model.userData && model.userData.type === 'avatar') {
+                entities.push({
+                    id,
+                    type: 'avatar',
+                    url: model.userData.url,
+                    x: model.position.x,
+                    y: model.position.y,
+                    z: model.position.z,
+                    rotation: model.rotation.y,
+                    scale: model.scale.x
+                });
+            }
+        });
+
+        // 2. Collect Videos
+        Object.entries(videoSurfacesRef.current).forEach(([id, mesh]) => {
+            if (mesh.userData && mesh.userData.type === 'video') {
+                entities.push({
+                    id,
+                    type: 'video',
+                    url: mesh.userData.url,
+                    x: mesh.position.x,
+                    y: mesh.position.y,
+                    z: mesh.position.z,
+                    rotation: mesh.rotation.y,
+                    scale: mesh.scale.x
+                });
+            }
+        });
+
+        // 3. Collect Audio
+        Object.entries(bgAudioRef.current).forEach(([id, entry]: any) => {
+            if (entry.metadata) {
+                entities.push(entry.metadata);
+            }
+        });
+
+        const manifest = {
+            id: worldId, // Group by world for simplicity
+            name: `${worldName || 'World'} - Bake ${new Date().toLocaleTimeString()}`,
+            world_id: worldId,
+            world_name: worldName || 'Unknown World',
+            timestamp: new Date().toISOString(),
+            entities
+        };
+
+        try {
+            await fetch('http://localhost:10865/api/scenes/bake', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(manifest)
+            });
+            alert('Scene baked successfully to Hub!');
+        } catch (err) {
+            console.error('Baking failed:', err);
+        }
+    }
+
+    async function handleRestoreScene() {
+        if (!worldId) return;
+        try {
+            const resp = await fetch(`http://localhost:10865/api/scenes?world_id=${worldId}`);
+            const scenes = await resp.json();
+            if (scenes.length === 0) {
+                alert('No baked scenes found for this world.');
+                return;
+            }
+            // Restore the most recent one
+            const scene = scenes[0];
+            scene.entities.forEach((entity: any) => {
+                if (entity.type === 'avatar') handleSpawnAvatar(entity);
+                if (entity.type === 'video') handleSpatialVideo(entity);
+                if (entity.type === 'audio') handlePlayAudio(entity);
+            });
+            alert(`Restored scene: ${scene.name}`);
+        } catch (err) {
+            console.error('Restoration failed:', err);
+        }
     }
 
     async function handleSpatialVideo(data: any) {
@@ -417,7 +534,16 @@ export function SparkViewer() {
             
             mesh.position.set(data.x, data.y, data.z);
             mesh.rotation.y = data.rotation;
-            sceneRef.current.add(mesh);
+            mesh.scale.set(data.scale, data.scale, 1);
+            mesh.userData = { 
+                id: data.id, 
+                url: data.url, 
+                type: 'video',
+                rotation: data.rotation,
+                scale: data.scale
+            };
+
+            sceneRef.current?.add(mesh);
             videoSurfacesRef.current[data.id] = mesh;
         } catch (e) { console.error('Video load fail:', e); }
     }
@@ -430,7 +556,7 @@ export function SparkViewer() {
         
         loader.load(url, (gltf) => {
             const model = gltf.scene;
-            model.scale.set(1, 1, 1);
+            model.scale.set(data.scale || 1, data.scale || 1, data.scale || 1);
             model.position.set(data.x, data.y, data.z);
             model.rotation.y = data.rotation;
             
@@ -445,6 +571,14 @@ export function SparkViewer() {
                     model.position.y = intersects[0].point.y;
                 }
             }
+            
+            model.userData = { 
+                id: data.id, 
+                url: data.url, 
+                type: 'avatar',
+                rotation: data.rotation,
+                scale: data.scale
+            };
             
             sceneRef.current?.add(model);
             avatarsRef.current[data.id] = model;
@@ -681,6 +815,29 @@ export function SparkViewer() {
                                 >
                                     <UserPlus className="w-3.5 h-3.5" />
                                     Spawn Agent
+                                </button>
+                            </div>
+
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-aurora-500 animate-pulse" />
+                                <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                                    Sovereign State
+                                </h4>
+                            </div>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={handleBakeScene}
+                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-void-600/30 text-void-300 border border-void-500/30 hover:bg-void-600/50 transition-all group"
+                                >
+                                    <Save className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                                    <span className="text-[10px] font-bold uppercase">Bake Scene</span>
+                                </button>
+                                <button 
+                                    onClick={handleRestoreScene}
+                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-cosmos-600/30 text-cosmos-300 border border-cosmos-500/30 hover:bg-cosmos-600/50 transition-all group"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5 group-hover:rotate-[-45deg] transition-transform" />
+                                    <span className="text-[10px] font-bold uppercase">Restore</span>
                                 </button>
                             </div>
 
