@@ -121,7 +121,7 @@ class PromptUpdate(BaseModel):
 
 class SceneEntity(BaseModel):
     id: str
-    type: str  # "video" | "avatar" | "audio"
+    type: str  # "video" | "avatar" | "audio" | "image" | "console" | "portal"
     url: str
     x: float
     y: float
@@ -129,6 +129,7 @@ class SceneEntity(BaseModel):
     rotation: float
     scale: float
     is_loop: bool = False
+    target_world_url: str | None = None  # For portals
 
 
 class SceneManifest(BaseModel):
@@ -348,6 +349,15 @@ def _get_disk_usage_percent() -> float:
 def _get_system_stats() -> dict[str, Any]:
     return {
         "cpu_percent": psutil.cpu_percent(),
+        "memory_percent": psutil.virtual_memory().percent,
+        "disk_percent": _get_disk_usage_percent(),
+        "active_sse_clients": len(sse_queues),
+    }
+
+
+@router.get("/system/stats")
+async def get_system_stats() -> dict[str, Any]:
+    return _get_system_stats()
         "memory": {"percent": psutil.virtual_memory().percent},
         "disk": {"percent": _get_disk_usage_percent()},
     }

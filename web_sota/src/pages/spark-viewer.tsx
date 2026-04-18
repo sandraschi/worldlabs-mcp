@@ -29,14 +29,22 @@ import {
     FileCode,
     ImageIcon,
     FolderPlus,
-    LayoutGrid,
-    Search,
     Clapperboard,
-    Tv
+    Tv,
+    Layout,
+    ExternalLink,
+    RefreshCw,
+    XCircle
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
+
+const PORTAL_PRESETS = [
+    { name: 'Modern Mansion', url: '/api/local-assets/Modern Tropical Luxury Residence.spz' },
+    { name: 'Schönbrunn Palace', url: 'https://models.worldlabs.ai/dist/schonbrunn.spz' },
+    { name: 'Cyberpunk Alley', url: 'https://models.worldlabs.ai/dist/cyberpunk.spz' },
+];
 
 interface ProximityTrigger {
     id: string;
@@ -81,6 +89,8 @@ export function SparkViewer() {
     const [plexResults, setPlexResults] = useState<any[]>([]);
     const [plexQuery, setPlexQuery] = useState('');
     const [isSearchingPlex, setIsSearchingPlex] = useState(false);
+    const [systemStats, setSystemStats] = useState<any>(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
 
     // Geofencing Refs
     const triggersRef = useRef<ProximityTrigger[]>([]);
@@ -91,6 +101,9 @@ export function SparkViewer() {
     const videoSurfacesRef = useRef<{ [id: string]: THREE.Mesh }>({});
     const avatarsRef = useRef<{ [id: string]: THREE.Group }>({});
     const mixersRef = useRef<{ [id: string]: THREE.AnimationMixer }>({});
+    const consoleCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const consoleTextureRef = useRef<THREE.CanvasTexture | null>(null);
+    const consolePlaneRef = useRef<THREE.Mesh | null>(null);
 
     // Pull ?url=... & ?name=... from the query string
     useEffect(() => {
@@ -263,6 +276,22 @@ export function SparkViewer() {
                             break; // Only one trigger at a time
                         }
                     }
+                    
+                    // Portal Detection
+                    for (const obj of Object.values(videoSurfacesRef.current)) {
+                        if (obj.userData?.type === 'portal') {
+                            const dist = camPos.distanceTo(obj.position);
+                            if (dist < 1.0 && !isTransitioning) {
+                                void handlePortalAction(obj.userData.target_world_url);
+                            }
+                        }
+                    }
+                }
+                
+                // Update Console Texture if active
+                if (consoleTextureRef.current) {
+                    updateConsoleCanvas();
+                    consoleTextureRef.current.needsUpdate = true;
                 }
                 
                 renderer.render(scene, camera);
@@ -301,6 +330,30 @@ export function SparkViewer() {
             } else {
                 triggersRef.current = [];
             }
+
+            // Click listener for console/interaction
+            const handleClick = (event: MouseEvent) => {
+                if (!mountRef.current || !cameraRef.current || !sceneRef.current) return;
+                
+                const rect = mountRef.current.getBoundingClientRect();
+                const mouse = new THREE.Vector2(
+                    ((event.clientX - rect.left) / rect.width) * 2 - 1,
+                    -((event.clientY - rect.top) / rect.height) * 2 + 1
+                );
+                
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(mouse, cameraRef.current);
+                
+                const intersects = raycaster.intersectObjects(scene.children, true);
+                if (intersects.length > 0) {
+                    const intersected = intersects[0];
+                    if (intersected.object.userData?.type === 'console') {
+                        handleConsoleButton(intersected.uv!);
+                    }
+                }
+            };
+            renderer.domElement.addEventListener('click', handleClick);
+
         } catch (e) {
             console.error('Spark load error:', e);
             setError(String(e));
@@ -395,6 +448,10 @@ export function SparkViewer() {
                     void handlePlacePicture(data);
                 } else if (data.type === 'cinema') {
                     void handlePlaceCinema(data);
+                } else if (data.type === 'console') {
+                    handleSpawnConsole(data);
+                } else if (data.type === 'portal') {
+                    handlePlacePortal(data);
                 }
             } catch (err) {
                 console.error('SSE data parse error:', err);
@@ -597,8 +654,125 @@ export function SparkViewer() {
             setToolboxPrompt(data.url);
             broadcastEvent('cinema');
         } catch (err) {
+        } catch (err) {
             console.error('Failed to get Plex stream URL:', err);
         }
+    }
+
+    async function fetchStats() {
+        try {
+            const resp = await fetch('http://localhost:10865/api/system/stats');
+            const data = await resp.json();
+            setSystemStats(data);
+        } catch (err) { /* silent */ }
+    }
+
+    function handleSpawnConsole(data: any) {
+        if (!sceneRef.current || !consoleCanvasRef.current) return;
+        
+        // Remove existing if any
+        if (consolePlaneRef.current) sceneRef.current.remove(consolePlaneRef.current);
+
+        const tex = new THREE.CanvasTexture(consoleCanvasRef.current);
+        consoleTextureRef.current = tex;
+        
+        const geometry = new THREE.PlaneGeometry(1.5, 1.5);
+        const material = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        mesh.position.set(data.x, data.y + 0.5, data.z);
+        mesh.rotation.y = data.rotation;
+        mesh.userData = { type: 'console', id: 'scc_primary' };
+        
+        sceneRef.current.add(mesh);
+        consolePlaneRef.current = mesh;
+    }
+
+    function updateConsoleCanvas() {
+        const canvas = consoleCanvasRef.current;
+        if (!canvas || !systemStats) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.fillStyle = '#060a0f';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Border & Grid
+        ctx.strokeStyle = '#22d3ee50';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(40, 40, 944, 944);
+        
+        // Header
+        ctx.fillStyle = '#22d3ee';
+        ctx.font = 'black 60px Inter, system-ui';
+        ctx.fillText('SOVEREIGN COMMAND CONSOLE', 80, 140);
+        
+        // Stats
+        ctx.font = 'bold 40px monospace';
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText(`CPU: ${systemStats.cpu_percent}%`, 80, 240);
+        ctx.fillText(`MEM: ${systemStats.memory_percent}%`, 80, 300);
+        ctx.fillText(`SSE: ${systemStats.active_sse_clients} Active`, 80, 360);
+        
+        // Buttons
+        const buttons = [
+            { label: 'BAKE SCENE', color: '#facc15', y: 500 },
+            { label: 'RESTORE', color: '#818cf8', y: 620 },
+            { label: 'VOID ENTITIES', color: '#f87171', y: 740 }
+        ];
+
+        buttons.forEach(btn => {
+            ctx.fillStyle = btn.color + '20';
+            ctx.fillRect(80, btn.y, 864, 100);
+            ctx.strokeStyle = btn.color;
+            ctx.strokeRect(80, btn.y, 864, 100);
+            ctx.fillStyle = btn.color;
+            ctx.fillText(btn.label, 360, btn.y + 65);
+        });
+        
+        ctx.font = 'italic 30px Inter';
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('SPARK v0.4.0 Engine • Local Intel', 80, 920);
+    }
+
+    function handleConsoleButton(uv: THREE.Vector2) {
+        // Simple mapping based on button Y positions
+        const y = (1 - uv.y) * 1024; // Convert UV to canvas pixels
+        if (y > 500 && y < 600) void handleBakeScene();
+        else if (y > 620 && y < 720) void handleRestoreScene();
+        else if (y > 740 && y < 840) {
+            // Void entities
+            Object.values(videoSurfacesRef.current).forEach(m => sceneRef.current?.remove(m));
+            Object.values(avatarsRef.current).forEach(m => sceneRef.current?.remove(m));
+            videoSurfacesRef.current = {};
+            avatarsRef.current = {};
+        }
+    }
+
+    function handlePlacePortal(data: any) {
+        if (!sceneRef.current) return;
+        const geometry = new THREE.TorusGeometry(1.2, 0.1, 16, 100);
+        const material = new THREE.MeshBasicMaterial({ color: 0x818cf8, emissive: 0x818cf8 });
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        mesh.position.set(data.x, data.y + 1.2, data.z);
+        mesh.rotation.y = data.rotation;
+        mesh.userData = { 
+            type: 'portal', 
+            target_world_url: data.target_world_url 
+        };
+        
+        sceneRef.current.add(mesh);
+        videoSurfacesRef.current[data.id] = mesh;
+    }
+
+    async function handlePortalAction(url: string) {
+        setIsTransitioning(true);
+        setTimeout(() => {
+            const nextUrl = new URL(window.location.href);
+            nextUrl.searchParams.set('url', url);
+            window.location.href = nextUrl.toString();
+        }, 800);
     }
 
     async function handleSpatialVideo(data: any) {
@@ -691,7 +865,18 @@ export function SparkViewer() {
         // Fetch local assets for the import tab
         void fetchLocalAssets();
         
+        // Setup Console Canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024;
+        canvas.height = 1024;
+        consoleCanvasRef.current = canvas;
+
+        const statsInterval = setInterval(() => {
+            void fetchStats();
+        }, 2000);
+        
         return () => {
+            clearInterval(statsInterval);
             window.removeEventListener('resize', handleResize);
             cleanup();
         };
@@ -1046,6 +1231,55 @@ export function SparkViewer() {
                                 </div>
                             )}
 
+                            {toolboxTab === 'gallery' && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                                        <Globe2 className="w-3.5 h-3.5" />
+                                        World Portals
+                                    </h4>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {PORTAL_PRESETS.map(p => (
+                                            <button
+                                                key={p.name}
+                                                onClick={() => {
+                                                    const pos = cameraRef.current!.position;
+                                                    void api.broadcastNarration({
+                                                        type: 'portal',
+                                                        target_world_url: p.url,
+                                                        x: pos.x, y: pos.y, z: pos.z
+                                                    });
+                                                }}
+                                                className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 text-[10px] font-bold text-indigo-300 transition-all group"
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                    {p.name}
+                                                </span>
+                                                <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {toolboxTab === 'studio' && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                                        <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                                            Sovereign Command
+                                        </h4>
+                                    </div>
+                                    <button
+                                        onClick={() => broadcastEvent('console')}
+                                        className="w-full flex items-center justify-center gap-2 p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-[10px] font-black uppercase text-cyan-300 hover:bg-cyan-500/20 transition-all"
+                                    >
+                                        <Layout className="w-3.5 h-3.5" />
+                                        Manifest Command Console
+                                    </button>
+                                </div>
+                            )}
+
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-aurora-500 animate-pulse" />
                                 <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
@@ -1087,6 +1321,17 @@ export function SparkViewer() {
                         Sovereign Environment Active • Local Intelligence Model
                     </div>
                 </div>
+
+                {isTransitioning && (
+                    <div className="absolute inset-0 bg-void-950 z-[100] animate-in fade-in duration-800 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-400 rounded-full animate-spin mx-auto mb-4" />
+                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-indigo-300 animate-pulse">
+                                Re-Manifesting World Latent Space
+                            </h3>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
