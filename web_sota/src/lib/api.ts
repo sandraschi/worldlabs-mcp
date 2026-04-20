@@ -14,10 +14,10 @@ export interface WorldAssets {
     splats?: { spz_urls: SpzUrls };
     mesh?: { collider_mesh_url: string };
     imagery?: { pano_url: string };
-    /** Normalised flat URLs injected by the bridge */
     _assets?: FlatAssets;
 }
 
+export interface FlatAssets {
     rad?: string;
     ksplat?: string;
     splat_100k?: string;

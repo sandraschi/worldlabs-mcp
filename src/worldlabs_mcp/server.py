@@ -11,11 +11,23 @@ from pathlib import Path
 
 import httpx
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastmcp import Context, FastMCP
 
-from .api_bridge import router as api_router
+from .api_bridge import (
+    router as api_router, 
+    BASE_URL, 
+    DEFAULT_POLL_INTERVAL, 
+    DEFAULT_TIMEOUT
+)
+from .logger import setup_logger
+
+# Initialize industrialized logging
+logger = setup_logger()
+logger.info("World Labs MCP Server starting up...")
+
 
 # Load environment variables from .env if present
 load_dotenv()
@@ -27,15 +39,6 @@ mcp = FastMCP(
     name="worldlabs-mcp",
     version="0.4.0",
 )
-
-BASE_URL = "https://api.worldlabs.ai/marble/v1"
-DEFAULT_POLL_INTERVAL = 15  # seconds between polls
-# NOTE: 90s is a safe default that fits inside MCP client timeouts (~120s).
-# World generation (especially marble-1.1-plus, which auto-expands, can be
-# several minutes) will not complete in this window.  Use get_operation to
-# poll manually for long jobs, or increase timeout_seconds explicitly if your
-# client supports long-running tool calls.
-DEFAULT_TIMEOUT = 90
 
 VALID_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 VALID_VIDEO_EXTENSIONS = {"mp4", "mov", "mkv"}
@@ -1195,6 +1198,18 @@ async def worldlabs_help(
 # ---------------------------------------------------------------------------
 _web_app = FastAPI(title="worldlabs-mcp", version="0.4.0")
 _FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:10864")
+
+@_web_app.middleware("http")
+async def catch_exceptions_middleware(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as e:
+        logger.exception(f"Unhandled exception during {request.method} {request.url.path}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal Server Error", "error": str(e)}
+        )
+
 _web_app.add_middleware(
     CORSMiddleware,
     # Wildcard origin + allow_credentials=True is invalid per CORS spec; use explicit list.

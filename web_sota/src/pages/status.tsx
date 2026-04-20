@@ -1,5 +1,7 @@
 import { Cpu, HardDrive, Database, Globe } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { logger } from '@/lib/logger';
+
 
 interface Stats {
     status: string;
@@ -20,7 +22,7 @@ export function Status() {
                 const data = await res.json();
                 setStats(data);
             } catch (err) {
-                console.error('Failed to fetch stats', err);
+                logger.error('Failed to fetch stats', { error: err });
             }
         };
         fetchStatus();

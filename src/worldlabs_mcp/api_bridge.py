@@ -19,6 +19,7 @@ Responsibilities:
 """
 
 from __future__ import annotations
+from .logger import logger
 
 import asyncio
 import json
@@ -39,10 +40,19 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
+from .logger import _log_clients, get_logger
+
+logger = get_logger()
+
+
 load_dotenv()
 
 router = APIRouter()
-DEFAULT_MODEL = "marble-1.1"
+
+BASE_URL = "https://api.worldlabs.ai/marble/v1"
+DEFAULT_POLL_INTERVAL = 15
+DEFAULT_TIMEOUT = 90
+DEFAULT_MODEL = "marble-1.1-plus"
 
 # Plex Integration (from plex-mcp)
 PLEX_BASE_URL = os.getenv("PLEX_BASE_URL", "http://localhost:32400")
@@ -358,7 +368,7 @@ def _get_system_stats() -> dict[str, Any]:
         "cpu_percent": psutil.cpu_percent(),
         "memory_percent": psutil.virtual_memory().percent,
         "disk_percent": _get_disk_usage_percent(),
-        "active_sse_clients": len(sse_queues),
+        "active_sse_clients": len(_narration_clients),
         "gpu": vram
     }
 
@@ -366,9 +376,7 @@ def _get_system_stats() -> dict[str, Any]:
 @router.get("/system/stats")
 async def get_system_stats() -> dict[str, Any]:
     return _get_system_stats()
-        "memory": {"percent": psutil.virtual_memory().percent},
-        "disk": {"percent": _get_disk_usage_percent()},
-    }
+
 
 
 # ---------------------------------------------------------------------------
@@ -419,6 +427,30 @@ async def narration_stream(request: Request) -> StreamingResponse:
         finally:
             if queue in _narration_clients:
                 _narration_clients.remove(queue)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@router.get("/logs/stream")
+async def logs_stream(request: Request) -> StreamingResponse:
+    """SSE stream for real-time backend logs."""
+    queue: asyncio.Queue = asyncio.Queue()
+    _log_clients.append(queue)
+
+    async def event_generator() -> AsyncGenerator[str, None]:
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                data = await queue.get()
+                yield f"data: {json.dumps(data)}\n\n"
+        finally:
+            if queue in _log_clients:
+                _log_clients.remove(queue)
 
     return StreamingResponse(
         event_generator(),
@@ -559,22 +591,30 @@ async def get_operation(operation_id: str) -> dict[str, Any]:
 
 
 @router.get("/operations/{operation_id}/stream")
-async def stream_operation(operation_id: str) -> StreamingResponse:
-    """SSE endpoint: streams operation status updates until done (or 10-minute cap)."""
+async def stream_operation(operation_id: str, request: Request) -> StreamingResponse:
+    """SSE endpoint: streams operation status updates until done (or 5-minute cap)."""
     poll_interval = 5
-    max_duration = 600
+    max_duration = 300  # User requested 5-minute timeout
 
     async def _gen() -> AsyncGenerator[str, None]:
         start = time.monotonic()
+        logger.info(f"SSE: Starting stream for operation {operation_id}")
+        
         async with httpx.AsyncClient(timeout=30) as client:
             while True:
+                # Check for client disconnect
+                if await request.is_disconnected():
+                    logger.info(f"SSE: Client disconnected for operation {operation_id}")
+                    return
+
                 elapsed = time.monotonic() - start
                 if elapsed > max_duration:
+                    logger.warning(f"SSE: Timeout reached for operation {operation_id}")
                     event = {
                         "operation_id": operation_id,
                         "done": False,
                         "status": "TIMEOUT",
-                        "description": "Stream exceeded 10-minute limit",
+                        "description": "Stream exceeded 5-minute limit",
                     }
                     yield f"data: {json.dumps(event)}\n\n"
                     return
@@ -582,6 +622,7 @@ async def stream_operation(operation_id: str) -> StreamingResponse:
                 try:
                     data = await _poll_operation_with_retry(client, operation_id)
                 except Exception as exc:
+                    logger.error(f"SSE: Poll failed for {operation_id}: {exc}")
                     event = {
                         "operation_id": operation_id,
                         "done": False,
@@ -596,7 +637,10 @@ async def stream_operation(operation_id: str) -> StreamingResponse:
                 status = progress.get("status", "IN_PROGRESS")
                 description = progress.get("description", "")
 
+                logger.info(f"SSE: Op {operation_id} status: {status} ({description})")
+
                 if data.get("done"):
+                    logger.info(f"SSE: Op {operation_id} completed. Status: {status}")
                     if data.get("response"):
                         data["response"]["_assets"] = _extract_assets(data["response"])
                     _save_operation(data)

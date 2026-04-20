@@ -15,6 +15,11 @@ function showLoadError(err: unknown) {
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import { logger } from './lib/logger';
+
+// Initialize industrialized logging
+logger.init();
+
 
 class ErrorBoundary extends React.Component<
     { children: React.ReactNode },

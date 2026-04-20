@@ -112,6 +112,15 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         @apply bg-cosmos-600/70;
     }
+
+    .animate-spin-reverse {
+        animation: spin-reverse 1s linear infinite;
+    }
+}
+
+@keyframes spin-reverse {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
 }
 
 /* Generation modal progress bar — indeterminate slide animation */

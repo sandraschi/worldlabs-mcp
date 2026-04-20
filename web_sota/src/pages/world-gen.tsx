@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { Globe2, Download, ExternalLink, Cpu, Zap, ChevronDown, Sparkles, RefreshCw, Heart, Star, Trash2, Save, MessageSquare, X, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Globe2, Download, ExternalLink, Cpu, Zap, ChevronDown, ChevronRight, Sparkles, RefreshCw, Heart, Star, Trash2, Save, MessageSquare, X, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import {
@@ -12,6 +12,8 @@ import {
     type HandoffRequest,
     triggerDownload,
 } from '@/lib/api';
+import { logger } from '@/lib/logger';
+import { WORLD_PRESETS, type WorldPreset } from '@/lib/presets';
 
 const MODELS = ['marble-1.1-plus', 'marble-1.1'] as const;
 type GenMode = 'text' | 'image' | 'video';
@@ -47,6 +49,12 @@ function GenerationModal({ operationId, onComplete, onDismiss }: GenerationModal
         const close = streamOperation(
             operationId,
             (event) => {
+                logger.info('SSE Event', { 
+                    op_id: event.operation_id, 
+                    status: event.status, 
+                    done: event.done,
+                    desc: event.description 
+                });
                 setEvents(prev => [...prev.slice(-10), event]); // keep last 10
                 setElapsed(event.elapsed_seconds ?? Math.floor((Date.now() - startRef.current) / 1000));
 
@@ -70,10 +78,16 @@ function GenerationModal({ operationId, onComplete, onDismiss }: GenerationModal
                 }
             },
             () => {
+                logger.warn('SSE Disconnected - Falling back to polling', { operationId });
                 // SSE error — fall back to polling via getOperation
                 const pollId = setInterval(async () => {
                     try {
                         const op = await api.getOperation(operationId);
+                        logger.info('Poll Update', { 
+                            id: operationId, 
+                            done: op.done, 
+                            status: op.metadata?.progress?.status 
+                        });
                         const prog = op.metadata?.progress;
                         const ev: OperationStreamEvent = {
                             operation_id: operationId,
@@ -311,6 +325,64 @@ function PromptCard({
                 >
                     Apply
                 </button>
+            </div>
+        </div>
+    );
+}
+
+// ── Style Gallery Modal ───────────────────────────────────────────────────────
+
+function StyleGallery({ onSelect, onDismiss }: { onSelect: (preset: WorldPreset) => void, onDismiss: () => void }) {
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <div className="relative w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col rounded-3xl border border-white/10 bg-slate-950 shadow-2xl">
+                <header className="p-6 border-b border-white/5 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-cosmos-400" />
+                            Style Gallery
+                        </h3>
+                        <p className="text-sm text-slate-400">Select a creative preset to instantly build your new world.</p>
+                    </div>
+                    <button 
+                        onClick={onDismiss}
+                        className="p-2 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition-all"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </header>
+
+                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {WORLD_PRESETS.map((p) => (
+                            <button
+                                key={p.id}
+                                onClick={() => onSelect(p)}
+                                className="glass-card p-5 text-left group hover:border-cosmos-500/50 hover:shadow-cosmos-500/10 transition-all space-y-3"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-cosmos-400 bg-cosmos-500/10 px-2 py-0.5 rounded-full">
+                                        {p.style}
+                                    </span>
+                                    <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-cosmos-400 group-hover:translate-x-0.5 transition-all" />
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-bold text-white group-hover:text-cosmos-300 transition-colors">{p.name}</h4>
+                                    <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">{p.description}</p>
+                                </div>
+                                <div className="pt-2">
+                                    <div className="text-[10px] text-slate-600 font-mono italic truncate bg-black/30 rounded p-1.5 min-h-[3rem]">
+                                        "{p.prompt}"
+                                    </div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <footer className="p-4 bg-white/[0.02] border-t border-white/5 text-center">
+                    <p className="text-[10px] text-slate-500 italic">Styles leverage Marble 1.1 PRO auto-expansion for maximum fidelity.</p>
+                </footer>
             </div>
         </div>
     );
@@ -562,6 +634,7 @@ export default function WorldGenPage() {
     const [isPanorama, setIsPanorama] = useState(false);
     const [displayName, setDisplayName] = useState('');
     const [selectedStyle, setSelectedStyle] = useState('Cinematic');
+    const [showGallery, setShowGallery] = useState(false);
 
     const [operations, setOperations] = useState<Operation[]>([]);
     const [pollingIds, setPollingIds] = useState<Set<string>>(new Set());
@@ -633,7 +706,7 @@ export default function WorldGenPage() {
                         });
                     }
                 } catch (err) {
-                    console.error('Background poll failed:', err);
+                    logger.error('Background poll failed', { error: err });
                 }
             }
         }, 10000);
@@ -747,6 +820,20 @@ export default function WorldGenPage() {
                 />
             )}
 
+            {/* Style Gallery Modal */}
+            {showGallery && (
+                <StyleGallery 
+                    onDismiss={() => setShowGallery(false)}
+                    onSelect={(p) => {
+                        setPrompt(p.prompt);
+                        setSelectedStyle(p.style);
+                        setModel(p.model);
+                        setShowGallery(false);
+                        logger.info('Applied world preset', { preset: p.name });
+                    }}
+                />
+            )}
+
             <div ref={scrollRef} className="h-full overflow-y-auto custom-scrollbar p-6">
                 <div className="max-w-4xl mx-auto space-y-8 pb-20">
                     {/* Header */}
@@ -844,6 +931,14 @@ export default function WorldGenPage() {
                                             aria-label="Save current prompt to library"
                                         >
                                             <Save className="w-3.5 h-3.5" aria-hidden="true" />
+                                        </button>
+                                        <button
+                                            onClick={() => setShowGallery(true)}
+                                            title="Browse Styles"
+                                            className="p-1.5 rounded bg-void-600/20 hover:bg-void-600/30 border border-void-500/30 text-void-400 hover:text-void-200 transition-all flex items-center gap-1.5 px-2.5"
+                                        >
+                                            <Sparkles className="w-3.5 h-3.5" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Styles</span>
                                         </button>
                                         <button
                                             onClick={() => refineMutation.mutate()}

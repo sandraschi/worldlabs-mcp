@@ -15,6 +15,7 @@ import { LocalLlm } from '@/pages/local-llm';
 import { Apps } from '@/pages/apps';
 import { Help } from '@/pages/help.jsx';
 import { Settings } from '@/pages/settings';
+import LogsPage from '@/pages/logs';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -42,6 +43,7 @@ function App() {
                         <Route path="/apps" element={<Apps />} />
                         <Route path="/help" element={<Help />} />
                         <Route path="/settings" element={<Settings />} />
+                        <Route path="/logs" element={<LogsPage />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </AppLayout>

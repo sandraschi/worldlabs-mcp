@@ -13,7 +13,8 @@ import {
     Wand2,
     Binary,
     Triangle,
-    Glasses
+    Glasses,
+    Terminal
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,10 +34,9 @@ export function useSidebar() {
 
 const navItems = [
     { to: '/', label: 'Overview', icon: LayoutDashboard },
-    { to: '/status', label: 'Bridge Health', icon: Activity },
-    { to: '/tools', label: 'Spatial Tools', icon: Wrench },
-    { to: '/architect', label: 'World Architect', icon: Wand2 },
     { to: '/library', label: 'World Library', icon: Globe2 },
+    { to: '/status', label: 'Bridge Health', icon: Activity },
+    { to: '/logs', label: 'System Logs', icon: Terminal },
     { to: '/settings', label: 'Configuration', icon: Settings },
 ];
 
