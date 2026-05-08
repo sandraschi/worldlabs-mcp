@@ -1,0 +1,23 @@
+# worldlabs-mcp
+
+> MCP server wrapping the World Labs Marble API for 3D world generation and the Spark 2.0 spatial viewer.
+> Generate navigable Gaussian splat worlds from text, images, and video. Includes a full webapp with DCC export to Blender, Unity3D, and Resonite.
+
+## Documentation
+
+- [README](https://github.com/sandraschi/worldlabs-mcp/blob/main/README.md)
+- [INSTALL](https://github.com/sandraschi/worldlabs-mcp/blob/main/INSTALL.md)
+- [Architecture](https://github.com/sandraschi/worldlabs-mcp/blob/main/docs/ARCHITECTURE.md)
+- [Marble API Spec](https://github.com/sandraschi/worldlabs-mcp/blob/main/docs/TECH_SPEC_MARBLE_API.md)
+- [Spark 2.0 Viewer](https://github.com/sandraschi/worldlabs-mcp/blob/main/docs/SPARK_V2.md)
+- [Export Guide](https://github.com/sandraschi/worldlabs-mcp/blob/main/docs/EXPORT_GUIDE.md)
+- [Blender Integration](https://github.com/sandraschi/worldlabs-mcp/blob/main/docs/BLENDER.md)
+- [WebXR / Headset Setup](https://github.com/sandraschi/worldlabs-mcp/blob/main/docs/HEADSET_SETUP.md)
+- [Prompt Guide](https://github.com/sandraschi/worldlabs-mcp/blob/main/docs/PROMPT_GUIDE.md)
+- [Changelog](https://github.com/sandraschi/worldlabs-mcp/blob/main/CHANGELOG.md)
+
+## World Labs External Resources
+
+- [Marble API Docs](https://docs.worldlabs.ai/api)
+- [Platform Dashboard](https://platform.worldlabs.ai)
+- [Gallery](https://worldlabs.ai/gallery)

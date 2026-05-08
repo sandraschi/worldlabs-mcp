@@ -1,0 +1,193 @@
+# worldlabs-mcp — Full LLM Integration Manifest
+
+> MCP server wrapping the World Labs Marble API for 3D world generation and the Spark 2.0 spatial viewer.
+> Version: 0.4.0 | License: MIT | Author: Sandra Schipal
+
+## What this server does
+
+worldlabs-mcp is a Model Context Protocol server that exposes the World Labs Marble API as MCP tools.
+It lets AI agents generate navigable 3D Gaussian splat worlds from text descriptions, images, and video,
+then interact with those worlds via the Spark 2.0 spatial viewer (spatial voice, avatars, audio, TVs).
+
+A REST backend (port 10865) serves the webapp and spatial bridge. A Vite/React frontend (port 10864)
+provides a full control UI including world library, prompt memory, local LLM refinement, and DCC export.
+
+## MCP Tools
+
+### Generation Tools
+
+**generate_world_from_text(text_prompt, display_name="", model="marble-1.1", seed=None, tags=None)**
+Generate a 3D world from a text description. Returns immediately with an operation_id.
+Model options: "marble-1.1" (1500 credits, ~1-3min), "marble-1.1-plus" (1500+300/cube, auto-expanding).
+
+**generate_world_from_image(image_url, text_prompt="", display_name="", is_panorama=False, model="marble-1.1", seed=None, tags=None, disable_recaption=False)**
+Generate a 3D world from a public image URL (jpg, jpeg, png, webp).
+Set is_panorama=True for 360-degree equirectangular images.
+
+**generate_world_from_multi_image(image_urls, azimuths_deg, text_prompt="", display_name="", model="marble-1.1")**
+Generate from multiple images at known azimuth angles (0-360). Minimum 2 images.
+image_urls and azimuths_deg must have equal length.
+
+**generate_world_from_video(video_url, text_prompt="", display_name="", model="marble-1.1", seed=None, tags=None, disable_recaption=False)**
+Generate a 3D world from a public video URL (mp4, mov, mkv).
+
+**upload_and_generate(local_file_path, kind, text_prompt="", display_name="", is_panorama=False, model="marble-1.1")**
+Upload a local file (image or video) and generate end-to-end. Handles the full GCS signed URL flow.
+kind must be "image" or "video". File size limit: 100MB.
+
+**generate_world_from_media_asset(media_asset_id, kind, text_prompt="", display_name="", is_panorama=False, model="marble-1.1")**
+Step 2 of the manual upload flow. Generate from a previously uploaded media asset ID.
+
+**prepare_media_upload(file_name, kind, extension)**
+Step 1 of the manual upload flow. Get a signed GCS upload URL. Returns media_asset.id and upload_info.
+For most cases, use upload_and_generate instead.
+
+### Polling Tools
+
+**get_operation(operation_id)**
+Single poll of an operation status. Returns immediately. Check done field.
+Raises RuntimeError if done=True and operation failed.
+metadata.progress.status values: IN_PROGRESS, SUCCEEDED, FAILED.
+
+**wait_for_world(operation_id, poll_interval_seconds=15, timeout_seconds=90)**
+Blocking poll until operation completes or times out.
+Default 90s suits marble-1.1. For marble-1.1-plus use get_operation in a loop.
+Raises RuntimeError on API failure, TimeoutError on timeout.
+
+### World Management Tools
+
+**list_worlds(page_size=20, page_token="")**
+Paginated list of all generated worlds. Returns dict with worlds list and optional next_page_token.
+
+**get_world(world_id)**
+Fetch full details and asset URLs for a world.
+Returns: splat_url (SPZ), mesh_url (GLB), panorama_url, thumbnail_url, caption, world_marble_url.
+Asset URLs are time-limited CDN links — download promptly.
+
+**delete_world(world_id)**
+Permanently delete a world and all associated assets. Cannot be undone.
+
+### Spatial Tools (require Spark viewer + bridge running)
+
+**broadcast_spatial_notification(text, x=0.0, y=0.0, z=0.0)**
+Speak text at a 3D coordinate via the Spatial Voice Agent. Auto-generates TTS audio (edge-tts).
+Posts a "speech" event to the bridge SSE stream; Spark viewer plays via HRTF spatial audio PannerNode.
+
+**broadcast_spatial_audio(prompt_or_url, x=0.0, y=0.0, z=0.0, is_loop=True)**
+Place a looping audio source (mp3, wav URL) at 3D coordinates in the scene.
+
+**place_world_tv(video_url, x=0.0, y=1.6, z=0.0, rotation_y=0.0, scale=1.0)**
+Spawn a 16:9 virtual TV screen playing a video at the given scene position.
+
+**spawn_agent_avatar(avatar_url="default_agent", x=0.0, y=0.0, z=0.0, rotation=0.0)**
+Materialize an animated agent avatar in the scene. Raycasts to collider mesh for surface grounding.
+avatar_url="default_agent" uses the built-in procedural GLB humanoid served by the bridge.
+
+### Meta Tools
+
+**refine_with_local_llm(prompt, style="Cinematic", model="llama3.2:3b")**
+Expand a short prompt into a detailed Marble-optimised world generation prompt via local Ollama.
+Requires Ollama running at OLLAMA_URL (default: http://localhost:11434).
+
+**worldlabs_help(detail="standard", topic="")**
+Structured API reference at three detail levels: "quick", "standard", "verbose".
+topic filters by group: generate, upload, poll, world, spatial, meta.
+
+## Typical Workflow
+
+1. `generate_world_from_text(text_prompt="...")` → returns {operation_id, name, done: false}
+2. `get_operation(operation_id)` repeatedly until done=True (or `wait_for_world` for marble-1.1)
+3. `get_world(world_id)` → asset URLs (splat, mesh, panorama, thumbnail)
+4. View in browser: world.world_marble_url
+5. Optional: `broadcast_spatial_notification(text="Welcome", x=0, y=1.5, z=0)` for narration
+
+## Models
+
+| Model | Cost | Time | Notes |
+|-------|------|------|-------|
+| marble-1.1 | 1500 credits | ~1-3 min | Default. Fixed cost. |
+| marble-1.1-plus | 1500 + 300/cube | variable | Auto-expanding. Better for outdoors/large spaces. |
+
+## Output Formats
+
+- **SPZ** — Compressed Gaussian splat. Multiple resolutions (100k, 500k, full_res).
+- **GLB** — Collision mesh for physics/DCC import.
+- **Panorama** — 360° equirectangular JPEG.
+- **Thumbnail** — Preview JPEG.
+- **Caption** — AI-generated description of the generated scene.
+- **Marble URL** — Direct link to interactive Marble web viewer.
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| WORLDLABS_API_KEY | — | Required. Get from platform.worldlabs.ai/api-keys |
+| WORLDLABS_BRIDGE_URL | http://localhost:10865 | Spatial bridge URL |
+| WORLDLABS_LOCAL_PATH | ~/Downloads | Local folder for asset serving |
+| OLLAMA_URL | http://localhost:11434 | For refine_with_local_llm |
+| PLEX_BASE_URL | http://localhost:32400 | Plex integration |
+| PLEX_TOKEN | — | Plex authentication |
+| UNITY_PROJECT_PATH | — | Unity DCC export target |
+| BLENDER_MCP_PORT | 10700 | blender-mcp port |
+| RESONITE_OSC_HOST | 127.0.0.1 | Resonite OSC |
+| RESONITE_OSC_PORT | 9000 | Resonite OSC port |
+
+## Ports
+
+| Service | Port |
+|---------|------|
+| Backend REST API + SSE bridge | 10865 |
+| Frontend Vite webapp | 10864 |
+
+## Important Notes
+
+- **Credits**: marble.worldlabs.ai (web app) credits are SEPARATE from API platform credits.
+  A $30/month web subscription does NOT include API generations.
+  Check API balance at https://platform.worldlabs.ai/billing
+- **Asset URLs**: CDN links from get_world are time-limited. Download assets promptly after generation.
+- **marble-1.1-plus**: Can take several minutes. Use get_operation in a loop rather than wait_for_world.
+- **TTS**: edge-tts is optional. Install with `uv pip install edge-tts` for spatial narration audio.
+- **Spatial tools**: Require the backend (port 10865) to be running and the Spark viewer open.
+
+## REST API Endpoints (bridge, port 10865)
+
+POST /api/generate/text          — Generate from text prompt
+POST /api/generate/image         — Generate from image URL
+POST /api/generate/video         — Generate from video URL
+POST /api/generate/upload        — Upload file + generate (multipart)
+GET  /api/operations/{id}        — Poll operation status
+GET  /api/operations/{id}/stream — SSE stream of operation progress
+GET  /api/worlds/{id}            — Get world details + asset URLs
+DELETE /api/worlds/{id}          — Delete world
+GET  /api/worlds/{id}/download   — Proxy download world asset
+GET  /api/history                — Local operation history (last 50)
+GET  /api/history/remote         — Remote world list from Marble
+GET  /api/prompts                — List saved prompts
+POST /api/prompts                — Save a prompt
+PATCH /api/prompts/{id}          — Update prompt (fave/star/comment)
+DELETE /api/prompts/{id}         — Delete prompt
+GET  /api/llm/discover           — Probe Ollama + LM Studio
+POST /api/llm/refine             — Refine prompt via local LLM
+POST /api/narration              — Push spatial event to SSE stream
+GET  /api/narration/stream       — SSE stream for Spark viewer
+GET  /api/local-assets           — List local splat/mesh assets
+GET  /api/local-assets/{path}    — Serve local asset file
+GET  /api/handoff                — CORS proxy for remote splat assets
+POST /api/export/blender         — Export to Blender via blender-mcp
+POST /api/export/unity3d         — Export to Unity3D project
+POST /api/export/resonite        — Export to Resonite (OSC or resonite-mcp)
+GET  /api/scenes                 — List saved scene manifests
+POST /api/scenes/bake            — Save/overwrite a scene manifest
+DELETE /api/scenes/{id}          — Delete scene manifest
+GET  /api/plex/search            — Search Plex library
+GET  /api/plex/stream_url        — Get authenticated Plex stream URL
+GET  /api/avatars/status         — Check avatar-mcp availability
+POST /api/avatars/place          — Place avatar from avatar-mcp in scene
+GET  /api/capabilities           — Runtime feature flags
+GET  /api/health                 — Health + system stats
+GET  /api/system                 — Server version and config info
+GET  /api/system/stats           — CPU/memory/disk/GPU stats
+GET  /api/tts/status             — TTS engine availability
+GET  /api/tts/{filename}         — Serve generated TTS audio
+GET  /api/default-agent          — Serve built-in humanoid GLB
+GET  /api/logs/stream            — SSE stream of backend logs
