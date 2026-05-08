@@ -17,10 +17,12 @@ from fastapi.responses import JSONResponse
 from fastmcp import Context, FastMCP
 
 from .api_bridge import (
-    router as api_router, 
-    BASE_URL, 
-    DEFAULT_POLL_INTERVAL, 
-    DEFAULT_TIMEOUT
+    BASE_URL,
+    DEFAULT_POLL_INTERVAL,
+    DEFAULT_TIMEOUT,
+)
+from .api_bridge import (
+    router as api_router,
 )
 from .logger import setup_logger
 
@@ -39,6 +41,11 @@ mcp = FastMCP(
     name="worldlabs-mcp",
     version="0.4.0",
 )
+
+# Register Prefab card tools immediately after mcp instantiation so they are
+# available in both stdio mode (main()) and any inspection/dev path.
+from .prefab_cards import register_prefab_tools as _register_prefab  # noqa: E402
+_register_prefab(mcp)
 
 VALID_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 VALID_VIDEO_EXTENSIONS = {"mp4", "mov", "mkv"}
@@ -70,7 +77,7 @@ def _handle_status_error(e: httpx.HTTPStatusError) -> None:
     """Raises a descriptive RuntimeError for common World Labs API failures."""
     response = e.response
     status_code = response.status_code
-    
+
     try:
         error_data = response.json()
         api_message = error_data.get("error", {}).get("message") or error_data.get("detail")
@@ -82,7 +89,7 @@ def _handle_status_error(e: httpx.HTTPStatusError) -> None:
             f"World Labs API: 401 Unauthorized. Your WORLDLABS_API_KEY may be invalid. "
             f"({api_message or 'No details'})"
         )
-    
+
     if status_code == 402:
         raise RuntimeError(
             f"World Labs API: 402 Payment Required. {api_message or 'Insufficient credits.'} "
@@ -118,6 +125,8 @@ async def generate_world_from_text(
     text_prompt: str,
     display_name: str = "",
     model: str = "marble-1.1",
+    seed: int | None = None,
+    tags: list[str] | None = None,
 ) -> dict:
     """
     Generate a 3D world from a text description.
@@ -129,11 +138,13 @@ async def generate_world_from_text(
         text_prompt: Description of the world to generate.
         display_name: Optional human-readable name for the world.
         model: 'marble-1.1' (default, 1500 credits) or 'marble-1.1-plus' (auto-expanding, 1500 + 300/dynamic-cube).
+        seed: Optional seed for deterministic generation (0 to 4294967295).
+        tags: Optional tags for organising worlds (e.g. ["fantasy", "nature"]).
 
     Returns:
         Operation object with operation_id for polling.
     """
-    payload = {
+    payload: dict = {
         "display_name": display_name,
         "model": model,
         "world_prompt": {
@@ -141,6 +152,10 @@ async def generate_world_from_text(
             "text_prompt": text_prompt,
         },
     }
+    if seed is not None:
+        payload["seed"] = seed
+    if tags:
+        payload["tags"] = tags
     async with httpx.AsyncClient(timeout=30) as client:
         try:
             resp = await client.post(
@@ -161,6 +176,9 @@ async def generate_world_from_image(
     display_name: str = "",
     is_panorama: bool = False,
     model: str = "marble-1.1",
+    seed: int | None = None,
+    tags: list[str] | None = None,
+    disable_recaption: bool = False,
 ) -> dict:
     """
     Generate a 3D world from a public image URL.
@@ -173,6 +191,9 @@ async def generate_world_from_image(
         display_name: Optional name for the world.
         is_panorama: Set True if image is a 360-degree panorama.
         model: 'marble-1.1' or 'marble-1.1-plus'.
+        seed: Optional seed for deterministic generation.
+        tags: Optional tags for organising worlds.
+        disable_recaption: If True, use text_prompt as-is without auto-recaptioning.
 
     Returns:
         Operation object with operation_id for polling.
@@ -187,12 +208,18 @@ async def generate_world_from_image(
     }
     if text_prompt:
         world_prompt["text_prompt"] = text_prompt
+    if disable_recaption:
+        world_prompt["disable_recaption"] = True
 
-    payload = {
+    payload: dict = {
         "display_name": display_name,
         "model": model,
         "world_prompt": world_prompt,
     }
+    if seed is not None:
+        payload["seed"] = seed
+    if tags:
+        payload["tags"] = tags
     async with httpx.AsyncClient(timeout=30) as client:
         try:
             resp = await client.post(
@@ -236,14 +263,14 @@ async def generate_world_from_multi_image(
     if len(image_urls) < 2:
         raise ValueError("At least 2 images required for multi-image generation")
 
-    images = [
-        {"source": "uri", "uri": url, "azimuth_deg": az}
-        for url, az in zip(image_urls, azimuths_deg)
+    multi_image_prompt = [
+        {"azimuth": az, "content": {"source": "uri", "uri": url}}
+        for url, az in zip(image_urls, azimuths_deg, strict=True)
     ]
 
     world_prompt: dict = {
-        "type": "multi_image",
-        "multi_image_prompt": {"images": images},
+        "type": "multi-image",
+        "multi_image_prompt": multi_image_prompt,
     }
     if text_prompt:
         world_prompt["text_prompt"] = text_prompt
@@ -272,6 +299,9 @@ async def generate_world_from_video(
     text_prompt: str = "",
     display_name: str = "",
     model: str = "marble-1.1",
+    seed: int | None = None,
+    tags: list[str] | None = None,
+    disable_recaption: bool = False,
 ) -> dict:
     """
     Generate a 3D world from a public video URL.
@@ -283,6 +313,9 @@ async def generate_world_from_video(
         text_prompt: Optional text to guide generation.
         display_name: Optional name for the world.
         model: 'marble-1.1' or 'marble-1.1-plus'.
+        seed: Optional seed for deterministic generation.
+        tags: Optional tags for organising worlds.
+        disable_recaption: If True, use text_prompt as-is without auto-recaptioning.
 
     Returns:
         Operation object with operation_id for polling.
@@ -293,12 +326,18 @@ async def generate_world_from_video(
     }
     if text_prompt:
         world_prompt["text_prompt"] = text_prompt
+    if disable_recaption:
+        world_prompt["disable_recaption"] = True
 
-    payload = {
+    payload: dict = {
         "display_name": display_name,
         "model": model,
         "world_prompt": world_prompt,
     }
+    if seed is not None:
+        payload["seed"] = seed
+    if tags:
+        payload["tags"] = tags
     async with httpx.AsyncClient(timeout=30) as client:
         try:
             resp = await client.post(
@@ -356,6 +395,12 @@ async def upload_and_generate(
         )
 
     file_bytes = file_path.read_bytes()
+    file_size = len(file_bytes)
+    if file_size > 100 * 1024 * 1024:
+        raise ValueError(
+            f"File exceeds 100MB limit: {file_size / 1024**2:.1f}MB ({file_path.name}). "
+            "Use the REST /api/generate/upload endpoint for large files."
+        )
 
     async with httpx.AsyncClient(timeout=60) as client:
         # 1. Prepare upload
@@ -377,7 +422,7 @@ async def upload_and_generate(
         media_asset_id: str = prepare_data["media_asset"]["id"]
         upload_info: dict = prepare_data["upload_info"]
         upload_url: str = upload_info["upload_url"]
-        upload_headers: dict = upload_info.get("headers", {})
+        upload_headers: dict = upload_info.get("required_headers") or upload_info.get("headers", {})
 
         # 2. Upload file bytes via PUT to signed GCS URL
         try:
@@ -517,7 +562,10 @@ async def get_operation(operation_id: str) -> dict:
                 headers=_headers(),
             )
             resp.raise_for_status()
-            return resp.json()
+            data = resp.json()
+            if data.get("done"):
+                _check_error(data, operation_id)
+            return data
         except httpx.HTTPStatusError as e:
             _handle_status_error(e)
 
@@ -591,16 +639,16 @@ async def list_worlds(
     Returns:
         Dict with 'worlds' list and optional 'next_page_token'.
     """
-    params: dict = {"page_size": page_size}
+    body: dict = {"page_size": page_size, "sort_by": "created_at"}
     if page_token:
-        params["page_token"] = page_token
+        body["page_token"] = page_token
 
     async with httpx.AsyncClient(timeout=30) as client:
         try:
-            resp = await client.get(
-                f"{BASE_URL}/worlds",
+            resp = await client.post(
+                f"{BASE_URL}/worlds:list",
                 headers=_headers(),
-                params=params,
+                json=body,
             )
             resp.raise_for_status()
             return resp.json()
@@ -623,6 +671,32 @@ async def get_world(world_id: str) -> dict:
     async with httpx.AsyncClient(timeout=30) as client:
         try:
             resp = await client.get(
+                f"{BASE_URL}/worlds/{world_id}",
+                headers=_headers(),
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_status_error(e)
+
+
+@mcp.tool()
+async def delete_world(world_id: str) -> dict:
+    """
+    Delete a previously generated world by its ID.
+
+    Permanently removes the world and all its associated assets (splat files,
+    mesh, panorama, thumbnail) from the Marble API. This action cannot be undone.
+
+    Args:
+        world_id: The world UUID (from operation response or list_worlds).
+
+    Returns:
+        Deletion confirmation dict with world_id and deleted status.
+    """
+    async with httpx.AsyncClient(timeout=30) as client:
+        try:
+            resp = await client.delete(
                 f"{BASE_URL}/worlds/{world_id}",
                 headers=_headers(),
             )
@@ -834,6 +908,16 @@ _TOOL_CATALOG = [
         "notes": "Asset URLs are time-limited CDN links. Download promptly.",
     },
     {
+        "name": "delete_world",
+        "description": "Permanently delete a world and all its assets",
+        "group": "world",
+        "args": {"world_id": "str — UUID from list_worlds or operation response"},
+        "returns": "Confirmation dict with world_id and deleted status",
+        "example": 'delete_world("world-uuid-456")',
+        "docstring": "Permanently removes the world and all associated assets (splat files, mesh, panorama, thumbnail). This action cannot be undone.",
+        "notes": "Only the world owner can delete a world.",
+    },
+    {
         "name": "worldlabs_help",
         "description": "This help tool — API reference at quick / standard / verbose detail levels",
         "group": "meta",
@@ -847,17 +931,14 @@ _TOOL_CATALOG = [
         "notes": "",
     },
     # ------------------------------------------------------------------
-    # SPECULATIVE / IN-DEVELOPMENT — Spatial Voice Agent + multimodal scene
-    # These tools post events to the narration bridge (WORLDLABS_BRIDGE_URL,
-    # default http://localhost:10865 — the same FastAPI served by
-    # web_sota/start.ps1) which the Spark 2.0 viewer consumes via SSE.
-    # The viewer-side wiring is partial and the end-to-end demo requires
-    # speech-mcp running separately.  Kept in the tool surface so the
-    # contract is stable while we finish the implementation.
+    # Spatial tools — POST events to the narration bridge at
+    # WORLDLABS_BRIDGE_URL (default http://localhost:10865).
+    # The Spark 2.0 viewer consumes these via SSE. Requires the
+    # bridge to be running (same uvicorn process serves it).
     # ------------------------------------------------------------------
     {
         "name": "broadcast_spatial_notification",
-        "description": "Speak text at a 3D coordinate via the Spatial Voice Agent (speculative)",
+        "description": "Speak text at a 3D coordinate via the Spatial Voice Agent",
         "group": "spatial",
         "args": {
             "text": "str — message to be spoken",
@@ -868,15 +949,16 @@ _TOOL_CATALOG = [
         "returns": "Status string with recipient count",
         "example": 'broadcast_spatial_notification(text="Welcome to the garden", x=-5.2, y=1.5, z=12.0)',
         "docstring": (
-            "Posts a narration event to the narration bridge SSE stream. The Spark 2.0 "
-            "viewer fetches a WAV from speech-mcp (Gemini Flash TTS) and plays it back "
-            "through a PannerNode at the given coordinates (HRTF spatial audio)."
+            "Posts a speech narration event to the bridge SSE stream. The bridge "
+            "automatically generates TTS audio via the built-in engine (edge-tts) "
+            "and includes the audio URL in the event. The Spark 2.0 viewer plays it "
+            "back through a PannerNode at the given coordinates (HRTF spatial audio)."
         ),
-        "notes": "Requires the narration bridge and speech-mcp. Both are optional dependencies.",
+        "notes": "Built-in TTS engine (edge-tts) auto-generates audio. Install with: uv pip install edge-tts.",
     },
     {
         "name": "broadcast_spatial_audio",
-        "description": "Broadcast a music/ambience track at a 3D coordinate (speculative)",
+        "description": "Broadcast a music/ambience track at a 3D coordinate",
         "group": "spatial",
         "args": {
             "prompt_or_url": "str — URL to audio file, or future: text prompt for Lyria generation",
@@ -886,11 +968,11 @@ _TOOL_CATALOG = [
         "returns": "Status string",
         "example": 'broadcast_spatial_audio(prompt_or_url="https://.../ambience.mp3", x=0, y=0, z=0)',
         "docstring": "Places a looping spatial audio source in the scene at the given coordinates.",
-        "notes": "Prompt-driven music generation (Lyria) is not wired up yet; URLs work.",
+        "notes": "URL-based audio only. For prompt-driven generation, use a local TTS service separately.",
     },
     {
         "name": "place_world_tv",
-        "description": "Place a virtual TV screen playing a video in the scene (speculative)",
+        "description": "Place a virtual TV screen playing a video in the scene",
         "group": "spatial",
         "args": {
             "video_url": "str — URL to an mp4/webm",
@@ -907,7 +989,7 @@ _TOOL_CATALOG = [
     },
     {
         "name": "spawn_agent_avatar",
-        "description": "Materialise an animated agent avatar in the scene (speculative)",
+        "description": "Materialise an animated agent avatar in the scene",
         "group": "spatial",
         "args": {
             "avatar_url": "str — URL to a glTF, or 'default_agent'",
@@ -920,7 +1002,24 @@ _TOOL_CATALOG = [
             "Loads a glTF avatar into the scene. The viewer raycasts onto the splat "
             "collider mesh to ground the avatar to the local surface height."
         ),
-        "notes": "Grounding works best when the Marble GLB collider is loaded alongside the splats.",
+        "notes": 'avatar_url="default_agent" resolves to the built-in generated GLB humanoid served by the bridge. Custom glTF URLs also work.',
+    },
+    {
+        "name": "refine_with_local_llm",
+        "description": "Refine a world prompt using a local Ollama model",
+        "group": "meta",
+        "args": {
+            "prompt": "str — the prompt to refine",
+            "style": "str (optional) — e.g. 'Cinematic', 'Fantasy', 'Photorealistic'",
+            "model": "str (optional) — Ollama model name (default: llama3.2:3b)",
+        },
+        "returns": "Refined prompt text",
+        "example": 'refine_with_local_llm(prompt="a dark forest", style="Fantasy")',
+        "docstring": (
+            "Sends a short prompt to a local Ollama model for expansion into a detailed, "
+            "Marble-optimised world generation prompt. Requires Ollama running locally."
+        ),
+        "notes": "Requires Ollama running on OLLAMA_URL (default: http://localhost:11434). Model must be pulled locally first.",
     },
 ]
 
@@ -1015,20 +1114,23 @@ async def broadcast_spatial_audio(
 ) -> str:
     """
     Broadcast spatial audio (Music/Ambience) to the scene.
-    If a prompt is provided, it will attempt to generate via Lyria 3 (VeoGen).
+
+    Pass a URL to an audio file (mp3, wav) to play it at the given
+    3D coordinate. The audio is spatialised via WebAudio PannerNode
+    in the Spark viewer.
     """
     bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
-    
-    # If it's a prompt (no http/extension), we'd normally call music-mcp here.
-    # For now, we pass the URL/Prompt to the viewer which handles the fetch.
+
     payload = {
         "type": "audio",
-        "url": prompt_or_url, 
-        "x": x, "y": y, "z": z, 
-        "is_loop": is_loop
+        "url": prompt_or_url,
+        "x": x,
+        "y": y,
+        "z": z,
+        "is_loop": is_loop,
     }
-    
-    async with httpx.AsyncClient() as client:
+
+    async with httpx.AsyncClient(timeout=10) as client:
         res = await client.post(f"{bridge_url}/api/narration", json=payload)
         res.raise_for_status()
         return f"Audio broadcasted: {prompt_or_url} at [{x}, {y}, {z}]"
@@ -1053,7 +1155,7 @@ async def place_world_tv(
         "rotation": rotation_y,
         "scale": scale
     }
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=10) as client:
         res = await client.post(f"{bridge_url}/api/narration", json=payload)
         res.raise_for_status()
         return f"TV Materialized at [{x}, {y}, {z}] with video: {video_url}"
@@ -1071,13 +1173,18 @@ async def spawn_agent_avatar(
     The viewer will attempt to ground the avatar on the collider mesh.
     """
     bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
+    resolved_url = (
+        f"{bridge_url}/api/default-agent"
+        if avatar_url == "default_agent"
+        else avatar_url
+    )
     payload = {
         "type": "avatar",
-        "url": avatar_url,
+        "url": resolved_url,
         "x": x, "y": y, "z": z,
         "rotation": rotation
     }
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=10) as client:
         res = await client.post(f"{bridge_url}/api/narration", json=payload)
         res.raise_for_status()
         return f"Avatar materialized at [{x}, {y}, {z}]"
@@ -1094,7 +1201,7 @@ async def broadcast_spatial_notification(
     """
     Broadcast a spatial voice notification to the active World Labs Spark Viewer.
     Connects to the Spatial Voice Agent to narrate specific locations in the 3D world.
-    
+
     Args:
         text: The message to be spoken by Gemini TTS.
         x: X coordinate in the 3D scene (Default 0.0).
@@ -1102,19 +1209,66 @@ async def broadcast_spatial_notification(
         z: Z coordinate in the 3D scene (Default 0.0).
     """
     bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
-    payload = {"text": text, "x": x, "y": y, "z": z}
-    
-    async with httpx.AsyncClient() as client:
-        try:
-            res = await client.post(f"{bridge_url}/api/narration", json=payload)
-            res.raise_for_status()
-            data = res.json()
-            msg = f"Spatial narration broadcasted: '{text}' at [{x}, {y}, {z}]"
-            if ctx:
-                await ctx.info(msg)
-            return f"Success: {msg} (Recipients: {data.get('recipients', 0)})"
-        except Exception as e:
-            return f"Error broadcasting narration: {str(e)}"
+    payload = {"type": "speech", "text": text, "x": x, "y": y, "z": z}
+
+    async with httpx.AsyncClient(timeout=10) as client:
+        res = await client.post(f"{bridge_url}/api/narration", json=payload)
+        res.raise_for_status()
+        data = res.json()
+        msg = f"Spatial narration broadcasted: '{text}' at [{x}, {y}, {z}]"
+        if ctx:
+            await ctx.info(msg)
+        return f"Success: {msg} (Recipients: {data.get('recipients', 0)})"
+
+
+@mcp.tool()
+async def refine_with_local_llm(
+    prompt: str,
+    style: str = "Cinematic",
+    model: str = "llama3.2:3b",
+) -> dict:
+    """
+    Refine a world prompt using a local Ollama model.
+
+    Sends a short prompt to Ollama for expansion into a detailed,
+    Marble-optimised 3D world generation prompt.
+
+    Args:
+        prompt: The short prompt to refine.
+        style: Visual style hint (e.g. Cinematic, Fantasy, Photorealistic).
+        model: Ollama model name (default: llama3.2:3b).
+
+    Returns:
+        Dict with refined prompt text on success, or an error message.
+    """
+    from .api_bridge import OLLAMA_URL
+
+    system_prompt = (
+        f"You are an expert World Labs Marble prompt engineer. "
+        f"Transform a short prompt into a 20-line, detailed, "
+        f"Marble-optimised 3D world prompt. Style: {style}.\n\n"
+        "Focus on: spatial layout, lighting, texture detail, "
+        "object density, atmosphere. Output ONLY the refined prompt text."
+    )
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.post(
+                f"{OLLAMA_URL}/api/chat",
+                json={
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "stream": False,
+                },
+            )
+            resp.raise_for_status()
+            result = resp.json()
+            refined = result.get("message", {}).get("content", "").strip()
+            return {"status": "ok", "original": prompt, "refined": refined, "model": model}
+    except Exception as e:
+        return {"status": "error", "original": prompt, "error": str(e)}
 
 
 @mcp.tool()
@@ -1212,12 +1366,16 @@ async def catch_exceptions_middleware(request: Request, call_next):
 
 _web_app.add_middleware(
     CORSMiddleware,
-    # Wildcard origin + allow_credentials=True is invalid per CORS spec; use explicit list.
-    allow_origins=[_FRONTEND_ORIGIN, "http://127.0.0.1:10864"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@_web_app.get("/health")
+async def health():
+    return {"status": "ok", "server": "worldlabs-mcp"}
+
 _web_app.include_router(api_router, prefix="/api")
 app = _web_app
 
