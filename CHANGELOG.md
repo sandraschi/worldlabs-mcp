@@ -5,46 +5,70 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0] - 2026-04-18
+## [Unreleased]
 
 ### Added
-- **Spark 2.0 viewer page** (`web_sota/src/pages/spark-viewer.tsx`) using `@sparkjsdev/spark@2.0.0` with `.RAD` LoD streaming, `.spz`/`.ply`/`.ksplat` fallback, WebAudio HRTF listener, local file drag-and-drop.
-- **Local asset bridge** — `GET /api/local-assets/{filename}` serves `.spz` / `.rad` / `.ply` / `.ksplat` / `.splat` from `WORLDLABS_LOCAL_PATH` (defaults to `~/Downloads`, portable).
-- **Narration SSE stream** — `GET /api/narration/stream` + `POST /api/narration` for scene events (`speech` / `audio` / `video` / `avatar`).
-- **Four speculative spatial tools** registered on the MCP surface and documented in `_TOOL_CATALOG` under a new `spatial` group: `broadcast_spatial_notification`, `broadcast_spatial_audio`, `place_world_tv`, `spawn_agent_avatar`. End-to-end voice path needs `speech-mcp`.
-- `test_tool_count_matches_catalog` — new test enforcing that `_TOOL_CATALOG` and the MCP registry stay in sync.
+- **World Library page** (`web_sota/src/pages/library.tsx`) — dedicated `/library` route with card grid and table list views, thumbnail display with lazy backfill, search by name/caption, model filter chips, per-card asset downloads (SPZ/G LB/Panorama), "View in Spark 2.0" links, auto-refresh every 30s, and empty/loading/error states.
+- **Prompt Engineering Guide** (`docs/PROMPT_GUIDE.md`) — comprehensive reference covering artist styles (Giger ✓, Monet ✗), landmarks, materials selection, weather/season prompting, architectural styles, the "archetype not reference" rule, and a structured prompt template. Linked from the webapp Help page.
+- **15 high-detail world presets** — each 100-200 words with specific spatial layout, dimensions, materials, lighting, and colour palette. Replaced the old short 1-2 sentence presets. Each tagged with categories (interior, exterior, nature, fantasy, scifi, urban, etc.) with filter chips in the Style Gallery.
+- **`delete_world` MCP tool** — permanently removes a world and all its assets. 17th MCP tool. Available in the Library page via trash icon on each card/row.
+- **`seed` parameter** on all generation tools — enables deterministic world generation (0 to 2^32-1).
+- **`tags` parameter** on all generation tools — tag worlds on creation for organisation.
+- **`disable_recaption` parameter** on image/video generation — prevents the API from rewriting your text prompt.
+- **`GET /api/media-assets/{id}`** — lightweight endpoint to query uploaded media asset metadata without downloading.
+- **Category filter chips** in Style Gallery — filter 15 presets by category (interior, exterior, nature, fantasy, scifi, urban, sacred, industrial, ruins, surreal, domestic, landmark, historical).
+- **Built-in TTS engine** (`src/worldlabs_mcp/tts.py`) — auto-generates audio for `broadcast_spatial_notification` via edge-tts. Speaker no longer needs speech-mcp running separately.
+- **Default agent avatar** (`src/worldlabs_mcp/default_agent.py`) — generates a 2KB GLB humanoid figure. `spawn_agent_avatar(avatar_url="default_agent")` now produces a actual in-world figure.
+- **Painting Portals page** (`/portals`) — 14 public-domain paintings as image-to-world seeds. Click a painting → generates 3D world via Marble → "Enter the Painting" link to Spark viewer. Live elapsed timer, SSE progress.
+- **File upload tab** in generation page — drag-and-drop local image/video files. Supports JPG, PNG, WebP, MP4, MOV, MKV. Handles prepare_upload → PUT to GCS → generate server-side via `POST /api/generate/upload`.
+- **Headset Setup page** (`/onboarding`) — step-by-step wizard for Quest/Pico 4 wireless setup. Live ADB device detection via `GET /api/adb/devices`. Copy-to-clipboard command builder. Troubleshooting guide.
+- **Headset Setup guide** (`docs/HEADSET_SETUP.md`) — covers ADB installation, Developer Mode, USB debugging, wireless ADB, port forwarding, and "Enter VR" troubleshooting for Quest, Pico 4, Vive, and Vision Pro. Includes Resonite import guide.
+- **Reality Hub accordion refactor** — `/immersive` page converted from a crowded single-page layout to collapsible sections (Protocols, Connection Wizard, Spark Controls). Connection wizard has live ADB device scanning.
+- **avatar-mcp integration** — `GET /api/avatars/status` probes avatar-mcp on port 10793. `POST /api/avatars/place` fetches an avatar GLB and pushes it into the Spark viewer via narration SSE.
+- **Spark viewer CORS proxy** — `GET /api/handoff?url=` streams remote SPZ/GLB files through the bridge to avoid CORS issues with Marble CDN.
+- **Resonite export with resonite-mcp support** — `POST /api/export/resonite` now tries resonite-mcp (port 10715) first for ResoniteLink import, falls back to direct OSC.
 
 ### Changed
-- **Bridge consolidation**: `src/worldlabs_mcp/api_bridge.py` is now the single source of truth for the `/api/*` surface. The previous standalone `web_sota/backend/bridge.py` (which had the production-quality history persistence, LLM discovery, real DCC exports, and SSE operation status, but was orphaned from the start.ps1 boot path) has been merged in. `web_sota/backend/bridge.py` is now a thin re-export so `uvicorn web_sota.backend.bridge:app` still works for webapp-only development. `web_sota/start.ps1` unchanged — it already ran `worldlabs_mcp.server:app` on 10865.
-- **Port story resolved**: `WORLDLABS_BRIDGE_URL` now defaults to `http://localhost:10865` (was `:10718` — never correct). The four spatial tools post narration events to the bridge served by the same MCP server process. Documented in `docs/ARCHITECTURE.md` and `.env.example`.
-- **CORS tightened**: `server.py`'s ASGI wrapper no longer uses `allow_origins=["*"]` with `allow_credentials=True` (invalid per CORS spec). Uses explicit `FRONTEND_ORIGIN` env var (default `http://localhost:10864`) plus `127.0.0.1:10864`.
-- **Model defaults updated**: all generate tools now default to `marble-1.1` instead of the non-existent `Marble 0.1-mini`. Plus variant is `marble-1.1-plus` (auto-expanding, variable cost 1500 + 300/dynamic cube up to 5 cubes). Pricing notes in `worldlabs_help` verbose mode corrected.
-- **FastMCP bumped** from `>=3.1.0` to `>=3.2.0,<4`; `prefab-ui` bumped to `>=0.18.0`. Matches fleet SOTA (mcp-central-docs §2.2 Prefab mandate).
-- **Python versions aligned**: `.python-version` → 3.13, mypy target 3.13; ruff target stays at py312 for compatibility.
-- **README** rewritten with honest feature tiers (shipping vs speculative), accurate tool count (16), removed fictional "Built by Google DeepMind team" line.
-- **docs/ARCHITECTURE.md** rewritten with real port table, real component diagram, real data flow for the voice agent.
-- **docs/SPARK_V2.md** rewritten against real Spark 2.0 docs — LoD splat tree (tiny-lod / bhatt-lod), `.RAD` format, virtual splat paging, composite LoD worlds, ExtSplats. Removed fictional "native programmable physics" claim.
-- **docs/TTS.md** corrected — model is `gemini-3.1-flash-tts-preview` (not "Gemini 3.1 Pro"). Added known-gaps section, clarified the speech-mcp dependency.
-- **`.env.example`** expanded to document the full config surface (bridge URL, local assets path, DCC targets).
-
-### Industrial Extensions (v0.4.0)
-- **Scene Persistence (Baking)** — Implemented `POST /api/scenes/bake` and `GET /api/scenes` for spatial manifest storage. Scenes are now persistent and can be restored across sessions.
-- **Blender Handshake** — Created `docs/BLENDER.md` guidelines for professional `.glb` exports; added a **Local Import** tab to the Toolbox for one-click manifestation from local workstation paths.
-- **Sovereign Art Gallery** — Deployed a curated collection of "Nano Banana" and "GSD Canine" 8k masterpieces to the Hub; implemented `handlePlacePicture` with native texture mapping and aspect-ratio preservation.
-- **Plex Cinema Integration** — Added an authenticated bridge to `plex-mcp` for library discovery and streaming. Movies can be manifested on world "Cinema" surfaces at a specialized 5.5m scale.
-- **Sovereign Command Console** — Introduced a high-fidelity in-world 3D terminal with live CPU/MEM/VRAM telemetry and raycasted button interactions (Bake/Restore/Void).
-- **Inter-World Portals** — Unified geofencing with world-switching; implemented torus-frame "Wormholes" with procedural ripple shaders and seamless transition logic.
-- **VRAM Telemetry** — Integrated `nvidia-smi` discovery for hardware-aware spatial orchestration on RTX platforms.
-
-### Added
-- **`GET /api/capabilities`** — runtime feature-gating endpoint per AGENT_PROTOCOLS §1.4.
-- **`GET /api/history/remote`** — Marble account-wide world listing (was conflated with local history before).
+- **Spark viewer camera** — initial position from `(-1, -4, 6)` looking up to auto-fit. Uses `Box3.setFromObject()` to compute splat bounding box once loaded. Detects interior vs exterior from proportions: interiors start **inside** the space at centre, exteriors start outside at 1.5× distance. Loading spinner stays visible until splat finishes downloading.
+- **Spark viewer OrbitControls** — `minPolarAngle`/`maxPolarAngle` to prevent going under/over, zoom limits, ground-plane panning, and explicit `controls.update()` after position changes.
+- **Spark viewer renderer** — `alpha: false` (was `true`) to fix compositing black-screen issue. Added explicit resize on initialization and `fullscreenchange` listener.
+- **Spark viewer XR stabilisation removed** — the localFrame hack that fought OrbitControls every frame is removed. Controls no longer fight the render loop.
+- **Reality Hub** — converted from a single dense page to accordion sections. Added live ADB device detection panel.
+- **Version bumped** — `0.4.0` → `0.5.0`.
+- **World Library replaces old viewer page** — `/library` now shows the full world library. The legacy Gaussian splat viewer moved to `/library/viewer`.
+- **Sidebar navigation** — "World Library" icon changed from `Globe2` to `Library`. Sidebar nav still points to `/library`.
+- **Spatial tools promoted from speculative** — removed "(speculative)" labels from all four spatial tools (`broadcast_spatial_notification`, `broadcast_spatial_audio`, `place_world_tv`, `spawn_agent_avatar`). They now fail loud with exceptions instead of silently returning error strings.
+- **`broadcast_spatial_audio` docstring** — corrected to describe URL-based audio playback. Removed misleading "Lyria / VeoGen generation not wired up" note.
+- **Startup scripts fixed** — `web_sota/start.ps1` `PYTHONPATH` now points to repo root `src/` (was `web_sota/;web_sota/src/`). Root `start.ps1` rewritten to use correct ports (10864/10865) and uvicorn HTTP mode instead of stdio MCP mode.
+- **World Labs API compatibility**: Multi-image format updated to new spec (`type: "multi-image"`, array-based `multi_image_prompt` with `azimuth`/`content`). Upload response field `headers` → `required_headers`. Worlds listing endpoint changed from `GET /worlds` to `POST /worlds:list` with JSON body.
+- **`world_id` field** — Marble API now returns `world_id` instead of `id` in World objects. Frontend `World` interface updated to accept both with fallback.
+- **Imports modernized**: `AsyncGenerator` from `collections.abc` (not `typing`), `list` instead of `typing.List`, unused imports removed.
+- **`subprocess` security**: Changed nvidia-smi from `shell=True` to explicit command list.
+- **Model defaults**: `marble-1.1` remains the default. New `marble-1.0-draft` cheaper tier documented.
 
 ### Fixed
-- **`Context` import** — `src/worldlabs_mcp/server.py` used `Context` as a type hint without importing it. Added `from fastmcp import Context` and changed signatures to `ctx: Context | None = None` so tool registration doesn't treat it as required.
-- **`spark-viewer.tsx` compile errors** — added missing `useEffect`, `useRef`, `useState` from `react`; added all referenced `lucide-react` icons (`Globe2`, `Volume2`, `FolderOpen`, `Maximize2`, `Minimize2`, `Check`, `Link`, `AlertCircle`, `Info`); switched `GLTFLoader` import from the deprecated `three/examples/jsm/loaders/GLTFLoader` path to `three/addons/loaders/GLTFLoader.js`.
-- **Hardcoded user path** — `api_bridge.py:get_local_asset` no longer falls back to `C:/Users/sandr/Downloads`; uses `os.path.expanduser("~/Downloads")`.
-- **glama.json drift** — corrected `framework` (FastMCP 3.2+) and `tools` count (16).
+- **`_get_disk_usage_percent` undefined** (`api_bridge.py:370`) — added missing function.
+- **Broken local asset route** (`api_bridge.py:511`) — restored missing route decorator and function signature for `serve_local_asset`, added path traversal protection.
+- **`logger` redefinition** (`api_bridge.py:22`) — removed duplicate import shadowing the module-level logger.
+- **`broadcast_spatial_notification` silent degradation** — removed `try/except Exception` that swallowed all errors. Now raises properly like other spatial tools.
+- **Hardcoded Plex token** (`api_bridge.py:60`) — removed default fallback token. `PLEX_TOKEN` must now be set via environment variable or returns a 400 error.
+- **Worlds list 404** — changed from `GET /worlds` (returned 404) to `POST /worlds:list` with JSON `{"page_size", "sort_by", "status"}`.
+- **`api.js` / `utils.js` stale fallbacks** — removed `.js` files shadowing TypeScript sources in `lib/`. `api.js` was missing `getWorldsRemote` causing library page crash.
+- **Trailing/blank-line whitespace** — cleaned up 30+ instances across server.py and api_bridge.py.
+- **RUF010 f-string**: `str(e)` → `{e!s}` in server.py broadcast handler.
+- **B905 zip strict**: Added `strict=True` to zip in `generate_world_from_multi_image`.
+- **Plex exception chain**: Added `raise ... from e` to preserve exception context.
+- **E501 line length**: Broke up Plex thumbnail URL construction across two lines.
+
+### Security
+- **Hardcoded Plex token removed** — the fallback default `"oGA9iEfVYh8ATXmzYrU8"` is removed. `PLEX_TOKEN` env var is now required for Plex features.
+- **Path traversal**: `serve_local_asset` validates resolved path stays within `local_root`.
+- **`shell=True` removed**: nvidia-smi now uses explicit argument list.
+
+### Tests
+- **New tests (9)**: `upload_and_generate` (happy path, file not found, invalid kind), `generate_world_from_text_payload_format` (match_json verification), `broadcast_spatial_notification` (success + no-bridge), `broadcast_spatial_audio`, `place_world_tv`, `spawn_agent_avatar`.
+- **API format alignment**: Multi-image test uses `match_json` to verify exact payload shape. Upload mock uses `required_headers`. Worlds list test updated from GET to POST.
+- **Coverage**: 49 offline tests. All server.py MCP tools covered.
 
 ## [0.3.1] - 2026-04-04
 

@@ -14,7 +14,10 @@ import {
     Binary,
     Triangle,
     Glasses,
-    Terminal
+    Terminal,
+    Library,
+    Palette,
+    Smartphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -34,10 +37,15 @@ export function useSidebar() {
 
 const navItems = [
     { to: '/', label: 'Overview', icon: LayoutDashboard },
-    { to: '/library', label: 'World Library', icon: Globe2 },
+    { to: '/library', label: 'World Library', icon: Library },
     { to: '/status', label: 'Bridge Health', icon: Activity },
     { to: '/logs', label: 'System Logs', icon: Terminal },
     { to: '/settings', label: 'Configuration', icon: Settings },
+];
+
+const creativeItems = [
+    { to: '/portals', label: 'Painting Portals', icon: Palette },
+    { to: '/onboarding', label: 'Headset Setup', icon: Smartphone },
 ];
 
 const engineItems = [
@@ -99,6 +107,32 @@ function Sidebar() {
                                 collapsed && 'justify-center',
                                 isActive
                                     ? 'bg-cosmos-600/30 text-cosmos-300 border border-cosmos-500/30 shadow-[inset_0_1px_0_rgba(92,84,255,0.15)]'
+                                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]',
+                            )}
+                            aria-current={isActive ? 'page' : undefined}
+                        >
+                            <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                            {!collapsed && <span className="truncate">{label}</span>}
+                        </NavLink>
+                    );
+                })}
+
+                {!collapsed && (
+                    <div className="section-label px-2 pt-6 pb-2">Creative</div>
+                )}
+                {creativeItems.map(({ to, label, icon: Icon }) => {
+                    const isActive = location.pathname.startsWith(to);
+                    return (
+                        <NavLink
+                            key={to}
+                            to={to}
+                            title={collapsed ? label : undefined}
+                            className={cn(
+                                'flex items-center gap-3 px-2 py-2 rounded-lg text-sm font-medium',
+                                'transition-all duration-150',
+                                collapsed && 'justify-center',
+                                isActive
+                                    ? 'bg-amber-600/30 text-amber-300 border border-amber-500/30 shadow-[inset_0_1px_0_rgba(245,158,11,0.15)]'
                                     : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]',
                             )}
                             aria-current={isActive ? 'page' : undefined}
@@ -198,7 +232,7 @@ function Topbar() {
     const { setCollapsed, collapsed } = useSidebar();
     const location = useLocation();
 
-    const currentPage = [...navItems, ...engineItems, ...xrItems].find(n =>
+    const currentPage = [...navItems, ...creativeItems, ...engineItems, ...xrItems].find(n =>
         n.to === '/' ? location.pathname === '/' : location.pathname.startsWith(n.to)
     );
 

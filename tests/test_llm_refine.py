@@ -11,8 +11,9 @@ if BACKEND_PATH not in sys.path:
 
 @pytest.mark.asyncio
 async def test_refine_prompt_ollama(httpx_mock: HTTPXMock):
-    from worldlabs_mcp.server import app
     import httpx
+
+    from worldlabs_mcp.server import app
 
     httpx_mock.add_response(
         method="POST",
@@ -32,8 +33,9 @@ async def test_refine_prompt_ollama(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_refine_prompt_lmstudio(httpx_mock: HTTPXMock):
-    from worldlabs_mcp.server import app
     import httpx
+
+    from worldlabs_mcp.server import app
 
     httpx_mock.add_response(
         method="POST",

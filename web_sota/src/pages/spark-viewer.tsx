@@ -336,12 +336,12 @@ export function SparkViewer() {
         0.01,
         1000,
       );
-      camera.position.set(-1, -4, 6);
-      camera.lookAt(0, 4, 0);
+      camera.position.set(0, 1.6, 4);
+      camera.lookAt(0, 1.6, 0);
 
       const renderer = new THREE.WebGLRenderer({
         antialias: true,
-        alpha: true,
+        alpha: false,
       });
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(
@@ -381,16 +381,17 @@ export function SparkViewer() {
       xrRef.current = xr;
 
       // 3. Load Splat (.spz or .rad)
-      // Use the proxy for remote assets or direct for local
-      const finalUrl = url.startsWith("http")
+      // Try direct URL first (Marble CDN supports CORS).
+      // If it fails, we'll try through the handoff proxy.
+      const isRemote = url.startsWith("http");
+      const finalUrl = isRemote
         ? `/api/handoff?url=${encodeURIComponent(url)}`
         : url;
 
+      logger.info("Loading splat", { finalUrl, isRemote });
       const splat = new SplatMesh({
         url: finalUrl,
-        progressive: url.endsWith(".rad"),
-        onProgress: (p) =>
-          logger.info("Spark Loading Progress", { progress: (p * 100).toFixed(0) + "%" }),
+        progressive: finalUrl.endsWith(".rad"),
       });
       scene.add(splat);
 
@@ -402,20 +403,7 @@ export function SparkViewer() {
           const delta = clockRef.current.getDelta();
           const localFrame = localFrameRef.current;
           
-          // XR Stabilization (Hack for discontinuities in Vision Pro / Quest / Pico)
-          if (localFrame && camera) {
-            if (lastCameraPosRef.current.distanceTo(camera.position) > 0.5) {
-              localFrame.position.copy(camera.position).multiplyScalar(-1);
-            }
-            lastCameraPosRef.current.copy(camera.position);
-          }
-
-          if (xrFrame && xrRef.current) {
-            // Update hands and controller fly-mode
-            xrRef.current.updateHands({ xrFrame });
-            xrRef.current.updateControllers(camera);
-          }
-
+          // OrbitControls damping
           if (controlsRef.current && !renderer.xr.isPresenting) {
             controlsRef.current.update();
           }
@@ -515,14 +503,56 @@ export function SparkViewer() {
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
-      controls.screenSpacePanning = true;
+      controls.screenSpacePanning = false;
+      controls.minDistance = 1;
+      controls.maxDistance = 50;
+      controls.minPolarAngle = 0.1;
+      controls.maxPolarAngle = Math.PI / 2 - 0.05;
+      controls.target.set(0, 1.6, 0);
+      controls.update();
       controlsRef.current = controls;
 
       rendererRef.current = renderer;
       sparkRef.current = spark;
       splatRef.current = splat;
 
-      setStatus("ready");
+      // Force initial resize to match container
+      camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+
+      // Auto-fit camera to splat bounding box once loaded
+      const fitTimer = setInterval(() => {
+        if (!splat.numSplats) return;
+        clearInterval(fitTimer);
+        const box = new THREE.Box3().setFromObject(splat);
+        if (box.isEmpty()) {
+          setStatus("ready");
+          return;
+        }
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z, 1);
+
+        // Decide interior vs exterior based on proportions
+        // interior: roughly cubic, moderate height relative to footprint
+        const footprint = size.x * size.z;
+        const volume = size.x * size.y * size.z;
+        const isInterior = footprint > 0 && (volume / footprint) < size.x * 0.8;
+
+        if (isInterior) {
+          // Inside the space: camera at centre, slightly back and up
+          const inset = Math.min(size.x, size.z) * 0.3;
+          camera.position.set(center.x, center.y + size.y * 0.2, center.z + inset);
+        } else {
+          // Outside looking in: camera pulled back 1.5x max dimension
+          const dist = maxDim * 1.5;
+          camera.position.set(center.x, center.y + maxDim * 0.3, center.z + dist);
+        }
+        controls.target.copy(center);
+        controls.update();
+        setStatus("ready");
+      }, 200);
 
       // 5. Initialize Geofencing for the demo asset
       if (loadedName.includes("Tropical Luxury Residence")) {
@@ -1245,9 +1275,49 @@ export function SparkViewer() {
     }
   };
 
+  // Track browser fullscreen state and resize renderer
+  useEffect(() => {
+    const onFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      // Force resize after a frame so layout has settled
+      requestAnimationFrame(() => {
+        if (mountRef.current && cameraRef.current && rendererRef.current) {
+          cameraRef.current.aspect =
+            mountRef.current.clientWidth / mountRef.current.clientHeight;
+          cameraRef.current.updateProjectionMatrix();
+          rendererRef.current.setSize(
+            mountRef.current.clientWidth,
+            mountRef.current.clientHeight,
+          );
+        }
+      });
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
+
   const resetView = () => {
-    if (controlsRef.current) {
-      controlsRef.current.reset();
+    if (cameraRef.current && controlsRef.current && splatRef.current) {
+      const box = new THREE.Box3().setFromObject(splatRef.current);
+      if (!box.isEmpty()) {
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z, 1);
+        const footprint = size.x * size.z;
+        const volume = size.x * size.y * size.z;
+        const isInterior = footprint > 0 && (volume / footprint) < size.x * 0.8;
+        if (isInterior) {
+          const inset = Math.min(size.x, size.z) * 0.3;
+          cameraRef.current.position.set(center.x, center.y + size.y * 0.2, center.z + inset);
+        } else {
+          cameraRef.current.position.set(center.x, center.y + maxDim * 0.3, center.z + maxDim * 1.5);
+        }
+        controlsRef.current.target.copy(center);
+      } else {
+        cameraRef.current.position.set(0, 1.6, 4);
+        controlsRef.current.target.set(0, 1.6, 0);
+      }
+      controlsRef.current.update();
     }
   };
 
@@ -1283,7 +1353,7 @@ export function SparkViewer() {
             </h2>
             <p className="text-sm text-slate-500 mt-0.5">
               {loadedName
-                ? `Sovereign View: ${loadedName}`
+                ? loadedName
                 : "Load a .rad or .spz world"}
             </p>
           </div>
@@ -1404,7 +1474,7 @@ export function SparkViewer() {
         </div>
       </div>
 
-      {/* Render Canvas */}
+        {/* Render Canvas */}
       <div
         className={cn(
           "relative flex-1 min-h-0 rounded-xl overflow-hidden border border-white/[0.06] bg-black transition-all duration-300 shadow-2xl group cursor-crosshair",
@@ -1418,138 +1488,8 @@ export function SparkViewer() {
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
       >
+        <div ref={mountRef} className="absolute inset-0" />
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/40 via-transparent to-black/60 z-10" />
-
-        {status === "idle" && (
-          <ManifestHub 
-            onLoad={(url, name) => {
-              setLoadedName(name);
-              setUrlInput(url);
-              void loadWorld(url);
-            }} 
-            onBrowse={() => fileInputRef.current?.click()}
-          />
-        )}
-
-        {isDragging && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-cosmos-600/20 backdrop-blur-md border-4 border-dashed border-cosmos-500/50 m-2 rounded-lg pointer-events-none">
-            <div className="text-center space-y-2">
-              <FolderPlus className="w-12 h-12 text-cosmos-400 mx-auto animate-bounce" />
-              <p className="text-lg font-black text-white uppercase tracking-widest">Drop to Manifest</p>
-              <p className="text-xs text-cosmos-300">Supports .SPZ and .RAD formats</p>
-            </div>
-          </div>
-        )}
-
-        {status === "loading" && (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-950/80 z-40 backdrop-blur-md">
-            <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in-90 duration-500">
-              <div className="relative w-24 h-24">
-                <div className="absolute inset-0 border-4 border-cosmos-500/20 rounded-full" />
-                <div className="absolute inset-0 border-t-4 border-cosmos-500 rounded-full animate-spin shadow-[0_0_20px_rgba(139,92,246,0.3)]" />
-                <div className="absolute inset-4 border-b-2 border-aurora-500/40 rounded-full animate-spin-reverse" />
-              </div>
-              
-              <div className="text-center space-y-2">
-                <div className="flex items-center justify-center gap-2">
-                  <Zap className="w-4 h-4 text-cosmos-400 animate-pulse" />
-                  <p className="text-sm font-black text-white uppercase tracking-[0.2em]">Neural LoD Engine</p>
-                </div>
-                <p className="text-xs text-slate-400">Manifesting {loadedName || 'Spatial Construct'}...</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {status === "error" && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
-            <div className="glass-card p-6 max-w-md text-center space-y-3">
-              <AlertCircle className="w-10 h-10 text-red-500 mx-auto" />
-              <p className="text-lg font-bold text-red-300">Engine Fault</p>
-              <p className="text-xs text-slate-500 font-mono italic">{error}</p>
-              <button
-                onClick={() => void loadWorld(urlInput)}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs transition-all"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Navigation HUD */}
-        {status === "ready" && (
-          <div className="absolute bottom-10 left-10 z-30 flex flex-col gap-3 group-hover:opacity-100 opacity-0 transition-opacity duration-500 delay-300">
-            <div className="flex items-center gap-4 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl">
-              <div className="flex flex-col gap-1 pr-4 border-r border-white/10">
-                <div className="flex items-center gap-2 text-[10px] uppercase font-black tracking-widest text-cosmos-400">
-                  <Monitor className="w-3 h-3" />
-                  Navigation HUD
-                </div>
-                <div className="text-[9px] text-slate-500">Spatial PTZ Active</div>
-              </div>
-              <div className="flex items-center gap-6 pl-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded bg-white/5 border border-white/10 flex items-center justify-center text-[8px] font-bold text-white">LMB</div>
-                  <div className="text-[10px] text-slate-300">Orbit</div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded bg-white/5 border border-white/10 flex items-center justify-center text-[8px] font-bold text-white">RMB</div>
-                  <div className="text-[10px] text-slate-300">Pan</div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold text-white">↕</div>
-                  <div className="text-[10px] text-slate-300">Zoom</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Floating Actions */}
-        <div className="absolute top-10 right-10 z-30 flex flex-col gap-3 group-hover:opacity-100 opacity-40 transition-opacity">
-          <button 
-            onClick={toggleFullscreen}
-            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10 text-white hover:bg-cosmos-500/20 hover:border-cosmos-500/50 transition-all shadow-2xl"
-            title="Toggle Fullscreen"
-          >
-            {document.fullscreenElement ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-          </button>
-          
-          {xrRef.current?.xrSupported() && (
-            <>
-              <button 
-                onClick={() => xrRef.current?.toggleXr()}
-                className="w-12 h-12 flex items-center justify-center rounded-2xl bg-cosmos-600/60 backdrop-blur-xl border border-cosmos-400/50 text-white hover:bg-cosmos-500/80 transition-all shadow-2xl"
-                title="Enter VR Mode"
-              >
-                <Monitor className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={() => {
-                  if (xrRef.current) {
-                    xrRef.current.toggleXr(); // Ideally this would switch mode to AR if already in VR or vice versa
-                  }
-                }}
-                className="w-12 h-12 flex items-center justify-center rounded-2xl bg-aurora-600/60 backdrop-blur-xl border border-aurora-400/50 text-white hover:bg-aurora-500/80 transition-all shadow-2xl"
-                title="Enter AR Mode"
-              >
-                <Zap className="w-5 h-5" />
-              </button>
-            </>
-          )}
-
-          <button 
-            onClick={resetView}
-            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10 text-white hover:bg-cosmos-500/20 hover:border-cosmos-500/50 transition-all shadow-2xl"
-            title="Reset View"
-          >
-            <RotateCcw className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* The Canvas */}
-        <div ref={mountRef} className="w-full h-full" />
 
         {/* Spatial Toolbox Panel */}
         {showToolbox && (

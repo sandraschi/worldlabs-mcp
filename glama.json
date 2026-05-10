@@ -6,7 +6,7 @@
   "type": "mcp_server",
   "status": "beta",
   "framework": "FastMCP 3.2+",
-  "tools": 16,
+  "tools": 19,
   "transport": ["stdio"],
   "keywords": [
     "worldlabs",
@@ -51,15 +51,83 @@
     },
     "world_management": {
       "enabled": true,
-      "description": "List and retrieve world details and asset URLs (SPZ, GLB, panorama, thumbnail, caption)"
+      "description": "List, retrieve, and delete worlds. Asset URLs (SPZ, GLB, panorama, thumbnail, caption)"
+    },
+    "delete_world": {
+      "enabled": true,
+      "description": "Permanently delete a world and all its assets via DELETE /marble/v1/worlds/{id}"
+    },
+    "deterministic_generation": {
+      "enabled": true,
+      "description": "seed parameter for reproducible world generation"
+    },
+    "world_tags": {
+      "enabled": true,
+      "description": "tags parameter for organising worlds on creation"
+    },
+    "disable_recaption": {
+      "enabled": true,
+      "description": "disable_recaption parameter to prevent API from auto-rewriting prompts"
+    },
+    "world_library_ui": {
+      "enabled": true,
+      "description": "Web dashboard /library page with card/list views, search, filters, thumbnails, asset downloads"
+    },
+    "prompt_guide": {
+      "enabled": true,
+      "description": "Comprehensive prompt engineering documentation (docs/PROMPT_GUIDE.md)"
+    },
+    "prompt_presets": {
+      "enabled": true,
+      "description": "15 high-detail Marble-optimised presets with category filtering in the Style Gallery"
+    },
+    "builtin_tts": {
+      "enabled": true,
+      "description": "Edge-TTS engine auto-generates spatial narration audio. No external service needed."
+    },
+    "default_agent_avatar": {
+      "enabled": true,
+      "description": "Built-in generated GLB humanoid for populating scenes via spawn_agent_avatar"
+    },
+    "painting_portals": {
+      "enabled": true,
+      "description": "14 canonical paintings as image-to-world seeds. Click to generate, then walk through."
+    },
+    "file_upload_generation": {
+      "enabled": true,
+      "description": "Drag-and-drop local image/video files for world generation via /api/generate/upload"
+    },
+    "headset_setup_wizard": {
+      "enabled": true,
+      "description": "Step-by-step onboarding for Quest/Pico 4 with live ADB device detection"
+    },
+    "adb_device_detection": {
+      "enabled": true,
+      "description": "GET /api/adb/devices runs adb devices server-side for live headset detection"
+    },
+    "avatar_mcp_integration": {
+      "enabled": true,
+      "description": "Probe avatar-mcp on port 10793, list avatars, place them in worlds via narration SSE"
+    },
+    "resonite_import": {
+      "enabled": true,
+      "description": "Export worlds to Resonite via OSC or resonite-mcp ResoniteLink import"
+    },
+    "splat_cors_proxy": {
+      "enabled": true,
+      "description": "GET /api/handoff proxies remote SPZ/GLB files to avoid CORS issues"
     },
     "spark_viewer": {
       "enabled": true,
       "description": "In-browser Spark 2.0 viewer with .RAD LoD streaming and HRTF spatial audio"
     },
     "spatial_voice_agent": {
-      "enabled": false,
-      "description": "Coordinate-anchored TTS via Gemini 3.1 Flash TTS + speech-mcp (speculative — end-to-end not fully wired)"
+      "enabled": true,
+      "description": "Coordinate-anchored TTS narration via the narration bridge. Requires the bridge to be running."
+    },
+    "media_asset_inventory": {
+      "enabled": true,
+      "description": "GET /api/media-assets/{id} endpoint for querying uploaded media asset metadata"
     }
   }
 }

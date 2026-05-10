@@ -5,7 +5,10 @@ import { Dashboard } from '@/pages/dashboard';
 import { Status } from '@/pages/status';
 import { Tools } from '@/pages/tools';
 import Architect from '@/pages/world-gen';
-import { WorldViewer as Library } from '@/pages/world-viewer';
+import { WorldViewer } from '@/pages/world-viewer';
+import { WorldLibrary } from '@/pages/library';
+import { PaintingPortals } from '@/pages/painting-portals';
+import { Onboarding } from '@/pages/onboarding';
 import { SparkViewer } from '@/pages/spark-viewer';
 import { SparkDetail } from '@/pages/spark-detail';
 import { ChiselDetail } from '@/pages/chisel-detail';
@@ -33,7 +36,10 @@ function App() {
                         <Route path="/status" element={<Status />} />
                         <Route path="/tools" element={<Tools />} />
                         <Route path="/architect" element={<Architect />} />
-                        <Route path="/library" element={<Library />} />
+                        <Route path="/library" element={<WorldLibrary />} />
+                        <Route path="/library/viewer" element={<WorldViewer />} />
+                        <Route path="/portals" element={<PaintingPortals />} />
+                        <Route path="/onboarding" element={<Onboarding />} />
                         <Route path="/spark-viewer" element={<SparkViewer />} />
                         <Route path="/spark-v2" element={<SparkDetail />} />
                         <Route path="/chisel" element={<ChiselDetail />} />

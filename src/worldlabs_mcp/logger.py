@@ -1,14 +1,13 @@
+import asyncio
 import logging
 import os
-import asyncio
-import json
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
-from typing import Any, List
 
 # Create a queue for SSE log streaming
 log_queue: asyncio.Queue = asyncio.Queue()
-_log_clients: List[asyncio.Queue] = []
+_log_clients: list[asyncio.Queue] = []
+_logger = logging.getLogger(__name__)
 
 class SSEHandler(logging.Handler):
     """Logging handler that pushes log records into SSE client queues."""
@@ -26,8 +25,7 @@ class SSEHandler(logging.Handler):
                 # Use non-blocking put or a task to avoid blocking the main thread
                 asyncio.run_coroutine_threadsafe(client.put(log_entry), asyncio.get_event_loop())
             except Exception:
-                # Handle cases where the loop might be closed or queue full
-                pass
+                _logger.debug("Log SSE client put failed (loop closed or queue full)", exc_info=True)
 
 def setup_logger(name: str = "worldlabs-mcp", level: int = logging.DEBUG) -> logging.Logger:
     """Sets up the global logger with rotating file and SSE handlers."""

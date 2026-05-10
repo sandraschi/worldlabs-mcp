@@ -1,4 +1,5 @@
-﻿Param([switch]$Headless)
+Param([switch]$Headless)
+$SkipFrontend = $Headless
 
 # --- SOTA Headless Standard ---
 if ($Headless -and ($Host.UI.RawUI.WindowTitle -notmatch 'Hidden')) {
@@ -28,8 +29,7 @@ if (-not (Test-Path "node_modules")) { npm install }
 # 3. Start the Python backend (Background)
 Write-Host "Starting Python backend on port $BackendPort ..." -ForegroundColor Cyan
 
-# Use TRIPLE backtick to ensure $env:PYTHONPATH reaches the REAL shell
-$backendCmd = "`$env:PYTHONPATH = '$PSScriptRoot;$PSScriptRoot\src'; Set-Location '$PSScriptRoot'; uv run uvicorn worldlabs_mcp.server:app --host 127.0.0.1 --port $BackendPort --log-level info"
+$backendCmd = "`$env:PYTHONPATH = '$ProjectRoot\src'; Set-Location '$ProjectRoot'; uv run uvicorn worldlabs_mcp.server:app --host 127.0.0.1 --port $BackendPort --log-level info"
 
 Start-Process powershell -ArgumentList "-NoExit", "-Command", $backendCmd -WindowStyle Normal
 
@@ -42,6 +42,7 @@ $pollAndOpen = "for (`$i = 0; `$i -lt 60; `$i++) { try { `$null = Invoke-WebRequ
 Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "-Command", $pollAndOpen
 
 Write-Host "Browser will open automatically when Vite is ready." -ForegroundColor Gray
+if ($SkipFrontend) { return }
 npm run dev -- --port $WebPort --host
 
 

@@ -32,7 +32,8 @@ export interface FlatAssets {
 export type AssetType = 'rad' | 'ksplat' | 'splat_100k' | 'splat_500k' | 'splat_full' | 'mesh' | 'panorama';
 
 export interface World {
-    id: string;
+    id?: string;
+    world_id?: string;
     display_name?: string;
     world_marble_url?: string;
     model?: string;
@@ -272,12 +273,12 @@ export const api = {
     getWorld: (id: string) => get<{ world: World }>(`/worlds/${id}`),
 
     // Generation
-    generateText: (prompt: string, name: string, model: string) =>
-        post<Operation>('/generate/text', { prompt, name, model }),
-    generateImage: (url: string, prompt: string, name: string, model: string, is_panorama: boolean) =>
-        post<Operation>('/generate/image', { url, prompt, name, model, is_panorama }),
-    generateVideo: (url: string, prompt: string, name: string, model: string) =>
-        post<Operation>('/generate/video', { url, prompt, name, model }),
+    generateText: (prompt: string, name: string, model: string, seed?: number, tags?: string[]) =>
+        post<Operation>('/generate/text', { prompt, name, model, seed, tags }),
+    generateImage: (url: string, prompt: string, name: string, model: string, is_panorama: boolean, seed?: number, tags?: string[], disable_recaption?: boolean) =>
+        post<Operation>('/generate/image', { url, prompt, name, model, is_panorama, seed, tags, disable_recaption }),
+    generateVideo: (url: string, prompt: string, name: string, model: string, seed?: number, tags?: string[], disable_recaption?: boolean) =>
+        post<Operation>('/generate/video', { url, prompt, name, model, seed, tags, disable_recaption }),
 
     // LLM discovery
     discoverLlms: () => get<LlmDiscoveryResult>('/llm/discover'),
@@ -291,8 +292,17 @@ export const api = {
     // Unified Handoff
     handoffAsset: (req: HandoffRequest) => post<ExportResult>('/handoff', req),
 
-    // History
+    // Media assets
+    getMediaAsset: (id: string) => get<Record<string, unknown>>(`/media-assets/${id}`),
+
+    // Worlds
     getHistory: () => get<Operation[]>('/history'),
+    getWorldsRemote: (pageSize: number = 50) =>
+        get<{ worlds: World[]; next_page_token?: string }>(`/history/remote?page_size=${pageSize}`),
+    deleteWorld: (worldId: string) => del<{ world_id: string; deleted: boolean }>(`/worlds/${worldId}`),
+
+    // ADB device detection
+    adbDevices: () => get<{ success: boolean; devices?: { serial: string; status: string }[]; raw?: string; error?: string }>('/adb/devices'),
 
     // Spatial Narration
     broadcastNarration: (req: NarrationRequest) => post<NarrationResponse>('/narration', req),

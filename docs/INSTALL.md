@@ -6,8 +6,27 @@ This guide covers the setup for both the **World Labs MCP Server** and the **SOT
 
 - **Python 3.10+** (managed via `uv` recommended)
 - **Node.js 18+** (for the dashboard)
-- **World Labs API Key**: Obtain one at [platform.worldlabs.ai](https://platform.worldlabs.ai)
-- **API Credits**: Ensure your API balance is funded (Web App credits do not apply).
+- **World Labs Account & API Key**: You need a Marble account at World Labs. See ["Getting an API Key"](#getting-an-api-key) below.
+- **API Credits**: Purchased separately from Web App credits. API calls consume credits from your API balance.
+
+## Getting an API Key
+
+The Marble API requires a World Labs account with funded API credits:
+
+1. **Sign up** at [platform.worldlabs.ai](https://platform.worldlabs.ai) — create a Marble account.
+2. **Add payment method** at [platform.worldlabs.ai/billing](https://platform.worldlabs.ai/billing) — the billing page where you purchase credits.
+3. **Generate an API key** at [platform.worldlabs.ai/api-keys](https://platform.worldlabs.ai/api-keys) — save it securely; it starts with `wlt_`.
+
+> **Important**: API credits are separate from the Web App subscription. A free Marble account gives you Web App access but not API credits. You must add a payment method and purchase credits before API calls will work.
+
+### Current Credit Consumption
+
+| Model | Cost |
+|-------|------|
+| `marble-1.1` (default) | 1,500 credits per world generation |
+| `marble-1.1-plus` (larger worlds) | 1,500 + 300 per dynamic cube |
+
+Credit pricing is set by World Labs. Check the [billing page](https://platform.worldlabs.ai/billing) for current credit package rates.
 
 ## Backend Setup
 

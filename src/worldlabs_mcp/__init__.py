@@ -2,5 +2,5 @@
 
 from .server import main, mcp
 
-__version__ = "0.4.0"
-__all__ = ["mcp", "main"]
+__version__ = "0.5.0"
+__all__ = ["main", "mcp"]

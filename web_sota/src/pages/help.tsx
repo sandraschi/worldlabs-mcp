@@ -2,6 +2,7 @@ import {
     HelpCircle, Globe2, Clock, Wrench, BookOpen,
     Code2, MessageSquare, Key, ArrowRight, Layers,
     Info, Cpu, Download, ExternalLink, ChevronDown, ChevronRight,
+    Smartphone,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -367,6 +368,50 @@ export function Help() {
                 </div>
             </Section>
 
+            {/* ---- Prompt Engineering Guide ---- */}
+            <Section title="Prompt Engineering Guide" icon={MessageSquare} defaultOpen={false}>
+                <div className="space-y-3 text-sm text-slate-400 leading-relaxed">
+                    <p>
+                        Marble is a <strong>3D world generator</strong> (Gaussian splat scenes), not a 2D image generator.
+                        Prompting strategies from Midjourney or DALL-E do not always translate. The core rule: <strong>if you can
+                        model it in Blender, Marble can render it</strong>.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {[
+                            {
+                                label: 'Works Well',
+                                color: 'text-aurora-300',
+                                items: 'Architectural styles (gothic, brutalist, art deco), materials (raw concrete, weathered brass, moss-covered stone), weather & season (heavy rain, snow, autumn mist), lighting (golden hour, bioluminescent, fog), specific places (morgue, cathedral, greenhouse, crypt)',
+                            },
+                            {
+                                label: 'Archetype, Not Reference',
+                                color: 'text-amber-300',
+                                items: 'Cultural references (Bates Motel → roadside motel + Victorian house, not the exact facade). Landmarks (Eiffel Tower → lattice tower with 3 tiers, not the specific proportions). For accuracy, use image-to-world with a reference photo.',
+                            },
+                            {
+                                label: 'Does Not Work',
+                                color: 'text-red-300',
+                                items: '2D painting techniques (impressionism, sfumato, fresco, impasto — these describe brushwork on canvas). Narrative emotions without translation (fear, melancholy — decompose into concrete 3D elements). Specific human faces or figures.',
+                            },
+                            {
+                                label: 'Prompt Template',
+                                color: 'text-cosmos-300',
+                                items: '[ARCHITECTURE] + [MATERIALS] + [LIGHTING/TIME] + [WEATHER] + [SCALE] + [COLOUR PALETTE]. Specify dimensions ("60m vaulted ceiling"), ground plane ("worn flagstone"), and sightlines ("receding into darkness").',
+                            },
+                        ].map(item => (
+                            <div key={item.label} className="glass-card p-3 space-y-1">
+                                <p className={`text-[10px] font-bold uppercase tracking-wider ${item.color}`}>{item.label}</p>
+                                <p className="text-xs text-slate-500">{item.items}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <p className="text-xs text-slate-500 border-l border-white/10 pl-3 italic">
+                        Full guide: <code className="text-cosmos-400">docs/PROMPT_GUIDE.md</code> — covers artist references (Giger ✓, Monet ✗),
+                        landmark prompting, material selection, weather/season, architectural styles, and category reference tables.
+                    </p>
+                </div>
+            </Section>
+
             {/* ---- Models ---- */}
             <Section title="Generation Models" icon={Clock} defaultOpen={true}>
                 <div className="space-y-2">
@@ -462,6 +507,11 @@ export function Help() {
                     <p>
                         World Labs worlds are <strong>WebXR Ready</strong>. Experience generatively persistent worlds from the inside using the v0.4.0 <strong>WebRTX</strong> protocol—proprietary real-time cross-reality streaming for Spark 2.0.
                     </p>
+                    <a href="/onboarding"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-aurora-600 to-cosmos-600 text-white hover:from-aurora-500 hover:to-cosmos-500 transition-all">
+                        <Smartphone className="w-3.5 h-3.5" />
+                        Headset Setup Guide (Quest / Pico 4)
+                    </a>
                     <div className="grid gap-4 md:grid-cols-2">
                         <div className="glass-card p-4 space-y-2">
                             <h4 className="text-xs font-black uppercase text-aurora-300">Android XR Integration</h4>
@@ -490,8 +540,11 @@ export function Help() {
                     {[
                         { label: 'World Labs Platform (billing, API keys)', url: 'https://platform.worldlabs.ai' },
                         { label: 'Marble API Documentation', url: 'https://docs.worldlabs.ai/api' },
+                        { label: 'Headset Setup Guide (local)', url: 'https://github.com/sandraschi/worldlabs-mcp/blob/main/docs/HEADSET_SETUP.md' },
+                        { label: 'Prompt Engineering Guide (local)', url: 'https://github.com/sandraschi/worldlabs-mcp/blob/main/docs/PROMPT_GUIDE.md' },
                         { label: 'World Labs Gallery', url: 'https://worldlabs.ai/gallery' },
                         { label: 'worldlabs-mcp GitHub', url: 'https://github.com/sandraschi/worldlabs-mcp' },
+                        { label: 'resonite-mcp GitHub', url: 'https://github.com/sandraschi/resonite-mcp' },
                         { label: 'Glama MCP listing', url: 'https://glama.ai/mcp/servers?query=sandraschi' },
                     ].map(link => (
                         <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer"

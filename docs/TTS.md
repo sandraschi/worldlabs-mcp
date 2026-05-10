@@ -1,62 +1,83 @@
 # TTS Integration & Spatial Voice Agent
 
-> **Status: speculative.** The Marble wrapper and bridge are production-ready; the voice agent end-to-end is scaffolded. It needs `speech-mcp` running separately to produce audio. The viewer side plays whatever the bridge streams via SSE.
+The Spatial Voice Agent uses a **built-in TTS engine** that auto-generates audio
+when `broadcast_spatial_notification` is called. No external TTS service is
+required — but for the highest quality, install `edge-tts`.
 
-This project features a **Spatial Voice Agent** that grounds Gemini TTS output in the physical coordinates of your 3D worlds.
+## How It Works
 
-## Powered by Speech-MCP
+1. **MCP tool** calls `broadcast_spatial_notification(text="Hello", x=5, y=1, z=2)`
+2. **Bridge** receives the narration event, calls the built-in TTS engine to generate an MP3 file
+3. **SSE event** is pushed to connected viewers with the `audio_url` field set
+4. **Spark 2.0 viewer** fetches the MP3 and plays it through WebAudio `PannerNode`
+   at coordinate (5, 1, 2) — HRTF spatial audio, sounds like it comes from that location
 
-The system relies on [Speech-MCP](https://github.com/sandraschi/speech-mcp) for TTS generation.
+## TTS Backend
 
-- **Provider**: Gemini 3.1 Flash TTS (`gemini-3.1-flash-tts-preview`) — released 2026-04-15, available via Gemini API / Google AI Studio / Vertex AI.
-  - 70+ languages, 200+ audio tags for style/pacing/emotion, SynthID watermarking.
-  - Output: WAV only (not multimodal in preview).
-- **Fallback**: Windows SAPI5 for offline usage.
+| Backend | Quality | Dependency | API Key |
+|---------|---------|------------|---------|
+| edge-tts (recommended) | High — natural Microsoft Edge voices | `uv pip install edge-tts` | None |
+| No TTS backend | Speech events still fire but without audio URL | None | — |
 
-## How it Works
+Install the recommended TTS backend:
 
-1. **The Viewer**: `SparkViewer` initialises a WebAudio `AudioContext` and `PannerNode`.
-2. **The Listener**: The "ears" are attached to the Three.js camera. As you move, volume and direction update accordingly.
-3. **The Voice**: When `broadcast_spatial_notification` is called, a JSON payload is pushed onto the narration SSE stream served by the bridge.
-4. **The Rendering**: The viewer fetches the generated WAV from Speech-MCP and plays it through the `PannerNode` at the specified `[x, y, z]`.
+```bash
+uv pip install edge-tts
+```
 
-The `PannerNode` uses **HRTF** (Head-Related Transfer Function) panning so you can hear *where* the narration is coming from in headphones.
+The engine auto-detects available backends. With `edge-tts`, the default voice is
+`en-US-JennyNeural`. No configuration needed.
+
+## Architecture
+
+```
+broadcast_spatial_notification("Welcome")
+    │
+    ▼
+POST /api/narration {type: "speech", text: "Welcome", x: 0, y: 1.5, z: 0}
+    │
+    ├── (if edge-tts available) Generate MP3 → save to temp file
+    │
+    ▼
+SSE event → {audio_url: "/api/tts/abc123.mp3", ...}
+    │
+    ▼
+Spark 2.0 viewer → fetch MP3 → PannerNode at (0, 1.5, 0)
+```
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/tts/{filename}` | GET | Serve generated TTS audio files |
+| `/api/tts/status` | GET | Check if edge-tts is available |
+| `/api/default-agent` | GET | Built-in humanoid avatar GLB |
 
 ## Using the Spatial Voice Agent
 
 ### Via MCP Tool
 
-```json
-{
-  "name": "broadcast_spatial_notification",
-  "arguments": {
-    "text": "Welcome to the Victorian Garden. To your left, the abandoned fountain.",
-    "x": -5.2,
-    "y": 1.5,
-    "z": 12.0
-  }
-}
 ```
+broadcast_spatial_notification(
+    text="Welcome to the Victorian Garden. To your left, the abandoned fountain.",
+    x=-5.2, y=1.5, z=12.0
+)
+```
+
+The audio is generated automatically. No separate TTS step needed.
 
 ### Prompting the Agent
 
-> "Describe the architecture of this room using the spatial voice agent. Stand near the fireplace."
+> "Describe the architecture of this room using the spatial voice agent.
+> Stand near the fireplace."
 
 Claude calculates fireplace coordinates from the scene caption and calls the tool.
 
-## Technical Configuration
+## Known Gaps
 
-```env
-# The narration SSE bridge (same process as the MCP server by default)
-WORLDLABS_BRIDGE_URL=http://localhost:10718
-
-# Speech-MCP endpoint for the actual TTS synthesis
-SPEECH_MCP_URL=http://localhost:10918
-```
-
-## Known gaps
-
-- The Lyria 3 music generation path mentioned in earlier drafts is not wired up; `broadcast_spatial_audio` currently only plays remote audio URLs.
-- There is no voice-activity detection on the listener side; the agent speaks unprompted when geofence triggers fire.
-- Gemini TTS tags are not yet parsed out of the `text` field — pass them inline as Google documents (`[whispers]`, `[slow]`, etc.).
-
+- edge-tts requires internet (it uses Microsoft's online TTS service)
+- There is no voice-activity detection on the listener side; the agent speaks
+  unprompted when geofence triggers fire
+- Gemini TTS tags are not parsed out of the text field — they only work
+  with edge-tts which doesn't support them
+- The default agent avatar is a simple box humanoid, not an animated character

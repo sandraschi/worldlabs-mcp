@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { Globe2, Download, ExternalLink, Cpu, Zap, ChevronDown, ChevronRight, Sparkles, RefreshCw, Heart, Star, Trash2, Save, MessageSquare, X, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Globe2, Download, ExternalLink, Cpu, Zap, ChevronDown, ChevronRight, Sparkles, RefreshCw, Heart, Star, Trash2, Save, MessageSquare, X, CheckCircle, AlertCircle, Clock, Upload } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import {
@@ -13,10 +13,10 @@ import {
     triggerDownload,
 } from '@/lib/api';
 import { logger } from '@/lib/logger';
-import { WORLD_PRESETS, type WorldPreset } from '@/lib/presets';
+import { WORLD_PRESETS, PRESET_CATEGORIES, type WorldPreset } from '@/lib/presets';
 
 const MODELS = ['marble-1.1-plus', 'marble-1.1'] as const;
-type GenMode = 'text' | 'image' | 'video';
+type GenMode = 'text' | 'image' | 'video' | 'file';
 
 // ── Generation Modal ──────────────────────────────────────────────────────────
 
@@ -333,6 +333,11 @@ function PromptCard({
 // ── Style Gallery Modal ───────────────────────────────────────────────────────
 
 function StyleGallery({ onSelect, onDismiss }: { onSelect: (preset: WorldPreset) => void, onDismiss: () => void }) {
+    const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+    const filtered = categoryFilter
+        ? WORLD_PRESETS.filter((p) => p.categories.includes(categoryFilter))
+        : WORLD_PRESETS;
+
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
             <div className="relative w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col rounded-3xl border border-white/10 bg-slate-950 shadow-2xl">
@@ -352,32 +357,79 @@ function StyleGallery({ onSelect, onDismiss }: { onSelect: (preset: WorldPreset)
                     </button>
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {WORLD_PRESETS.map((p) => (
+                {/* Category filter chips */}
+                <div className="flex gap-1.5 px-6 pt-4 pb-2 flex-wrap">
+                    <button
+                        onClick={() => setCategoryFilter(null)}
+                        className={cn(
+                            'px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all border',
+                            categoryFilter === null
+                                ? 'bg-cosmos-600/30 border-cosmos-500/40 text-cosmos-300'
+                                : 'bg-white/[0.04] border-white/[0.06] text-slate-500 hover:text-slate-300 hover:border-white/[0.1]',
+                        )}
+                    >
+                        All
+                    </button>
+                    {PRESET_CATEGORIES.map((cat) => {
+                        const count = WORLD_PRESETS.filter((p) => p.categories.includes(cat)).length;
+                        if (count === 0) return null;
+                        return (
                             <button
-                                key={p.id}
-                                onClick={() => onSelect(p)}
-                                className="glass-card p-5 text-left group hover:border-cosmos-500/50 hover:shadow-cosmos-500/10 transition-all space-y-3"
+                                key={cat}
+                                onClick={() => setCategoryFilter(categoryFilter === cat ? null : cat)}
+                                className={cn(
+                                    'px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all border',
+                                    categoryFilter === cat
+                                        ? 'bg-cosmos-600/30 border-cosmos-500/40 text-cosmos-300'
+                                        : 'bg-white/[0.04] border-white/[0.06] text-slate-500 hover:text-slate-300 hover:border-white/[0.1]',
+                                )}
                             >
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-cosmos-400 bg-cosmos-500/10 px-2 py-0.5 rounded-full">
-                                        {p.style}
-                                    </span>
-                                    <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-cosmos-400 group-hover:translate-x-0.5 transition-all" />
-                                </div>
-                                <div>
-                                    <h4 className="text-sm font-bold text-white group-hover:text-cosmos-300 transition-colors">{p.name}</h4>
-                                    <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">{p.description}</p>
-                                </div>
-                                <div className="pt-2">
-                                    <div className="text-[10px] text-slate-600 font-mono italic truncate bg-black/30 rounded p-1.5 min-h-[3rem]">
-                                        "{p.prompt}"
-                                    </div>
-                                </div>
+                                {cat} {count}
                             </button>
-                        ))}
-                    </div>
+                        );
+                    })}
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                    {filtered.length === 0 ? (
+                        <p className="text-sm text-slate-500 text-center py-12">No presets match this category.</p>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filtered.map((p) => (
+                                <button
+                                    key={p.id}
+                                    onClick={() => onSelect(p)}
+                                    className="glass-card p-5 text-left group hover:border-cosmos-500/50 hover:shadow-cosmos-500/10 transition-all space-y-3"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-cosmos-400 bg-cosmos-500/10 px-2 py-0.5 rounded-full">
+                                            {p.style}
+                                        </span>
+                                        <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-cosmos-400 group-hover:translate-x-0.5 transition-all" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-white group-hover:text-cosmos-300 transition-colors">{p.name}</h4>
+                                        <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">{p.description}</p>
+                                    </div>
+                                    <div className="flex gap-1 flex-wrap">
+                                        {p.categories.map((cat) => (
+                                            <span
+                                                key={cat}
+                                                className="text-[9px] text-slate-600 bg-white/[0.04] px-1.5 py-0.5 rounded"
+                                            >
+                                                {cat}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <div className="pt-1">
+                                        <div className="text-[10px] text-slate-600 font-mono italic truncate bg-black/30 rounded p-1.5 min-h-[3rem]">
+                                            "{p.prompt}"
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <footer className="p-4 bg-white/[0.02] border-t border-white/5 text-center">
@@ -631,6 +683,7 @@ export default function WorldGenPage() {
     const [model, setModel] = useState<(typeof MODELS)[number]>('marble-1.1-plus');
     const [imageUrl, setImageUrl] = useState('');
     const [videoUrl, setVideoUrl] = useState('');
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isPanorama, setIsPanorama] = useState(false);
     const [displayName, setDisplayName] = useState('');
     const [selectedStyle, setSelectedStyle] = useState('Cinematic');
@@ -751,20 +804,30 @@ export default function WorldGenPage() {
 
     // Generation: fire-and-forget — immediately open modal with the operation_id
     const genMutation = useMutation({
-        mutationFn: () => {
+        mutationFn: async () => {
             if (mode === 'text') return api.generateText(prompt, displayName, model);
             if (mode === 'image') return api.generateImage(imageUrl, prompt, displayName, model, isPanorama);
-            return api.generateVideo(videoUrl, prompt, displayName, model);
+            if (mode === 'video') return api.generateVideo(videoUrl, prompt, displayName, model);
+            if (mode === 'file' && selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                if (prompt) formData.append('prompt', prompt);
+                if (displayName) formData.append('name', displayName);
+                formData.append('model', model);
+                formData.append('is_panorama', String(isPanorama));
+                const res = await fetch('/api/generate/upload', { method: 'POST', body: formData });
+                if (!res.ok) throw new Error(`Upload failed: ${res.status} ${await res.text()}`);
+                return res.json();
+            }
+            throw new Error('No input provided');
         },
         onSuccess: op => {
-            // Add placeholder op to operations list immediately
             addOp({ ...op, done: false });
-            // Open the modal with live SSE progress
             setActiveOpId(op.operation_id);
-            // Clear inputs
             setPrompt('');
             setImageUrl('');
             setVideoUrl('');
+            setSelectedFile(null);
             setDisplayName('');
         },
     });
@@ -806,7 +869,8 @@ export default function WorldGenPage() {
     const canGenerate = !genMutation.isPending && (
         (mode === 'text' && !!prompt.trim()) ||
         (mode === 'image' && !!imageUrl.trim()) ||
-        (mode === 'video' && !!videoUrl.trim())
+        (mode === 'video' && !!videoUrl.trim()) ||
+        (mode === 'file' && !!selectedFile)
     );
 
     return (
@@ -851,7 +915,7 @@ export default function WorldGenPage() {
                     <div className="glass-card p-5 space-y-4">
                         {/* Mode tabs */}
                         <div className="flex gap-1 p-1 bg-black/20 rounded-lg w-fit" role="tablist" aria-label="Generation mode">
-                            {(['text', 'image', 'video'] as GenMode[]).map(m => (
+                            {(['text', 'image', 'video', 'file'] as GenMode[]).map(m => (
                                 <button
                                     key={m}
                                     role="tab"
@@ -972,19 +1036,73 @@ export default function WorldGenPage() {
                             )}
                         </div>
 
-                        {/* Media URL (image / video) */}
+                        {/* Media URL (image / video) / File upload */}
                         {mode !== 'text' && (
                             <div className="space-y-2">
-                                <label className="section-label">{mode === 'image' ? 'Image URL' : 'Video URL'}</label>
-                                <input
-                                    type="url"
-                                    value={mode === 'image' ? imageUrl : videoUrl}
-                                    onChange={e => (mode === 'image' ? setImageUrl(e.target.value) : setVideoUrl(e.target.value))}
-                                    placeholder={`Paste ${mode} URL here…`}
-                                    className="input-glass"
-                                    aria-label={`${mode} source URL`}
-                                />
-                                {mode === 'image' && (
+                                {mode === 'file' ? (
+                                    <>
+                                        <label className="section-label">Photo / Video File</label>
+                                        <div
+                                            onDragOver={(e) => e.preventDefault()}
+                                            onDrop={(e) => {
+                                                e.preventDefault();
+                                                const f = e.dataTransfer.files[0];
+                                                if (f) setSelectedFile(f);
+                                            }}
+                                            className={cn(
+                                                'border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer',
+                                                selectedFile
+                                                    ? 'border-cosmos-500/40 bg-cosmos-500/5'
+                                                    : 'border-white/[0.08] hover:border-cosmos-500/30 hover:bg-white/[0.03]',
+                                            )}
+                                            onClick={() => document.getElementById('file-input')?.click()}
+                                        >
+                                            <input
+                                                id="file-input"
+                                                type="file"
+                                                accept="image/*,video/*,.jpg,.jpeg,.png,.webp,.mp4,.mov,.mkv,.avi,.webm"
+                                                className="hidden"
+                                                onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+                                            />
+                                            {selectedFile ? (
+                                                <div className="space-y-2">
+                                                    <div className="text-sm font-medium text-cosmos-300 truncate max-w-xs mx-auto">
+                                                        {selectedFile.name}
+                                                    </div>
+                                                    <div className="text-xs text-slate-500">
+                                                        {(selectedFile.size / 1024 / 1024).toFixed(1)} MB
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }}
+                                                        className="text-xs text-red-400 hover:text-red-300"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    <Upload className="w-8 h-8 text-slate-500 mx-auto" aria-hidden="true" />
+                                                    <p className="text-sm text-slate-400">Drop a file here or click to browse</p>
+                                                    <p className="text-xs text-slate-600">Supports JPG, PNG, WebP, MP4, MOV, MKV</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <label className="section-label">{mode === 'image' ? 'Image URL' : 'Video URL'}</label>
+                                        <input
+                                            type="url"
+                                            value={mode === 'image' ? imageUrl : videoUrl}
+                                            onChange={e => (mode === 'image' ? setImageUrl(e.target.value) : setVideoUrl(e.target.value))}
+                                            placeholder={`Paste ${mode} URL here…`}
+                                            className="input-glass"
+                                            aria-label={`${mode} source URL`}
+                                        />
+                                    </>
+                                )}
+                                {mode !== 'text' && (
                                     <label className="flex items-center gap-2 cursor-pointer group mt-1">
                                         <div
                                             onClick={() => setIsPanorama(!isPanorama)}

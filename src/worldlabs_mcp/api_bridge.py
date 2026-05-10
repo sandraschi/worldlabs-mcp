@@ -19,24 +19,25 @@ Responsibilities:
 """
 
 from __future__ import annotations
-from .logger import logger
 
 import asyncio
 import json
 import os
 import platform
 import socket
+import subprocess
 import tempfile
 import time
 import uuid
+from collections.abc import AsyncGenerator
 from datetime import datetime
 from pathlib import Path
-from typing import Any, AsyncGenerator
+from typing import Any
 
 import httpx
 import psutil
 from dotenv import load_dotenv
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
@@ -52,11 +53,15 @@ router = APIRouter()
 BASE_URL = "https://api.worldlabs.ai/marble/v1"
 DEFAULT_POLL_INTERVAL = 15
 DEFAULT_TIMEOUT = 90
-DEFAULT_MODEL = "marble-1.1-plus"
+DEFAULT_MODEL = "marble-1.1"
 
 # Plex Integration (from plex-mcp)
 PLEX_BASE_URL = os.getenv("PLEX_BASE_URL", "http://localhost:32400")
-PLEX_TOKEN = os.getenv("PLEX_TOKEN", "oGA9iEfVYh8ATXmzYrU8")
+PLEX_TOKEN = os.getenv("PLEX_TOKEN", "")
+
+# Local LLM via Ollama (standard fleet pattern)
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+DEFAULT_OLLAMA_MODEL = os.getenv("DEFAULT_OLLAMA_MODEL", "llama3.2:3b")
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +89,8 @@ class TextGenRequest(BaseModel):
     prompt: str
     name: str = ""
     model: str = DEFAULT_MODEL
+    seed: int | None = None
+    tags: list[str] | None = None
 
 
 class ImageGenRequest(BaseModel):
@@ -92,6 +99,9 @@ class ImageGenRequest(BaseModel):
     name: str = ""
     model: str = DEFAULT_MODEL
     is_panorama: bool = False
+    seed: int | None = None
+    tags: list[str] | None = None
+    disable_recaption: bool = False
 
 
 class VideoGenRequest(BaseModel):
@@ -99,13 +109,16 @@ class VideoGenRequest(BaseModel):
     prompt: str = ""
     name: str = ""
     model: str = DEFAULT_MODEL
+    seed: int | None = None
+    tags: list[str] | None = None
+    disable_recaption: bool = False
 
 
 class RefineRequest(BaseModel):
     prompt: str
     style: str = "Cinematic"
-    provider: str  # "ollama" or "lmstudio"
-    model: str
+    provider: str = "ollama"
+    model: str = DEFAULT_OLLAMA_MODEL
 
 
 class HandoffRequest(BaseModel):
@@ -309,8 +322,8 @@ def _save_operation(op: dict[str, Any]) -> None:
     history = history[:50]
     try:
         HISTORY_FILE.write_text(json.dumps(history, indent=2), encoding="utf-8")
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Failed to write history file: %s", e)
 
 
 def _load_prompts() -> list[dict[str, Any]]:
@@ -348,10 +361,8 @@ def _save_scenes(scenes: list[dict[str, Any]]) -> None:
 def _get_vram_stats() -> dict[str, Any]:
     """Get GPU VRAM info using nvidia-smi."""
     try:
-        # Run nvidia-smi to get used and total memory
-        cmd = "nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits"
-        import subprocess
-        output = subprocess.check_output(cmd, shell=True).decode("utf-8").strip()
+        cmd = ["nvidia-smi", "--query-gpu=memory.used,memory.total", "--format=csv,noheader,nounits"]
+        output = subprocess.check_output(cmd).decode("utf-8").strip()  # noqa: S603 — trusted hardcoded command list
         used, total = map(int, output.split(","))
         return {
             "vram_used": used,
@@ -360,6 +371,15 @@ def _get_vram_stats() -> dict[str, Any]:
         }
     except Exception:
         return {"vram_used": 0, "vram_total": 0, "vram_percent": 0.0}
+
+
+def _get_disk_usage_percent() -> float:
+    try:
+        import platform
+        root = "C:\\" if platform.system() == "Windows" else "/"
+        return psutil.disk_usage(root).percent
+    except Exception:
+        return 0.0
 
 
 def _get_system_stats() -> dict[str, Any]:
@@ -388,12 +408,19 @@ _narration_clients: list[asyncio.Queue] = []
 
 @router.post("/narration")
 async def push_narration(body: dict) -> dict:
-    """Event types: 'speech', 'audio', 'video', 'avatar'"""
-    event = {
+    """Event types: 'speech', 'audio', 'video', 'avatar'
+
+    For speech events, automatically generate TTS audio via the built-in
+    TTS engine and include the audio_url in the event so the viewer can
+    play it directly without needing an external speech-mcp service.
+    """
+    event_type = body.get("type", "speech")
+    event: dict[str, Any] = {
         "id": os.urandom(4).hex(),
-        "type": body.get("type", "speech"),
+        "type": event_type,
         "text": body.get("text"),
         "url": body.get("url"),
+        "audio_url": None,
         "x": float(body.get("x", 0)),
         "y": float(body.get("y", 0)),
         "z": float(body.get("z", 0)),
@@ -402,13 +429,47 @@ async def push_narration(body: dict) -> dict:
         "is_loop": bool(body.get("is_loop", False)),
         "timestamp": str(time.time()),
     }
+
+    # Auto-generate TTS audio for speech events
+    if event_type == "speech" and event.get("text"):
+        from .tts import text_to_speech
+
+        audio_path = await text_to_speech(event["text"])
+        if audio_path:
+            filename = Path(audio_path).name
+            # The audio is served at GET /api/tts/{filename}
+            event["audio_url"] = f"/api/tts/{filename}"
+
     for q in _narration_clients:
         await q.put(event)
     return {
         "status": "broadcasted",
         "recipients": len(_narration_clients),
         "event_id": event["id"],
+        "audio_generated": event["audio_url"] is not None,
     }
+
+
+@router.get("/adb/devices")
+async def adb_devices() -> dict[str, Any]:
+    """List connected ADB devices. Requires ADB on the system PATH."""
+    try:
+        import subprocess
+        result = subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=10)
+        lines = result.stdout.strip().split("\n")[1:]  # Skip "List of devices attached"
+        devices = []
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split("\t")
+            if len(parts) == 2:
+                devices.append({"serial": parts[0], "status": parts[1]})
+        return {"success": True, "devices": devices, "raw": result.stdout.strip()}
+    except FileNotFoundError:
+        return {"success": False, "error": "ADB not found. Install Android Platform Tools."}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 @router.get("/narration/stream")
@@ -508,6 +569,15 @@ async def capabilities() -> dict:
 # ---------------------------------------------------------------------------
 
 
+@router.get("/local-assets/{file_path:path}")
+async def serve_local_asset(file_path: str) -> FileResponse:
+    default_root = os.path.expanduser("~/Downloads")
+    local_root = os.environ.get("WORLDLABS_LOCAL_PATH", default_root)
+    abs_path = os.path.normpath(os.path.join(local_root, file_path))
+    if not abs_path.startswith(os.path.normpath(local_root)):
+        raise HTTPException(status_code=403, detail="Path traversal denied")
+    if not os.path.isfile(abs_path):
+        raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(abs_path)
 
 
@@ -531,17 +601,74 @@ async def list_local_assets() -> list[str]:
 
 
 # ---------------------------------------------------------------------------
+# Built-in TTS audio serving
+# ---------------------------------------------------------------------------
+
+
+@router.get("/tts/{filename}")
+async def serve_tts_audio(filename: str) -> FileResponse:
+    """Serve a previously generated TTS audio file."""
+    from .tts import AUDIO_DIR
+
+    audio_path = AUDIO_DIR / filename
+    # Security: prevent path traversal
+    resolved = os.path.normpath(audio_path)
+    audiodir_norm = os.path.normpath(str(AUDIO_DIR))
+    if not resolved.startswith(audiodir_norm):
+        raise HTTPException(status_code=403, detail="Access denied")
+    if not os.path.isfile(resolved):
+        raise HTTPException(status_code=404, detail="Audio file not found")
+    return FileResponse(resolved, media_type="audio/mpeg")
+
+
+@router.get("/tts/status")
+async def tts_status() -> dict:
+    """Check if the built-in TTS engine is available."""
+    from .tts import _get_edge_tts_available
+
+    return {"edge_tts": _get_edge_tts_available()}
+
+
+# ---------------------------------------------------------------------------
+# Default agent avatar
+# ---------------------------------------------------------------------------
+
+
+_DEFAULT_AGENT_PATH: str | None = None
+
+
+@router.get("/default-agent")
+async def get_default_agent() -> FileResponse:
+    """Return the generated default agent GLB file."""
+    global _DEFAULT_AGENT_PATH
+    if _DEFAULT_AGENT_PATH is None or not os.path.isfile(_DEFAULT_AGENT_PATH):
+        from .default_agent import generate_default_agent
+
+        target = os.path.join(tempfile.gettempdir(), "worldlabs-default-agent.glb")
+        _DEFAULT_AGENT_PATH = str(generate_default_agent(target))
+    return FileResponse(_DEFAULT_AGENT_PATH, media_type="model/gltf-binary")
+
+
+# ---------------------------------------------------------------------------
 # Marble generation — fire-and-forget (returns operation immediately)
 # ---------------------------------------------------------------------------
 
 
+def _with_optional(payload: dict, req: TextGenRequest | ImageGenRequest | VideoGenRequest) -> dict:
+    if req.seed is not None:
+        payload["seed"] = req.seed
+    if req.tags:
+        payload["tags"] = req.tags
+    return payload
+
+
 @router.post("/generate/text")
 async def generate_from_text(req: TextGenRequest) -> dict[str, Any]:
-    payload = {
+    payload = _with_optional({
         "display_name": req.name,
         "model": req.model,
         "world_prompt": {"type": "text", "text_prompt": req.prompt},
-    }
+    }, req)
     data = await _wl_post("/worlds:generate", payload)
     _save_operation(data)
     return data
@@ -555,7 +682,9 @@ async def generate_from_image(req: ImageGenRequest) -> dict[str, Any]:
     world_prompt: dict[str, Any] = {"type": "image", "image_prompt": image_prompt}
     if req.prompt:
         world_prompt["text_prompt"] = req.prompt
-    payload = {"display_name": req.name, "model": req.model, "world_prompt": world_prompt}
+    if req.disable_recaption:
+        world_prompt["disable_recaption"] = True
+    payload = _with_optional({"display_name": req.name, "model": req.model, "world_prompt": world_prompt}, req)
     data = await _wl_post("/worlds:generate", payload)
     _save_operation(data)
     return data
@@ -569,10 +698,106 @@ async def generate_from_video(req: VideoGenRequest) -> dict[str, Any]:
     }
     if req.prompt:
         world_prompt["text_prompt"] = req.prompt
-    payload = {"display_name": req.name, "model": req.model, "world_prompt": world_prompt}
+    if req.disable_recaption:
+        world_prompt["disable_recaption"] = True
+    payload = _with_optional({"display_name": req.name, "model": req.model, "world_prompt": world_prompt}, req)
     data = await _wl_post("/worlds:generate", payload)
     _save_operation(data)
     return data
+
+
+@router.post("/generate/upload")
+async def generate_from_upload(
+    file: UploadFile = File(...),
+    prompt: str = "",
+    name: str = "",
+    model: str = DEFAULT_MODEL,
+    is_panorama: bool = False,
+) -> dict[str, Any]:
+    """Upload a local image or video file and generate a 3D world from it.
+
+    Accepts multipart form-data with the file, optional text prompt, name,
+    model, and is_panorama (for images). Handles the full prepare_upload →
+    PUT to GCS → generate flow server-side.
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+
+    ext = (file.filename.rsplit(".", 1)[-1] if "." in file.filename else "").lower()
+    image_exts = {"jpg", "jpeg", "png", "webp"}
+    video_exts = {"mp4", "mov", "mkv", "avi", "webm"}
+
+    if ext in image_exts:
+        kind = "image"
+    elif ext in video_exts:
+        kind = "video"
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file extension '{ext}'. Supported: {image_exts | video_exts}",
+        )
+
+    file_bytes = await file.read()
+    file_size = len(file_bytes)
+    if file_size > 100 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File exceeds 100MB limit")
+
+    async with httpx.AsyncClient(timeout=60) as client:
+        # 1. Prepare upload
+        try:
+            prepare_resp = await client.post(
+                f"{BASE_URL}/media-assets:prepare_upload",
+                headers=_headers(),
+                json={"file_name": file.filename, "kind": kind, "extension": ext},
+            )
+            prepare_resp.raise_for_status()
+            prepare_data = prepare_resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_http_error(e)
+
+        media_asset_id: str = prepare_data["media_asset"]["id"]
+        upload_info: dict = prepare_data["upload_info"]
+        upload_url: str = upload_info["upload_url"]
+        upload_headers: dict = upload_info.get("required_headers") or upload_info.get("headers", {})
+
+        # 2. PUT file to GCS
+        try:
+            put_resp = await client.put(upload_url, content=file_bytes, headers=upload_headers)
+            put_resp.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            _handle_http_error(e)
+
+    # 3. Generate world from uploaded asset
+    if kind == "image":
+        image_prompt: dict = {"source": "media_asset", "media_asset_id": media_asset_id}
+        if is_panorama:
+            image_prompt["is_pano"] = True
+        world_prompt: dict = {"type": "image", "image_prompt": image_prompt}
+        if prompt:
+            world_prompt["text_prompt"] = prompt
+    else:
+        world_prompt = {
+            "type": "video",
+            "video_prompt": {"source": "media_asset", "media_asset_id": media_asset_id},
+        }
+        if prompt:
+            world_prompt["text_prompt"] = prompt
+
+    payload = {"display_name": name, "model": model, "world_prompt": world_prompt}
+    data = await _wl_post("/worlds:generate", payload)
+    _save_operation(data)
+    return data
+
+
+# ---------------------------------------------------------------------------
+# Media asset queries
+# ---------------------------------------------------------------------------
+
+
+@router.get("/media-assets/{media_asset_id}")
+async def get_media_asset(media_asset_id: str) -> dict[str, Any]:
+    """Get metadata about a previously uploaded media asset (no download)."""
+    return await _wl_get(f"/media-assets/{media_asset_id}")
 
 
 # ---------------------------------------------------------------------------
@@ -599,7 +824,7 @@ async def stream_operation(operation_id: str, request: Request) -> StreamingResp
     async def _gen() -> AsyncGenerator[str, None]:
         start = time.monotonic()
         logger.info(f"SSE: Starting stream for operation {operation_id}")
-        
+
         async with httpx.AsyncClient(timeout=30) as client:
             while True:
                 # Check for client disconnect
@@ -680,6 +905,21 @@ async def get_world(world_id: str) -> dict[str, Any]:
     return data
 
 
+@router.delete("/worlds/{world_id}")
+async def delete_world(world_id: str) -> dict[str, Any]:
+    """Delete a world by its ID. Permanently removes the world and its assets."""
+    async with httpx.AsyncClient(timeout=30) as client:
+        try:
+            resp = await client.delete(
+                f"{BASE_URL}/worlds/{world_id}",
+                headers=_headers(),
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_http_error(e)
+
+
 # ---------------------------------------------------------------------------
 # Download proxy — streams Marble's signed URLs with a sensible filename
 # ---------------------------------------------------------------------------
@@ -731,9 +971,9 @@ async def get_history() -> list[dict[str, Any]]:
 
 
 @router.get("/history/remote")
-async def get_remote_history() -> dict:
-    """Pass-through to the Marble /worlds listing (account-wide)."""
-    return await _wl_get("/worlds", params={"page_size": "20"})
+async def get_remote_history(page_size: int = 50) -> dict:
+    """Pass-through to the Marble /worlds:list endpoint (account-wide)."""
+    return await _wl_post("/worlds:list", {"page_size": page_size, "sort_by": "created_at", "status": "SUCCEEDED"})
 
 
 @router.get("/prompts")
@@ -793,7 +1033,7 @@ def _fmt_size(size_bytes: int) -> str:
 
 
 async def _probe_ollama() -> dict[str, Any]:
-    url = "http://localhost:11434"
+    url = OLLAMA_URL
     try:
         async with httpx.AsyncClient(timeout=3) as client:
             resp = await client.get(f"{url}/api/tags")
@@ -857,7 +1097,7 @@ no markdown, no introduction."""
 
     try:
         if req.provider == "ollama":
-            url = "http://localhost:11434/api/chat"
+            url = f"{OLLAMA_URL}/api/chat"
             payload = {
                 "model": req.model,
                 "messages": [
@@ -922,15 +1162,27 @@ async def _download_to_temp(url: str, suffix: str) -> str:
 
 @router.post("/export/blender")
 async def export_to_blender(req: ExportRequest) -> dict[str, Any]:
-    """Download SPZ splat + GLB mesh locally then call the blender-mcp bridge."""
+    """Download SPZ splat + GLB mesh locally then call the blender-mcp bridge.
+
+    If blender-mcp is not running, tries to autostart Blender with the addon.
+    """
     blender_port = int(os.getenv("BLENDER_MCP_PORT", "10700"))
     results: dict[str, Any] = {"world_id": req.world_id, "target": "blender"}
+
+    # Autostart Blender if not running
+    from .dcc_launcher import ensure_blender
+    auto_msg = await ensure_blender(port=blender_port)
+    if auto_msg:
+        results["launcher"] = auto_msg
+        if "error" in auto_msg.lower() or "fail" in auto_msg.lower() or "not found" in auto_msg.lower():
+            results["status"] = "error"
+            return results
 
     if req.spz_url:
         try:
             spz_path = await _download_to_temp(req.spz_url, ".spz")
             results["spz_local"] = spz_path
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=60) as client:
                 resp = await client.post(
                     f"http://localhost:{blender_port}/api/import/splat",
                     json={"file_path": spz_path, "sh_degree": 3, "setup_proxy": True},
@@ -947,7 +1199,7 @@ async def export_to_blender(req: ExportRequest) -> dict[str, Any]:
         try:
             glb_path = await _download_to_temp(req.mesh_url, ".glb")
             results["mesh_local"] = glb_path
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=60) as client:
                 resp = await client.post(
                     f"http://localhost:{blender_port}/api/import/file",
                     json={"filepath": glb_path, "file_format": "GLB"},
@@ -961,7 +1213,7 @@ async def export_to_blender(req: ExportRequest) -> dict[str, Any]:
             results["mesh_import"] = {"status": "error", "detail": str(e)}
 
     results["status"] = "ok"
-    results["note"] = "Blender must be running with blender-mcp connected."
+    results["note"] = "Assets sent to Blender."
     return results
 
 
@@ -1016,17 +1268,62 @@ def _encode_osc_string(s: str) -> bytes:
 
 @router.post("/export/resonite")
 async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
-    """Send world asset URL to a running Resonite client via OSC."""
+    """Send local-proxied asset URLs to a running Resonite client.
+
+    This endpoint tries two paths in order:
+
+    1. **resonite-mcp** (port 10715) — if resonite-mcp is running, calls its
+       `/api/v1/import/worldlabs` endpoint with the splat URL. resonite-mcp
+       handles ResoniteLink import, inventory upload, and OSC.
+
+    2. **Direct OSC** — fallback if resonite-mcp is not available. Sends OSC
+       packet to Resonite at port 9000 with the proxied URLs.
+    """
     osc_host = os.getenv("RESONITE_OSC_HOST", "127.0.0.1")
     osc_port = int(os.getenv("RESONITE_OSC_PORT", "9000"))
+    resonite_mcp_port = int(os.getenv("RESONITE_MCP_PORT", "10715"))
+    bridge_url = os.getenv("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
+    world_id = req.world_id or ""
 
+    local_splat_url = f"{bridge_url}/api/handoff?url={req.spz_url}" if req.spz_url else ""
+    local_mesh_url = f"{bridge_url}/api/handoff?url={req.mesh_url}" if req.mesh_url else ""
+
+    # Try resonite-mcp first
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            health = await client.get(f"http://127.0.0.1:{resonite_mcp_port}/health")
+            if health.ok:
+                import_resp = await client.post(
+                    f"http://127.0.0.1:{resonite_mcp_port}/api/v1/import/worldlabs",
+                    json={
+                        "splat_url": local_splat_url,
+                        "mesh_url": local_mesh_url,
+                        "world_name": req.world_name or "WorldLabs_World",
+                    },
+                )
+                data = import_resp.json() if import_resp.ok else {}
+                if import_resp.ok:
+                    return {
+                        "status": "ok",
+                        "world_id": world_id,
+                        "target": "resonite",
+                        "method": "resonite-mcp",
+                        "splat_url": local_splat_url,
+                        "mesh_url": local_mesh_url,
+                        "result": data,
+                    }
+    except Exception:
+        pass
+
+    # Fallback: direct OSC
     address = "/worldlabs/import"
-    type_tag = ",ss"
+    type_tag = ",sss"
     msg = (
         _encode_osc_string(address)
         + _encode_osc_string(type_tag)
-        + _encode_osc_string(req.mesh_url or "")
-        + _encode_osc_string(req.world_name)
+        + _encode_osc_string(local_splat_url)
+        + _encode_osc_string(local_mesh_url)
+        + _encode_osc_string(req.world_name or "WorldLabs_World")
     )
 
     try:
@@ -1035,16 +1332,39 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
         sock.close()
         return {
             "status": "ok",
-            "world_id": req.world_id,
+            "world_id": world_id,
             "target": "resonite",
+            "method": "direct-osc",
+            "splat_url": local_splat_url,
+            "mesh_url": local_mesh_url,
             "osc_address": address,
             "osc_host": osc_host,
             "osc_port": osc_port,
-            "mesh_url": req.mesh_url,
-            "note": "OSC sent. Resonite must be running with a /worldlabs/import receiver.",
+            "note": (
+                "OSC sent. Resonite must have a /worldlabs/import receiver "
+                "that accepts 3 strings: splat_url, mesh_url, world_name. "
+                "Install resonite-mcp for automatic import via ResoniteLink."
+            ),
         }
     except Exception as e:
-        return {"status": "error", "world_id": req.world_id, "detail": str(e)}
+        return {"status": "error", "world_id": world_id, "detail": str(e)}
+
+
+@router.get("/handoff")
+async def proxy_splat_asset(url: str = Query(...)) -> StreamingResponse:
+    """CORS proxy for remote splat files — the Spark viewer loads SPZ/GLB
+    files through this endpoint to avoid CORS issues with the Marble CDN."""
+    async def _stream() -> AsyncGenerator[bytes, None]:
+        async with httpx.AsyncClient(timeout=300, follow_redirects=True) as client:
+            async with client.stream("GET", url) as resp:
+                resp.raise_for_status()
+                async for chunk in resp.aiter_bytes(65536):
+                    yield chunk
+    return StreamingResponse(
+        _stream(),
+        media_type="application/octet-stream",
+        headers={"Access-Control-Allow-Origin": "*"},
+    )
 
 
 @router.post("/handoff")
@@ -1061,7 +1381,7 @@ async def handoff_asset(req: HandoffRequest) -> dict[str, Any]:
         osc_port = int(os.getenv("RESONITE_OSC_PORT", "9000"))
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            msg = f"/import/worldlabs,{req.world_id},{req.asset_url}".encode("utf-8")
+            msg = f"/import/worldlabs,{req.world_id},{req.asset_url}".encode()
             sock.sendto(msg, (osc_host, osc_port))
             results["status"] = "ok"
             results["detail"] = f"Sent OSC packet to {osc_host}:{osc_port}"
@@ -1152,23 +1472,26 @@ async def delete_scene(scene_id: str) -> dict[str, Any]:
 @router.get("/plex/search")
 async def search_plex(q: str = Query(...)) -> list[dict[str, Any]]:
     """Search Plex library for movies and shows."""
+    if not PLEX_TOKEN:
+        raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured. Set the PLEX_TOKEN environment variable.")
     url = f"{PLEX_BASE_URL.rstrip('/')}/search"
     params = {"query": q, "X-Plex-Token": PLEX_TOKEN}
     headers = {"Accept": "application/json"}
-    
+
     async with httpx.AsyncClient(timeout=10) as client:
         try:
             resp = await client.get(url, params=params, headers=headers)
             resp.raise_for_status()
             data = resp.json()
-            
+
             items = data.get("MediaContainer", {}).get("Metadata", [])
             results = []
             for item in items:
-                # Construct thumbnail URL
                 thumb = item.get("thumb")
-                thumb_url = f"{PLEX_BASE_URL}/photo/:/transcode?width=300&height=450&minSize=1&url={thumb}&X-Plex-Token={PLEX_TOKEN}" if thumb else ""
-                
+                plex_token_param = f"X-Plex-Token={PLEX_TOKEN}"
+                base = f"{PLEX_BASE_URL}/photo/:/transcode?width=300&height=450&minSize=1"
+                thumb_url = f"{base}&url={thumb}&{plex_token_param}" if thumb else ""
+
                 results.append({
                     "id": item.get("ratingKey"),
                     "title": item.get("title"),
@@ -1179,22 +1502,102 @@ async def search_plex(q: str = Query(...)) -> list[dict[str, Any]]:
                     "key": item.get("key")
                 })
             return results
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(status_code=e.response.status_code, detail=f"Plex search failed: {e}") from e
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Plex search failed: {e}")
+            raise HTTPException(status_code=500, detail=f"Plex search failed: {e}") from e
 
 
 @router.get("/plex/stream_url")
 async def get_plex_stream_url(key: str = Query(...)) -> dict[str, Any]:
     """Get an authenticated stream URL for a Plex item."""
+    if not PLEX_TOKEN:
+        raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured. Set the PLEX_TOKEN environment variable.")
     # Universal Transcode URL for maximum compatibility with Three.js VideoTexture
     # We use direct play if possible, but transcode to MP4/HLS for web context
-    stream_url = f"{PLEX_BASE_URL}{key}?X-Plex-Token={PLEX_TOKEN}"
-    
-    # For many browsers, a direct transcode to MP4 is safest for VideoTexture
+    plex_token_param = f"X-Plex-Token={PLEX_TOKEN}"
+    stream_url = f"{PLEX_BASE_URL}{key}?{plex_token_param}"
+
     transcode_url = (
         f"{PLEX_BASE_URL}/video/:/transcode/universal/start.mp4?"
         f"hasDirectPlay=1&protocol=http&path={key}&"
-        f"session={uuid.uuid4()}&X-Plex-Token={PLEX_TOKEN}"
+        f"session={uuid.uuid4()}&{plex_token_param}"
     )
-    
+
     return {"url": transcode_url, "direct_url": stream_url}
+
+
+# ---------------------------------------------------------------------------
+# Avatar Integration — probe avatar-mcp at 10793, list/place avatars
+# ---------------------------------------------------------------------------
+
+AVATAR_MCP_PORT = int(os.getenv("AVATAR_MCP_PORT", "10793"))
+
+
+@router.get("/avatars/status")
+async def avatar_mcp_status() -> dict[str, Any]:
+    """Check if avatar-mcp is running and list available avatars."""
+    try:
+        async with httpx.AsyncClient(timeout=3) as client:
+            health = await client.get(f"http://127.0.0.1:{AVATAR_MCP_PORT}/health")
+            health.raise_for_status()
+            avatars_resp = await client.get(f"http://127.0.0.1:{AVATAR_MCP_PORT}/api/v1/avatars")
+            avatars = avatars_resp.json() if avatars_resp.ok else []
+            return {
+                "available": True,
+                "url": f"http://127.0.0.1:{AVATAR_MCP_PORT}",
+                "avatar_count": len(avatars) if isinstance(avatars, list) else 0,
+                "avatars": avatars if isinstance(avatars, list) else [],
+            }
+    except Exception:
+        return {"available": False, "url": f"http://127.0.0.1:{AVATAR_MCP_PORT}", "avatars": []}
+
+
+@router.post("/avatars/place")
+async def place_avatar_in_world(body: dict) -> dict[str, Any]:
+    """Place an avatar from avatar-mcp into a generated world at coordinates.
+
+    Body:
+        avatar_id: str — ID of the avatar from avatar-mcp's registry
+        world_id: str (optional) — world ID for metadata
+        x, y, z: float — position in the 3D scene
+        rotation: float — yaw in radians
+
+    Returns:
+        Narration event result (the viewer will render the avatar via SSE).
+    """
+    bridge_url = os.getenv("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
+    avatar_id = body.get("avatar_id", "")
+    if not avatar_id:
+        raise HTTPException(status_code=400, detail="avatar_id is required")
+
+    # Fetch the avatar's export URL from avatar-mcp
+    avatar_url = ""
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            export_resp = await client.post(
+                f"http://127.0.0.1:{AVATAR_MCP_PORT}/api/v1/tools/call",
+                json={"name": "export_avatar", "arguments": {"avatar_id": avatar_id, "format": "glb"}},
+            )
+            if export_resp.ok:
+                data = export_resp.json()
+                avatar_url = (data.get("result") or {}).get("url", "") or data.get("message", "")
+    except Exception:
+        pass
+
+    if not avatar_url:
+        avatar_url = f"http://127.0.0.1:{AVATAR_MCP_PORT}/api/v1/avatars/{avatar_id}/export"
+
+    # Post a narration event — the spark viewer picks it up via SSE
+    narration_payload = {
+        "type": "avatar",
+        "url": avatar_url,
+        "x": float(body.get("x", 0)),
+        "y": float(body.get("y", 0)),
+        "z": float(body.get("z", 0)),
+        "rotation": float(body.get("rotation", 0)),
+    }
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.post(f"{bridge_url}/api/narration", json=narration_payload)
+        resp.raise_for_status()
+        return resp.json()
