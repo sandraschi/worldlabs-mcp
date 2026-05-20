@@ -145,7 +145,7 @@ def _pano_url(world: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def register_prefab_tools(mcp) -> None:  # noqa: ANN001
+def register_prefab_tools(mcp) -> None:
     """Register show_worlds_card and show_world_card on the given FastMCP instance."""
 
     @mcp.tool(app=True)

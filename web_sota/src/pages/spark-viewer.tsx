@@ -1,4 +1,8 @@
-import { SparkRenderer, SplatMesh, SparkXr } from "@sparkjsdev/spark";
+import { api } from "@/lib/api";
+import { logger } from "@/lib/logger";
+import { type CachedSplatMeta, cacheSplat, clearSplatCache, deleteCachedSplat, getCachedSplat, getSplatCacheSize, getStorageQuota, listCachedSplats } from "@/lib/splat-cache";
+import { cn } from "@/lib/utils";
+import { SparkRenderer, SparkXr, SplatMesh } from "@sparkjsdev/spark";
 import {
   AlertCircle,
   ArrowLeft,
@@ -37,11 +41,8 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { api } from "@/lib/api";
-import { cn } from "@/lib/utils";
-import { logger } from "@/lib/logger";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 const PORTAL_PRESETS = [
   {
@@ -70,12 +71,12 @@ interface ProximityTrigger {
 
 // ── Manifest Hub (Landing State) ──────────────────────────────────────────────
 
-function ManifestHub({ 
-  onLoad, 
-  onBrowse 
-}: { 
-  onLoad: (url: string, name: string) => void,
-  onBrowse: () => void
+function ManifestHub({
+  onLoad,
+  onBrowse,
+}: {
+  onLoad: (url: string, name: string) => void;
+  onBrowse: () => void;
 }) {
   return (
     <div className="absolute inset-0 flex items-center justify-center p-8 bg-slate-950/40 backdrop-blur-sm z-20">
@@ -84,16 +85,17 @@ function ManifestHub({
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
 
         <header className="space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cosmos-500/10 border border-cosmos-500/20 text-cosmos-400 text-[10px] font-black uppercase tracking-[0.2em]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cosmos-500/10 border border-cosmos-500/20 text-cosmos-400 text-xs font-black uppercase tracking-[0.2em]">
             <Zap className="w-3 h-3" />
             Core Infrastructure v2.0
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
             Manifest your <span className="gradient-text">Spatial Intent.</span>
           </h1>
-          <p className="text-slate-400 text-sm max-w-2xl mx-auto leading-relaxed">
-            Initialize high-fidelity 3D worlds directly into the Rust-powered Spark engine. 
-            Connect a remote manifest or manifest a local workspace below.
+          <p className="text-slate-300 text-sm max-w-2xl mx-auto leading-relaxed">
+            Initialize high-fidelity 3D worlds directly into the Rust-powered
+            Spark engine. Connect a remote manifest or manifest a local
+            workspace below.
           </p>
         </header>
 
@@ -105,11 +107,15 @@ function ManifestHub({
               className="group glass-card p-6 text-left hover:border-cosmos-500/50 hover:shadow-2xl hover:shadow-cosmos-500/10 transition-all duration-300 space-y-4"
             >
               <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-cosmos-600/20 group-hover:border-cosmos-500/30 transition-all">
-                <Globe2 className="w-5 h-5 text-slate-400 group-hover:text-cosmos-300" />
+                <Globe2 className="w-5 h-5 text-slate-300 group-hover:text-cosmos-300" />
               </div>
               <div>
-                <h3 className="text-xs font-black uppercase tracking-widest text-white">{p.name}</h3>
-                <p className="text-[10px] text-slate-500 mt-1">Remote Manifest Portal</p>
+                <h3 className="text-xs font-black uppercase tracking-widest text-white">
+                  {p.name}
+                </h3>
+                <p className="text-xs text-slate-300 mt-1">
+                  Remote Manifest Portal
+                </p>
               </div>
               <ChevronRight className="w-4 h-4 text-slate-700 group-hover:text-cosmos-400 group-hover:translate-x-1 transition-all" />
             </button>
@@ -125,9 +131,12 @@ function ManifestHub({
               <FolderOpen className="w-4 h-4" />
               Initialize Local Workspace
             </button>
-            <div className="text-[10px] text-slate-500 uppercase font-black tracking-widest">or</div>
-            <div className="text-xs text-slate-400 italic">
-              Drag and drop an <span className="text-cosmos-400 font-bold">.SPZ</span> file here
+            <div className="text-xs text-slate-300 uppercase font-black tracking-widest">
+              or
+            </div>
+            <div className="text-xs text-slate-300 italic">
+              Drag and drop an{" "}
+              <span className="text-cosmos-400 font-bold">.SPZ</span> file here
             </div>
           </div>
         </div>
@@ -147,6 +156,7 @@ export function SparkViewer() {
   const sparkRef = useRef<SparkRenderer | null>(null);
   const splatRef = useRef<SplatMesh | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const blobUrlRef = useRef<string[]>([]);
 
   // Spatial Audio Refs
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -185,6 +195,15 @@ export function SparkViewer() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [lastConsoleClick, setLastConsoleClick] = useState(0);
   const [consoleAlert, setConsoleAlert] = useState<string | null>(null);
+  const [availableUrls, setAvailableUrls] = useState<Record<string, string>>({});
+  const [selectedRes, setSelectedRes] = useState("full");
+  const [cacheSize, setCacheSize] = useState(0);
+  const [loadingMsg, setLoadingMsg] = useState("");
+  const [caption, setCaption] = useState("");
+  const [showCachePanel, setShowCachePanel] = useState(false);
+  const [cachedItems, setCachedItems] = useState<CachedSplatMeta[]>([]);
+  const [quotaInfo, setQuotaInfo] = useState({ usage: 0, quota: 0 });
+  const [exportState, setExportState] = useState<Record<string, "idle" | "loading" | "ok" | "error">>({});
 
   // Geofencing Refs
   const triggersRef = useRef<ProximityTrigger[]>([]);
@@ -204,16 +223,31 @@ export function SparkViewer() {
   const consoleCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const consoleTextureRef = useRef<THREE.CanvasTexture | null>(null);
   const consolePlaneRef = useRef<THREE.Mesh | null>(null);
+  const keysRef = useRef<Set<string>>(new Set());
+  const moveSpeedRef = useRef(2.5);
 
   // Pull ?url=... & ?name=... from the query string
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const url = params.get("url");
     const name = params.get("name") ?? "";
+    const cap = params.get("caption") ?? "";
+
+    // Read available resolution URLs
+    const urls: Record<string, string> = {};
+    const full = params.get("splat_full");
+    const medium = params.get("splat_500k");
+    const low = params.get("splat_100k");
+    if (full) urls.full = full;
+    if (medium) urls["500k"] = medium;
+    if (low) urls["100k"] = low;
+    setAvailableUrls(urls);
+
     if (url) {
       setUrlInput(url);
       setLoadedName(name);
       setWorldName(name);
+      setCaption(cap);
       void loadWorld(url);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -221,7 +255,7 @@ export function SparkViewer() {
 
   function cleanup() {
     worldSessionIdRef.current++; // Invalidate any pending async operations
-    
+
     if (rendererRef.current) {
       try {
         rendererRef.current.dispose();
@@ -231,19 +265,25 @@ export function SparkViewer() {
       }
       rendererRef.current = null;
     }
-    
+
     if (controlsRef.current) {
-      try { controlsRef.current.dispose(); } catch {}
+      try {
+        controlsRef.current.dispose();
+      } catch {}
       controlsRef.current = null;
     }
 
     if (sparkRef.current) {
-      try { sparkRef.current.dispose(); } catch {}
+      try {
+        sparkRef.current.dispose();
+      } catch {}
       sparkRef.current = null;
     }
-    
+
     if (splatRef.current) {
-      try { splatRef.current.dispose(); } catch {}
+      try {
+        splatRef.current.dispose();
+      } catch {}
       splatRef.current = null;
     }
 
@@ -255,20 +295,22 @@ export function SparkViewer() {
     cameraRef.current = null;
 
     Object.values(mixersRef.current).forEach((m) => {
-      try { m.stopAllAction(); } catch {}
+      try {
+        m.stopAllAction();
+      } catch {}
     });
     mixersRef.current = {};
-    
+
     if (mountRef.current) {
       mountRef.current.innerHTML = "";
     }
-    
+
     if (audioCtxRef.current) {
       const ctx = audioCtxRef.current;
       audioCtxRef.current = null;
       void ctx.close();
     }
-    
+
     pannerRef.current = null;
     videoSurfacesRef.current = {};
     avatarsRef.current = {};
@@ -292,8 +334,6 @@ export function SparkViewer() {
 
       audioCtxRef.current = ctx;
       pannerRef.current = panner;
-
-      logger.info("Spatial Audio Engine Initialized");
     }
   }
 
@@ -311,7 +351,6 @@ export function SparkViewer() {
         z: pos.z,
         is_loop: true,
       });
-      logger.info("Broadcast Success", { res });
     } catch (e) {
       logger.error("Broadcast Error", { error: e });
     } finally {
@@ -323,6 +362,7 @@ export function SparkViewer() {
 
   async function loadWorld(url: string) {
     if (!mountRef.current) return;
+    cleanup();
     setStatus("loading");
     setError(null);
     const thisSessionId = ++worldSessionIdRef.current;
@@ -376,36 +416,78 @@ export function SparkViewer() {
           logger.info("Immersive Session Ended");
           setIsFullscreen(false);
           if (controlsRef.current) controlsRef.current.update();
-        }
+        },
       });
       xrRef.current = xr;
 
-      // 3. Load Splat (.spz or .rad)
-      // Try direct URL first (Marble CDN supports CORS).
-      // If it fails, we'll try through the handoff proxy.
-      const isRemote = url.startsWith("http");
-      const finalUrl = isRemote
-        ? `/api/handoff?url=${encodeURIComponent(url)}`
-        : url;
+      // 3. Load Splat — from cache or network (with proxy fallback)
+      let splatSrc: string;
+      let fromCache = false;
+      const cached = await getCachedSplat(url);
+      if (cached) {
+        splatSrc = URL.createObjectURL(cached.blob);
+        fromCache = true;
+      } else {
+        setLoadingMsg("Downloading SPZ...");
+        let blob: Blob;
+        try {
+          const directResp = await fetch(url);
+          if (!directResp.ok) throw new Error(`Direct fetch: ${directResp.status}`);
+          blob = await directResp.blob();
+        } catch {
+          setLoadingMsg("Direct failed, trying proxy...");
+          const proxyUrl = url.startsWith("http")
+            ? `/api/handoff?url=${encodeURIComponent(url)}`
+            : url;
+          const proxyResp = await fetch(proxyUrl);
+          if (!proxyResp.ok) throw new Error(`Proxy fetch: ${proxyResp.status}`);
+          blob = await proxyResp.blob();
+        }
+        await cacheSplat(url, blob);
+        splatSrc = URL.createObjectURL(blob);
+        void updateCacheSize();
+      }
 
-      logger.info("Loading splat", { finalUrl, isRemote });
-      const splat = new SplatMesh({
-        url: finalUrl,
-        progressive: finalUrl.endsWith(".rad"),
-      });
+      setLoadingMsg("");
+      for (const old of blobUrlRef.current) URL.revokeObjectURL(old);
+      blobUrlRef.current = splatSrc.startsWith("blob:") ? [splatSrc] : [];
+      const splat = new SplatMesh({ url: splatSrc });
       scene.add(splat);
 
       // 4. Render Loop
       renderer.setAnimationLoop((time, xrFrame) => {
         if (thisSessionId !== worldSessionIdRef.current) return;
-        
+
         try {
           const delta = clockRef.current.getDelta();
           const localFrame = localFrameRef.current;
-          
+
           // OrbitControls damping
           if (controlsRef.current && !renderer.xr.isPresenting) {
             controlsRef.current.update();
+          }
+
+          // Keyboard movement (WASD + Q/E)
+          const keys = keysRef.current;
+          if (keys.size > 0) {
+            const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            fwd.y = 0;
+            fwd.normalize();
+            const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+            right.y = 0;
+            right.normalize();
+            const speed = moveSpeedRef.current * delta;
+            const move = new THREE.Vector3();
+            if (keys.has("KeyW") || keys.has("ArrowUp")) move.add(fwd.clone().multiplyScalar(speed));
+            if (keys.has("KeyS") || keys.has("ArrowDown")) move.add(fwd.clone().multiplyScalar(-speed));
+            if (keys.has("KeyA") || keys.has("ArrowLeft")) move.add(right.clone().multiplyScalar(-speed));
+            if (keys.has("KeyD") || keys.has("ArrowRight")) move.add(right.clone().multiplyScalar(speed));
+            if (keys.has("KeyE")) move.y += speed;
+            if (keys.has("KeyQ")) move.y -= speed;
+            if (move.length() > 0) {
+              camera.position.add(move);
+              controls.target.add(move);
+            }
           }
 
           if (sparkRef.current && camera) {
@@ -490,9 +572,7 @@ export function SparkViewer() {
 
           renderer.render(scene, camera);
         } catch (e) {
-          // Log only once per session to avoid spamming
           logger.error("Render Loop Component Failure", { error: String(e) });
-          renderer.setAnimationLoop(null);
         }
       });
 
@@ -503,11 +583,9 @@ export function SparkViewer() {
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
-      controls.screenSpacePanning = false;
+      controls.screenSpacePanning = true;
       controls.minDistance = 1;
       controls.maxDistance = 50;
-      controls.minPolarAngle = 0.1;
-      controls.maxPolarAngle = Math.PI / 2 - 0.05;
       controls.target.set(0, 1.6, 0);
       controls.update();
       controlsRef.current = controls;
@@ -517,42 +595,23 @@ export function SparkViewer() {
       splatRef.current = splat;
 
       // Force initial resize to match container
-      camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+      camera.aspect =
+        mountRef.current.clientWidth / mountRef.current.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+      renderer.setSize(
+        mountRef.current.clientWidth,
+        mountRef.current.clientHeight,
+      );
 
-      // Auto-fit camera to splat bounding box once loaded
-      const fitTimer = setInterval(() => {
-        if (!splat.numSplats) return;
-        clearInterval(fitTimer);
-        const box = new THREE.Box3().setFromObject(splat);
-        if (box.isEmpty()) {
-          setStatus("ready");
-          return;
-        }
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z, 1);
+      // 5. Await splat initialization (not polling — use the promise)
+      try {
+        await splat.initialized;
+      } catch (initErr) {
+        logger.error("Splat initialization failed", { error: initErr });
+        throw new Error(`Splat failed to load: ${initErr}`);
+      }
 
-        // Decide interior vs exterior based on proportions
-        // interior: roughly cubic, moderate height relative to footprint
-        const footprint = size.x * size.z;
-        const volume = size.x * size.y * size.z;
-        const isInterior = footprint > 0 && (volume / footprint) < size.x * 0.8;
-
-        if (isInterior) {
-          // Inside the space: camera at centre, slightly back and up
-          const inset = Math.min(size.x, size.z) * 0.3;
-          camera.position.set(center.x, center.y + size.y * 0.2, center.z + inset);
-        } else {
-          // Outside looking in: camera pulled back 1.5x max dimension
-          const dist = maxDim * 1.5;
-          camera.position.set(center.x, center.y + maxDim * 0.3, center.z + dist);
-        }
-        controls.target.copy(center);
-        controls.update();
-        setStatus("ready");
-      }, 200);
+      setStatus("ready");
 
       // 5. Initialize Geofencing for the demo asset
       if (loadedName.includes("Tropical Luxury Residence")) {
@@ -619,6 +678,17 @@ export function SparkViewer() {
     }
   }
 
+  function handleLoadUrlFromPreset(url: string, name: string) {
+    setUrlInput(url);
+    setLoadedName(name);
+    setWorldName(name);
+    void loadWorld(url);
+  }
+
+  function handleBrowseFile() {
+    fileInputRef.current?.click();
+  }
+
   function handleCopyLink() {
     const url = new URL(window.location.href);
     if (urlInput) url.searchParams.set("url", urlInput);
@@ -652,8 +722,6 @@ export function SparkViewer() {
       source.buffer = audioBuffer;
       source.connect(pannerRef.current);
       source.start(0);
-
-      logger.info(`Playing spatial narration at [${x}, ${y}, ${z}]: "${text}"`);
 
       // Handle Duration for Lock (approx 100 words/min = 600ms per word)
       const durationMs = text.split(" ").length * 600 + 1000;
@@ -923,6 +991,45 @@ export function SparkViewer() {
     } catch (err) {
       /* silent */
     }
+  }
+
+  async function updateCacheSize() {
+    const bytes = await getSplatCacheSize();
+    setCacheSize(bytes);
+    const items = await listCachedSplats();
+    setCachedItems(items);
+    const quota = await getStorageQuota();
+    setQuotaInfo(quota);
+  }
+
+  async function handleClearCache() {
+    await clearSplatCache();
+    setCacheSize(0);
+    setCachedItems([]);
+  }
+
+  async function handleHandoff(target: "blender" | "resonite" | "unity3d", type: "splat" | "mesh") {
+    const key = `${target}-${type}`;
+    setExportState((s) => ({ ...s, [key]: "loading" }));
+    try {
+      const assetUrl = urlInput;
+      if (!assetUrl) throw new Error("No SPZ URL loaded");
+      const res = await api.handoffAsset({
+        world_id: worldId,
+        target,
+        asset_type: type,
+        asset_url: assetUrl,
+      });
+      setExportState((s) => ({ ...s, [key]: res.status === "ok" ? "ok" : "error" }));
+    } catch {
+      setExportState((s) => ({ ...s, [key]: "error" }));
+    }
+    setTimeout(() => setExportState((s) => ({ ...s, [key]: "idle" })), 3500);
+  }
+
+  async function handleDeleteCachedItem(key: string) {
+    await deleteCachedSplat(key);
+    await updateCacheSize();
   }
 
   function handleSpawnConsole(data: any) {
@@ -1210,9 +1317,9 @@ export function SparkViewer() {
           const mixer = new THREE.AnimationMixer(model);
           // Play the first animation clip (usually 'Walk' or 'Idle')
           const action = mixer.clipAction(gltf.animations[0]);
-          action.play();
-          mixersRef.current[data.id] = mixer;
-          console.log(
+            action.play();
+            logger.debug(
+
             `Initialized animation mixer for agent ${data.id} (${gltf.animations.length} clips)`,
           );
         }
@@ -1238,10 +1345,16 @@ export function SparkViewer() {
     const handleRejection = (event: PromiseRejectionEvent) => {
       logger.error("Unhandled Rejection Sniffed", {
         reason: String(event.reason),
-        stack: event.reason?.stack
+        stack: event.reason?.stack,
       });
     };
     window.addEventListener("unhandledrejection", handleRejection);
+
+    // Keyboard movement listeners
+    const onKeyDown = (e: KeyboardEvent) => { keysRef.current.add(e.code); };
+    const onKeyUp = (e: KeyboardEvent) => { keysRef.current.delete(e.code); };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
 
     // Fetch local assets for the import tab
     void fetchLocalAssets();
@@ -1260,6 +1373,8 @@ export function SparkViewer() {
       clearInterval(statsInterval);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("unhandledrejection", handleRejection);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
       cleanup();
     };
   }, []);
@@ -1297,26 +1412,9 @@ export function SparkViewer() {
   }, []);
 
   const resetView = () => {
-    if (cameraRef.current && controlsRef.current && splatRef.current) {
-      const box = new THREE.Box3().setFromObject(splatRef.current);
-      if (!box.isEmpty()) {
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z, 1);
-        const footprint = size.x * size.z;
-        const volume = size.x * size.y * size.z;
-        const isInterior = footprint > 0 && (volume / footprint) < size.x * 0.8;
-        if (isInterior) {
-          const inset = Math.min(size.x, size.z) * 0.3;
-          cameraRef.current.position.set(center.x, center.y + size.y * 0.2, center.z + inset);
-        } else {
-          cameraRef.current.position.set(center.x, center.y + maxDim * 0.3, center.z + maxDim * 1.5);
-        }
-        controlsRef.current.target.copy(center);
-      } else {
-        cameraRef.current.position.set(0, 1.6, 4);
-        controlsRef.current.target.set(0, 1.6, 0);
-      }
+    if (cameraRef.current && controlsRef.current) {
+      cameraRef.current.position.set(0, 1.6, 4);
+      controlsRef.current.target.set(0, 1.6, 0);
       controlsRef.current.update();
     }
   };
@@ -1345,17 +1443,17 @@ export function SparkViewer() {
   return (
     <div className="flex flex-col h-[calc(100vh-5rem)] gap-4 page-enter">
       <div className="flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <Globe2 className="w-5 h-5 text-cosmos-400" aria-hidden="true" />
-          <div>
-            <h2 className="text-lg font-bold gradient-text">
-              Spark 2.0 High-Fidelity Viewer
+        <div className="flex items-center gap-3 min-w-0">
+          <Globe2 className="w-5 h-5 text-cosmos-400 shrink-0" aria-hidden="true" />
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold text-white truncate">
+              {loadedName || "Spark 2.0 Viewer"}
             </h2>
-            <p className="text-sm text-slate-500 mt-0.5">
-              {loadedName
-                ? loadedName
-                : "Load a .rad or .spz world"}
-            </p>
+            {caption && (
+              <p className="text-xs text-slate-300 truncate leading-relaxed">
+                {caption}
+              </p>
+            )}
           </div>
         </div>
 
@@ -1373,7 +1471,7 @@ export function SparkViewer() {
             "flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-xs font-medium",
             spatialVoiceEnabled
               ? "bg-aurora-500/20 border-aurora-500/50 text-aurora-400 shadow-[0_0_15px_-3px_rgba(74,222,128,0.3)]"
-              : "bg-white/[0.04] border-white/[0.08] text-slate-500 hover:text-slate-300",
+              : "bg-white/[0.04] border-white/[0.08] text-slate-300 hover:text-slate-300",
           )}
         >
           <Volume2
@@ -1425,7 +1523,7 @@ export function SparkViewer() {
         <button
           onClick={handleCopyLink}
           disabled={!urlInput}
-          className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-400 transition-all shadow-lg"
+          className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-300 transition-all shadow-lg"
           title="Copy viewer link"
         >
           {copied ? (
@@ -1433,6 +1531,142 @@ export function SparkViewer() {
           ) : (
             <Link className="w-3.5 h-3.5" />
           )}
+        </button>
+
+        {/* Resolution selector */}
+        {Object.keys(availableUrls).length > 0 && (
+          <div className="flex items-center gap-0.5 bg-white/[0.04] rounded-lg p-0.5 border border-white/[0.06]">
+            {(["full", "500k", "100k"] as const).map((key) => {
+              if (!availableUrls[key]) return null;
+              const label = key === "full" ? "Full" : key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setSelectedRes(key);
+                    const newUrl = availableUrls[key];
+                    if (newUrl) loadWorld(newUrl);
+                  }}
+                  className={cn(
+                    "px-2 py-1 rounded-md text-xs font-bold transition-all",
+                    selectedRes === key
+                      ? "bg-cosmos-600/40 text-cosmos-300 shadow-sm"
+                      : "text-slate-300 hover:text-slate-300",
+                  )}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Cache management */}
+        {cacheSize > 0 && (
+          <div className="relative">
+            <button
+              onClick={() => { setShowCachePanel(!showCachePanel); if (!showCachePanel) void updateCacheSize(); }}
+              title={`Cached splats: ${(cacheSize / 1_000_000).toFixed(1)}MB`}
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs text-slate-300 hover:text-slate-300 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-all"
+            >
+              Cache {(cacheSize / 1_000_000).toFixed(1)}MB
+            </button>
+            {showCachePanel && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowCachePanel(false)} />
+                <div className="absolute right-0 top-full mt-2 w-80 glass-card p-4 z-50 shadow-2xl animate-in slide-in-from-top-2 duration-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-cosmos-300">
+                      Cache
+                    </h3>
+                    <button
+                      onClick={() => setShowCachePanel(false)}
+                      className="text-slate-300 hover:text-white text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="space-y-2 text-xs text-slate-300 mb-3">
+                    <div className="flex justify-between">
+                      <span>IndexedDB</span>
+                      <span className="text-slate-300">
+                        {(cacheSize / 1_000_000).toFixed(1)}MB
+                      </span>
+                    </div>
+                    {quotaInfo.quota > 0 && (
+                      <div className="flex justify-between">
+                        <span title="Total browser IndexedDB storage used across all sites">Storage</span>
+                        <span className="text-slate-300">
+                          {(quotaInfo.usage / 1_000_000).toFixed(0)}MB / {(quotaInfo.quota / 1_000_000_000).toFixed(1)}GB
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span>Items</span>
+                      <span className="text-slate-300">{cachedItems.length}</span>
+                    </div>
+                    {quotaInfo.quota > 0 && (
+                      <div className="w-full h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-cosmos-500/60 rounded-full transition-all"
+                          style={{ width: `${Math.min((quotaInfo.usage / quotaInfo.quota) * 100, 100)}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {cachedItems.length > 0 && (
+                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                      <p className="text-xs uppercase font-black text-slate-300 tracking-wider mb-1">
+                        Cached files
+                      </p>
+                      {cachedItems.map((item) => {
+                        const label = item.key.split("/").pop() || item.key.slice(0, 30);
+                        const age = Math.round((Date.now() - item.timestamp) / 60000);
+                        const ageStr = age < 60 ? `${age}m ago` : `${Math.round(age / 60)}h ago`;
+                        return (
+                          <div
+                            key={item.key}
+                            className="flex items-center justify-between gap-2 px-2 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] transition-all group"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs text-slate-300 truncate" title={item.key}>
+                                {label}
+                              </p>
+                              <p className="text-xs text-slate-300">
+                                {(item.size / 1_000_000).toFixed(1)}MB · {ageStr}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteCachedItem(item.key)}
+                              className="shrink-0 p-1 rounded text-slate-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                              title="Remove from cache"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <button
+                    onClick={handleClearCache}
+                    className="w-full mt-3 px-3 py-1.5 rounded-lg text-xs font-bold text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/30 transition-all"
+                  >
+                    Clear All Cache
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Fullscreen toggle */}
+        <button
+          onClick={toggleFullscreen}
+          className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-300 hover:text-white transition-all"
+          title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+        >
+          {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
         </button>
 
         <button
@@ -1460,7 +1694,7 @@ export function SparkViewer() {
       </div>
 
       {/* Formats note */}
-      <div className="flex items-center justify-between text-[10px] text-slate-600 flex-shrink-0 px-1">
+      <div className="flex items-center justify-between text-xs text-slate-300 flex-shrink-0 px-1">
         <div className="flex items-center gap-1.5">
           <Info className="w-3 h-3" />
           Spark 2.0 (Rust/WASM) Renderer • 100M+ Splat Budget
@@ -1474,7 +1708,7 @@ export function SparkViewer() {
         </div>
       </div>
 
-        {/* Render Canvas */}
+      {/* Render Canvas */}
       <div
         className={cn(
           "relative flex-1 min-h-0 rounded-xl overflow-hidden border border-white/[0.06] bg-black transition-all duration-300 shadow-2xl group cursor-crosshair",
@@ -1491,6 +1725,58 @@ export function SparkViewer() {
         <div ref={mountRef} className="absolute inset-0" />
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/40 via-transparent to-black/60 z-10" />
 
+        {/* Idle / Landing State */}
+        {status === "idle" && (
+          <ManifestHub
+            onLoad={handleLoadUrlFromPreset}
+            onBrowse={handleBrowseFile}
+          />
+        )}
+
+        {/* Loading Overlay */}
+        {status === "loading" && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-cosmos-500/30 border-t-cosmos-400 rounded-full animate-spin" />
+              <p className="text-sm text-slate-300 font-medium">{loadingMsg || "Loading..."}</p>
+              <p className="text-xs text-slate-300">{caption || loadedName || ""}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error Overlay */}
+        {status === "error" && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm">
+            <div className="glass-card p-6 max-w-md text-center space-y-4 animate-in zoom-in-95 duration-300">
+              <XCircle className="w-10 h-10 text-red-400 mx-auto" />
+              <div>
+                <h3 className="text-sm font-bold text-white">Engine Fault</h3>
+                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                  {error || "Unknown error"}
+                </p>
+              </div>
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={() => {
+                    setStatus("idle");
+                    setError("");
+                    cleanup();
+                  }}
+                  className="px-4 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08] text-xs text-slate-300 hover:bg-white/[0.1] transition-all"
+                >
+                  Back to Hub
+                </button>
+                <button
+                  onClick={() => loadWorld(urlInput)}
+                  className="px-4 py-2 rounded-lg bg-cosmos-600/40 border border-cosmos-500/30 text-xs text-cosmos-300 hover:bg-cosmos-600/60 transition-all"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Spatial Toolbox Panel */}
         {showToolbox && (
           <div className="absolute top-4 right-4 w-72 glass-card p-4 z-40 shadow-2xl animate-in slide-in-from-right-4 duration-300 border-cosmos-500/30">
@@ -1501,22 +1787,22 @@ export function SparkViewer() {
               </h3>
               <button
                 onClick={() => setShowToolbox(false)}
-                className="text-slate-500 hover:text-white"
+                className="text-slate-300 hover:text-white"
               >
                 <Minimize2 className="w-3.5 h-3.5" />
               </button>
             </div>
 
             <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 mb-4">
-              {(["studio", "gallery", "import", "plex"] as const).map((t) => (
+              {(["studio", "gallery", "import", "plex", "handoff"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setToolboxTab(t)}
                   className={cn(
-                    "flex-1 text-[8px] font-black uppercase tracking-tighter py-1.5 rounded-lg transition-all",
+                    "flex-1 text-xs font-black uppercase tracking-tighter py-1.5 rounded-lg transition-all",
                     toolboxTab === t
                       ? "bg-cosmos-500/20 text-cosmos-300 border border-cosmos-500/20"
-                      : "text-slate-500 font-bold",
+                      : "text-slate-300 font-bold",
                   )}
                 >
                   {t}
@@ -1527,7 +1813,7 @@ export function SparkViewer() {
             {toolboxTab === "studio" && (
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                  <label className="text-xs uppercase font-bold text-slate-300 tracking-wider">
                     Direct Narration / Asset URL
                   </label>
                   <textarea
@@ -1539,15 +1825,55 @@ export function SparkViewer() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => broadcastEvent("speech")} disabled={!toolboxPrompt || isBroadcasting} className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-aurora-500/10 hover:border-aurora-500/30 transition-all"><Volume2 className="w-3.5 h-3.5" />Narrate</button>
-                  <button onClick={() => broadcastEvent("audio")} disabled={!toolboxPrompt || isBroadcasting} className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-magenta-500/10 hover:border-magenta-500/30 transition-all"><Music className="w-3.5 h-3.5" />Audio</button>
-                  <button onClick={() => broadcastEvent("avatar")} disabled={!toolboxPrompt || isBroadcasting} className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-cosmos-500/10 hover:border-cosmos-500/30 transition-all"><UserPlus className="w-3.5 h-3.5" />Spawn Agent</button>
-                  <button onClick={() => broadcastEvent("video")} disabled={!toolboxPrompt || isBroadcasting} className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all"><Video className="w-3.5 h-3.5" />Spawn Video</button>
+                  <button
+                    onClick={() => broadcastEvent("speech")}
+                    disabled={!toolboxPrompt || isBroadcasting}
+                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:bg-aurora-500/10 hover:border-aurora-500/30 transition-all"
+                  >
+                    <Volume2 className="w-3.5 h-3.5" />
+                    Narrate
+                  </button>
+                  <button
+                    onClick={() => broadcastEvent("audio")}
+                    disabled={!toolboxPrompt || isBroadcasting}
+                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:bg-magenta-500/10 hover:border-magenta-500/30 transition-all"
+                  >
+                    <Music className="w-3.5 h-3.5" />
+                    Audio
+                  </button>
+                  <button
+                    onClick={() => broadcastEvent("avatar")}
+                    disabled={!toolboxPrompt || isBroadcasting}
+                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:bg-cosmos-500/10 hover:border-cosmos-500/30 transition-all"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    Spawn Agent
+                  </button>
+                  <button
+                    onClick={() => broadcastEvent("video")}
+                    disabled={!toolboxPrompt || isBroadcasting}
+                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all"
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    Spawn Video
+                  </button>
                 </div>
 
                 <div className="flex gap-2">
-                  <button onClick={handleBakeScene} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-void-600/30 text-void-300 border border-void-500/30 hover:bg-void-600/50 transition-all group"><Save className="w-3.5 h-3.5" />Bake</button>
-                  <button onClick={handleRestoreScene} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-cosmos-600/30 text-cosmos-300 border border-cosmos-500/30 hover:bg-cosmos-600/50 transition-all group"><RotateCcw className="w-3.5 h-3.5" />Restore</button>
+                  <button
+                    onClick={handleBakeScene}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-void-600/30 text-void-300 border border-void-500/30 hover:bg-void-600/50 transition-all group"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    Bake
+                  </button>
+                  <button
+                    onClick={handleRestoreScene}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-cosmos-600/30 text-cosmos-300 border border-cosmos-500/30 hover:bg-cosmos-600/50 transition-all group"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Restore
+                  </button>
                 </div>
               </div>
             )}
@@ -1558,18 +1884,18 @@ export function SparkViewer() {
                   <button
                     key={p.name}
                     onClick={() => {
-                     const cam = cameraRef.current;
-                     if (!cam) return;
-                     const data = { 
-                       type: "portal", 
-                       url: p.url, 
-                       x: cam.position.x, 
-                       y: cam.position.y, 
-                       z: cam.position.z 
-                     };
-                     void api.broadcastNarration(data as any);
+                      const cam = cameraRef.current;
+                      if (!cam) return;
+                      const data = {
+                        type: "portal",
+                        url: p.url,
+                        x: cam.position.x,
+                        y: cam.position.y,
+                        z: cam.position.z,
+                      };
+                      void api.broadcastNarration(data as any);
                     }}
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cosmos-500/50 text-[10px] font-bold text-slate-300 transition-all"
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cosmos-500/50 text-xs font-bold text-slate-300 transition-all"
                   >
                     {p.name}
                     <ExternalLink className="w-3 h-3" />
@@ -1581,20 +1907,89 @@ export function SparkViewer() {
             {toolboxTab === "import" && (
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300 max-h-[300px] overflow-y-auto pr-1">
                 {localAssets.map((f) => (
-                  <button key={f} onClick={() => { setToolboxPrompt(`http://localhost:10865/api/local-assets/${f}`); }} className="w-full text-left p-2 rounded-lg hover:bg-white/5 truncate text-[10px] text-slate-400 font-bold">{f}</button>
+                  <button
+                    key={f}
+                    onClick={() => {
+                      setToolboxPrompt(
+                        `http://localhost:10865/api/local-assets/${f}`,
+                      );
+                    }}
+                    className="w-full text-left p-2 rounded-lg hover:bg-white/5 truncate text-xs text-slate-300 font-bold"
+                  >
+                    {f}
+                  </button>
                 ))}
-                <button onClick={fetchLocalAssets} className="w-full text-[9px] font-black text-slate-500 uppercase mt-2">Refresh</button>
+                <button
+                  onClick={fetchLocalAssets}
+                  className="w-full text-xs font-black text-slate-300 uppercase mt-2"
+                >
+                  Refresh
+                </button>
               </div>
             )}
 
             {toolboxTab === "plex" && (
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                <input value={plexQuery} onChange={e => setPlexQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && handlePlexSearch()} className="input-glass w-full text-[10px]" placeholder="Search Plex..." />
+                <input
+                  value={plexQuery}
+                  onChange={(e) => setPlexQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handlePlexSearch()}
+                  className="input-glass w-full text-xs"
+                  placeholder="Search Plex..."
+                />
                 <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
-                  {plexResults.map(m => (
-                    <button key={m.id} onClick={() => handlePlexStream(m)} className="w-full flex gap-2 p-1.5 rounded-lg hover:bg-orange-500/10 truncate font-bold text-slate-300 text-[10px]">{m.title}</button>
+                  {plexResults.map((m) => (
+                    <button
+                      key={m.id}
+                      onClick={() => handlePlexStream(m)}
+                      className="w-full flex gap-2 p-1.5 rounded-lg hover:bg-orange-500/10 truncate font-bold text-slate-300 text-xs"
+                    >
+                      {m.title}
+                    </button>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {toolboxTab === "handoff" && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                  DCC Export — sends the loaded SPZ to your DCC tool via the bridge.
+                </div>
+                {[
+                  { target: "blender" as const, label: "Blender", port: "10700" },
+                  { target: "resonite" as const, label: "Resonite", port: "10715" },
+                  { target: "unity3d" as const, label: "Unity", port: "10730" },
+                ].map(({ target, label, port }) => (
+                  <div key={target} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-300">{label}</span>
+                      <span className="text-xs text-slate-300">:{port}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      {(["splat", "mesh"] as const).map((type) => {
+                        const key = `${target}-${type}`;
+                        const state = exportState[key] ?? "idle";
+                        return (
+                          <button
+                            key={key}
+                            disabled={state === "loading"}
+                            onClick={() => handleHandoff(target, type)}
+                            className={cn(
+                              "flex-1 px-2 py-1.5 rounded-lg text-xs font-bold border transition-all",
+                              state === "loading" && "bg-amber-500/20 border-amber-500/30 text-amber-300",
+                              state === "ok" && "bg-aurora-500/20 border-aurora-500/30 text-aurora-400",
+                              state === "error" && "bg-red-500/20 border-red-500/30 text-red-400",
+                              state === "idle" && "bg-white/[0.04] border-white/[0.08] text-slate-300 hover:bg-white/[0.08] hover:text-slate-200",
+                            )}
+                          >
+                            {state === "loading" ? "..." : type === "splat" ? "SPZ" : "GLB"}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -1602,22 +1997,34 @@ export function SparkViewer() {
 
         {/* Local Intelligence Overlay */}
         <div className="absolute bottom-4 left-4 pointer-events-none p-4 z-30">
-          <div className="glass-card px-3 py-1.5 text-[10px] text-cosmos-300 flex items-center gap-2">
+          <div className="glass-card px-3 py-1.5 text-xs text-cosmos-300 flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-aurora-500 animate-pulse" />
             Sovereign Environment Active • Spark 2.0 Engine
           </div>
         </div>
 
+        {/* Controls HUD */}
+        <div className="absolute bottom-4 right-4 pointer-events-none z-30">
+          <div className="glass-card px-2.5 py-1.5 text-[10px] text-slate-300 space-y-0.5 leading-relaxed">
+            <div>L-Drag: Orbit</div>
+            <div>R-Drag: Pan</div>
+            <div>Scroll: Zoom</div>
+            <div className="border-t border-white/[0.06] pt-0.5 mt-0.5">WASD: Move</div>
+            <div>Q/E: Up/Down</div>
+          </div>
+        </div>
+
         {isTransitioning && (
-          <div className="absolute inset-0 bg-void-950 z-[100] animate-in fade-in duration-800 flex items-center justify-center">
+          <div className="absolute inset-0 bg-void-950 z-50 animate-in fade-in duration-800 flex items-center justify-center">
             <div className="text-center">
               <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-400 rounded-full animate-spin mx-auto mb-4" />
-              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-indigo-300 animate-pulse">
+              <h3 className="text-sm font-black uppercase tracking-wide text-indigo-300 animate-pulse">
                 Re-Manifesting World Latent Space
               </h3>
             </div>
           </div>
         )}
+
       </div>
     </div>
   );

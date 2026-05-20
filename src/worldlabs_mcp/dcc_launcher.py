@@ -36,10 +36,10 @@ def _find_blender() -> str | None:
     if platform.system() != "Windows":
         # On macOS/Linux, try `which blender`
         try:
-            result = subprocess.run(["which", "blender"], capture_output=True, text=True, timeout=5)
+            result = subprocess.run(["which", "blender"], capture_output=True, text=True, timeout=5)  # noqa: S607
             if result.returncode == 0 and result.stdout.strip():
                 return result.stdout.strip()
-        except Exception:
+        except Exception:  # noqa: S110
             pass
         return None
 
@@ -77,7 +77,7 @@ async def ensure_blender(host: str = "127.0.0.1", port: int = 10700) -> str | No
         return "Blender not found. Install Blender from https://blender.org"
 
     try:
-        subprocess.Popen(
+        subprocess.Popen(  # noqa: S603
             [blender_path, "--background", "--python-expr",
              "import bpy; bpy.ops.preferences.addon_enable(module='blender_mcp')"],
             stdout=subprocess.DEVNULL,
@@ -101,11 +101,71 @@ async def ensure_unity(host: str = "127.0.0.1", port: int = 10730) -> str | None
     )
 
 
-async def ensure_resonite(host: str = "127.0.0.1", port: int = 9000) -> str | None:
-    """Check if Resonite OSC receiver is reachable. Autostart is not supported."""
+async def ensure_resonite(host: str = "127.0.0.1", port: int = 10715, osc_port: int = 9000) -> str | None:
+    """Ensure resonite-mcp is reachable. If not, try to autostart it.
+
+    First checks the resonite-mcp HTTP port (10715), then tries to
+    launch the server from the repo. Falls back to OSC port (9000).
+    """
+    # Check resonite-mcp HTTP port first
     if await _wait_for_port(host, port, timeout=2):
         return None  # already running
-    return (
-        "Resonite OSC receiver not detected on port 9000. "
-        "Launch Resonite with a /worldlabs/import OSC receiver."
-    )
+    # Fallback: check direct OSC port
+    if await _wait_for_port(host, osc_port, timeout=2):
+        return None  # OSC receiver already running
+
+    mcp_path = _find_resonite_mcp()
+    if not mcp_path:
+        return (
+            "resonite-mcp not found. Clone it to D:\\Dev\\repos\\resonite-mcp "
+            "or set RESONITE_MCP_PATH. Fallback: launch Resonite with OSC on port 9000."
+        )
+
+    try:
+        if mcp_path == "uvx":
+            subprocess.Popen(
+                ["uvx", "resonite-mcp"],  # noqa: S607
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+        else:
+            start_script = Path(mcp_path) / "start.bat"
+            if start_script.is_file():
+                subprocess.Popen(  # noqa: S603
+                    ["cmd", "/c", str(start_script)],  # noqa: S607
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                )
+            else:
+                subprocess.Popen(  # noqa: S603
+                    ["uv", "run", "--directory", mcp_path, "python", "-m", "src.resonite_mcp.server"],  # noqa: S607
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                )
+        if await _wait_for_port(host, port, timeout=30):
+            return f"resonite-mcp launched on :{port}."
+        return f"resonite-mcp launch attempted but not detected on :{port}."
+    except Exception as e:
+        return f"Failed to launch resonite-mcp: {e}"
+
+
+def _find_resonite_mcp() -> str | None:
+    """Return path to resonite-mcp repo, 'uvx' if available via uvx, or None."""
+    candidates = [
+        os.environ.get("RESONITE_MCP_PATH", ""),
+        str(Path.home() / "Dev" / "repos" / "resonite-mcp"),
+        r"D:\Dev\repos\resonite-mcp",
+        r"D:\Dev\Repos\resonite-mcp",
+    ]
+    for c in candidates:
+        if c and Path(c).is_dir():
+            return c
+
+    # Check if uvx can resolve it
+    try:
+        r = subprocess.run(["uvx", "resonite-mcp", "--help"], capture_output=True, text=True, timeout=10)  # noqa: S607
+        if r.returncode == 0:
+            return "uvx"
+    except Exception:  # noqa: S110
+        pass
+    return None

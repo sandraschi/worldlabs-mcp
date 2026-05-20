@@ -62,7 +62,7 @@ def generate_default_agent(output_path: str | Path) -> Path:
 
     # Build vertex buffer: interleaved position(float3) + color(float3)
     vert_bytes = bytearray()
-    for (vx, vy, vz), (cr, cg, cb) in zip(all_v, all_c):
+    for (vx, vy, vz), (cr, cg, cb) in zip(all_v, all_c, strict=False):
         vert_bytes.extend(_pack_vec3(vx, vy, vz))
         vert_bytes.extend(_pack_vec3(cr, cg, cb))
 
@@ -78,7 +78,6 @@ def generate_default_agent(output_path: str | Path) -> Path:
     vert_padded = _pad(vert_bytes)
     idx_padded = _pad(idx_bytes)
 
-    vert_offset = 0
     idx_offset = len(vert_padded)
 
     total_len = idx_offset + len(idx_padded)

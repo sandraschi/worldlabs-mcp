@@ -1,5 +1,4 @@
-Param([switch]$Headless)
-$SkipFrontend = $Headless
+﻿Param([switch]$Headless)
 
 # --- SOTA Headless Standard ---
 if ($Headless -and ($Host.UI.RawUI.WindowTitle -notmatch 'Hidden')) {
@@ -33,24 +32,6 @@ $backendCmd = "`$env:PYTHONPATH = '$ProjectRoot\src'; Set-Location '$ProjectRoot
 
 Start-Process powershell -ArgumentList "-NoExit", "-Command", $backendCmd -WindowStyle Normal
 
-# Wait for backend to be healthy before starting frontend
-Write-Host "Waiting for backend on port $BackendPort ..." -ForegroundColor Cyan
-$maxWait = 120
-$waited = 0
-while ($waited -lt $maxWait) {
-    try {
-        $null = Invoke-WebRequest -Uri "http://127.0.0.1:$BackendPort/health" -TimeoutSec 3 -UseBasicParsing -ErrorAction Stop
-        Write-Host "Backend ready after ${waited}s." -ForegroundColor Green
-        break
-    } catch {
-        Start-Sleep -Seconds 2
-        $waited += 2
-    }
-}
-if ($waited -ge $maxWait) {
-    Write-Host "WARNING: Backend did not respond within ${maxWait}s. Vite may show proxy errors until it starts." -ForegroundColor Yellow
-}
-
 # 4. Run server (Vite dev)
 Write-Host "Starting Vite frontend on port $WebPort ..." -ForegroundColor Green
 
@@ -60,7 +41,6 @@ $pollAndOpen = "for (`$i = 0; `$i -lt 60; `$i++) { try { `$null = Invoke-WebRequ
 Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "-Command", $pollAndOpen
 
 Write-Host "Browser will open automatically when Vite is ready." -ForegroundColor Gray
-if ($SkipFrontend) { return }
 npm run dev -- --port $WebPort --host
 
 

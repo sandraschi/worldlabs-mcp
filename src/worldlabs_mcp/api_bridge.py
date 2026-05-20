@@ -455,7 +455,7 @@ async def adb_devices() -> dict[str, Any]:
     """List connected ADB devices. Requires ADB on the system PATH."""
     try:
         import subprocess
-        result = subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=10)
+        result = subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=10)  # noqa: S607
         lines = result.stdout.strip().split("\n")[1:]  # Skip "List of devices attached"
         devices = []
         for line in lines:
@@ -973,7 +973,11 @@ async def get_history() -> list[dict[str, Any]]:
 @router.get("/history/remote")
 async def get_remote_history(page_size: int = 50) -> dict:
     """Pass-through to the Marble /worlds:list endpoint (account-wide)."""
-    return await _wl_post("/worlds:list", {"page_size": page_size, "sort_by": "created_at", "status": "SUCCEEDED"})
+    data = await _wl_post("/worlds:list", {"page_size": page_size, "sort_by": "created_at", "status": "SUCCEEDED"})
+    worlds = data.get("worlds", [])
+    for w in worlds:
+        w["_assets"] = _extract_assets(w)
+    return data
 
 
 @router.get("/prompts")
@@ -1288,6 +1292,10 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
     local_splat_url = f"{bridge_url}/api/handoff?url={req.spz_url}" if req.spz_url else ""
     local_mesh_url = f"{bridge_url}/api/handoff?url={req.mesh_url}" if req.mesh_url else ""
 
+    # Autostart resonite-mcp if not running
+    from .dcc_launcher import ensure_resonite
+    await ensure_resonite(port=resonite_mcp_port)
+
     # Try resonite-mcp first
     try:
         async with httpx.AsyncClient(timeout=10) as client:
@@ -1312,7 +1320,7 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
                         "mesh_url": local_mesh_url,
                         "result": data,
                     }
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     # Fallback: direct OSC
@@ -1377,6 +1385,32 @@ async def handoff_asset(req: HandoffRequest) -> dict[str, Any]:
     }
 
     if req.target == "resonite":
+        # Try resonite-mcp HTTP first (with autostart), fall back to OSC
+        resonite_mcp_port_res = int(os.getenv("RESONITE_MCP_PORT", "10715"))
+        bridge_url_res = os.getenv("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
+        from .dcc_launcher import ensure_resonite
+        await ensure_resonite(port=resonite_mcp_port_res)
+        local_url_res = f"{bridge_url_res}/api/handoff?url={req.asset_url}"
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                health = await client.get(f"http://127.0.0.1:{resonite_mcp_port_res}/health")
+                if health.ok:
+                    import_resp = await client.post(
+                        f"http://127.0.0.1:{resonite_mcp_port_res}/api/v1/import/worldlabs",
+                        json={
+                            "splat_url": local_url_res,
+                            "mesh_url": "",
+                            "world_name": req.world_id,
+                        },
+                    )
+                    data = import_resp.json() if import_resp.ok else {}
+                    if import_resp.ok:
+                        results["status"] = "ok"
+                        results["detail"] = "Sent to resonite-mcp"
+                        results["result"] = data
+                        return results
+        except Exception:  # noqa: S110
+            pass
         osc_host = os.getenv("RESONITE_OSC_HOST", "127.0.0.1")
         osc_port = int(os.getenv("RESONITE_OSC_PORT", "9000"))
         try:
@@ -1473,13 +1507,16 @@ async def delete_scene(scene_id: str) -> dict[str, Any]:
 async def search_plex(q: str = Query(...)) -> list[dict[str, Any]]:
     """Search Plex library for movies and shows."""
     if not PLEX_TOKEN:
-        raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured. Set the PLEX_TOKEN environment variable.")
+        raise HTTPException(
+            status_code=400,
+            detail="PLEX_TOKEN not configured. Set the PLEX_TOKEN environment variable.",
+        )
     url = f"{PLEX_BASE_URL.rstrip('/')}/search"
     params = {"query": q, "X-Plex-Token": PLEX_TOKEN}
     headers = {"Accept": "application/json"}
 
-    async with httpx.AsyncClient(timeout=10) as client:
-        try:
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.get(url, params=params, headers=headers)
             resp.raise_for_status()
             data = resp.json()
@@ -1502,17 +1539,20 @@ async def search_plex(q: str = Query(...)) -> list[dict[str, Any]]:
                     "key": item.get("key")
                 })
             return results
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(status_code=e.response.status_code, detail=f"Plex search failed: {e}") from e
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Plex search failed: {e}") from e
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=f"Plex search failed: {e}") from e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Plex search failed: {e}") from e
 
 
 @router.get("/plex/stream_url")
 async def get_plex_stream_url(key: str = Query(...)) -> dict[str, Any]:
     """Get an authenticated stream URL for a Plex item."""
     if not PLEX_TOKEN:
-        raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured. Set the PLEX_TOKEN environment variable.")
+        raise HTTPException(
+            status_code=400,
+            detail="PLEX_TOKEN not configured. Set the PLEX_TOKEN environment variable.",
+        )
     # Universal Transcode URL for maximum compatibility with Three.js VideoTexture
     # We use direct play if possible, but transcode to MP4/HLS for web context
     plex_token_param = f"X-Plex-Token={PLEX_TOKEN}"
@@ -1582,7 +1622,7 @@ async def place_avatar_in_world(body: dict) -> dict[str, Any]:
             if export_resp.ok:
                 data = export_resp.json()
                 avatar_url = (data.get("result") or {}).get("url", "") or data.get("message", "")
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     if not avatar_url:

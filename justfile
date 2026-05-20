@@ -2,35 +2,9 @@ set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
-# Display the SOTA Industrial Dashboard
+# Open the interactive recipe dashboard in the browser
 default:
-    @$lines = Get-Content '{{justfile()}}'; \
-    Write-Host ' [SOTA] worldlabs-mcp Operations Dashboard' -ForegroundColor White -BackgroundColor DarkBlue; \
-    Write-Host '  3D World Generation  |  Spark 2.0 Viewer  |  Marble API' -ForegroundColor DarkGray; \
-    Write-Host '' ; \
-    $currentCategory = ''; \
-    foreach ($line in $lines) { \
-        if ($line -match '^# ── ([^─]+) ─') { \
-            $currentCategory = $matches[1].Trim(); \
-            Write-Host "`n  $currentCategory" -ForegroundColor Cyan; \
-            Write-Host ('  ' + ('─' * 50)) -ForegroundColor Gray; \
-        } elseif ($line -match '^# ([^─].+)') { \
-            $desc = $matches[1].Trim(); \
-            $idx = [array]::IndexOf($lines, $line); \
-            if ($idx -lt $lines.Count - 1) { \
-                $nextLine = $lines[$idx + 1]; \
-                if ($nextLine -match '^([a-z0-9_-]+):') { \
-                    $recipe = $matches[1]; \
-                    $pad = ' ' * [math]::Max(2, (22 - $recipe.Length)); \
-                    Write-Host "    $recipe" -ForegroundColor White -NoNewline; \
-                    Write-Host "$pad$desc" -ForegroundColor Gray; \
-                } \
-            } \
-        } \
-    } \
-    Write-Host "`n  Ports: Backend 10865  Frontend 10864" -ForegroundColor DarkGray; \
-    Write-Host '  Docs:  https://github.com/sandraschi/worldlabs-mcp' -ForegroundColor DarkGray; \
-    Write-Host ''
+    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File ../mcp-central-docs/scripts/just-dashboard.ps1 -Path .
 
 # ── Server ────────────────────────────────────────────────────────────────────
 

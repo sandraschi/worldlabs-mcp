@@ -15,6 +15,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastmcp import Context, FastMCP
+from fastmcp.server import create_proxy
 
 from .api_bridge import (
     BASE_URL,
@@ -45,7 +46,21 @@ mcp = FastMCP(
 # Register Prefab card tools immediately after mcp instantiation so they are
 # available in both stdio mode (main()) and any inspection/dev path.
 from .prefab_cards import register_prefab_tools as _register_prefab  # noqa: E402
+
 _register_prefab(mcp)
+
+# MCP Bridge: ProxyProvider for multi-server federation
+_bridge_proxies = []
+bridge_urls = os.getenv("MCP_BRIDGE_URLS", "")
+if bridge_urls:
+    for url in bridge_urls.split(","):
+        url = url.strip()
+        if url:
+            try:
+                mcp.add_provider(create_proxy(url))
+                _bridge_proxies.append(url)
+            except Exception:
+                pass
 
 VALID_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 VALID_VIDEO_EXTENSIONS = {"mp4", "mov", "mkv"}
@@ -914,7 +929,8 @@ _TOOL_CATALOG = [
         "args": {"world_id": "str — UUID from list_worlds or operation response"},
         "returns": "Confirmation dict with world_id and deleted status",
         "example": 'delete_world("world-uuid-456")',
-        "docstring": "Permanently removes the world and all associated assets (splat files, mesh, panorama, thumbnail). This action cannot be undone.",
+        "docstring": "Permanently removes the world and all associated "
+        "assets (splat files, mesh, panorama, thumbnail). This action cannot be undone.",
         "notes": "Only the world owner can delete a world.",
     },
     {
@@ -1025,7 +1041,8 @@ _TOOL_CATALOG = [
             "Loads a glTF avatar into the scene. The viewer raycasts onto the splat "
             "collider mesh to ground the avatar to the local surface height."
         ),
-        "notes": 'avatar_url="default_agent" resolves to the built-in generated GLB humanoid served by the bridge. Custom glTF URLs also work.',
+        "notes": 'avatar_url="default_agent" resolves to the built-in '
+        "generated GLB humanoid served by the bridge. Custom glTF URLs also work.",
     },
     {
         "name": "refine_with_local_llm",
@@ -1042,7 +1059,8 @@ _TOOL_CATALOG = [
             "Sends a short prompt to a local Ollama model for expansion into a detailed, "
             "Marble-optimised world generation prompt. Requires Ollama running locally."
         ),
-        "notes": "Requires Ollama running on OLLAMA_URL (default: http://localhost:11434). Model must be pulled locally first.",
+        "notes": "Requires Ollama running on OLLAMA_URL "
+        "(default: http://localhost:11434). Model must be pulled locally first.",
     },
 ]
 
