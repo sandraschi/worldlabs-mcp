@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Marble Adventure competition entry** (`competition/marble-adventure/`) — Godot 4.4 game hub connecting to Marble 1.1 worlds via Spark 2.0 viewer. 8 themed ring portals with preview thumbnails, FPS controller, teleport-to-center, invisible edge walls. Each portal opens the real Gaussian splat world in the browser.
+- **8 Marble 1.1 worlds** — Gothic Cathedral, Sea of Fog, Midcentury Villa, Wonderland, Deep Forest, Neon Alley, Zen Temple, Sunken Ruins. Generated from detailed 100+ word prompts with `marble-1.1` model.
+- **World panoramas & thumbnails** — downloaded for each competition world, used as preview images in portal rings.
+- **Spark 2.0 viewer URLs** in portal configs — opens minimal viewer (no World Labs UI chrome) on local webapp port 10864.
 - **World Library page** (`web_sota/src/pages/library.tsx`) — dedicated `/library` route with card grid and table list views, thumbnail display with lazy backfill, search by name/caption, model filter chips, per-card asset downloads (SPZ/G LB/Panorama), "View in Spark 2.0" links, auto-refresh every 30s, and empty/loading/error states.
 - **Prompt Engineering Guide** (`docs/PROMPT_GUIDE.md`) — comprehensive reference covering artist styles (Giger ✓, Monet ✗), landmarks, materials selection, weather/season prompting, architectural styles, the "archetype not reference" rule, and a structured prompt template. Linked from the webapp Help page.
 - **15 high-detail world presets** — each 100-200 words with specific spatial layout, dimensions, materials, lighting, and colour palette. Replaced the old short 1-2 sentence presets. Each tagged with categories (interior, exterior, nature, fantasy, scifi, urban, etc.) with filter chips in the Style Gallery.

@@ -59,8 +59,9 @@ if bridge_urls:
             try:
                 mcp.add_provider(create_proxy(url))
                 _bridge_proxies.append(url)
-            except Exception:
-                pass
+            except Exception:  # noqa: S110
+                pass  # bridge not running yet, skip silently
+
 
 VALID_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 VALID_VIDEO_EXTENSIONS = {"mp4", "mov", "mkv"}

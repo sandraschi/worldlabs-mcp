@@ -1,0 +1,10 @@
+# Marble Adventure — Competition Entry
+# ------------------------------------------------------------------
+# Godot project files
+.godot/
+*.translation
+export/
+.import/
+
+# Godot-specific
+*.uid  # Scene UIDs are auto-generated per-machine
