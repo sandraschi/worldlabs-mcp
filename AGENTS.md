@@ -16,3 +16,5 @@ MCP server wrapping the World Labs Marble API for 3D world generation and the Sp
 - `README.md` — full documentation
 - `pyproject.toml` — build config and entry points
 - `CLAUDE.md` — Claude Code context (if present)
+
+Install docs: follow mcp-central-docs/standards/AGENT_INSTALL_REFERENCE.md
