@@ -1,16 +1,10 @@
-# worldlabs-mcp — Agent Guide
+# worldlabs-mcp — Claude Code Guide
 
 ## Overview
 MCP server wrapping the World Labs Marble API for 3D world generation and the Spark 2.0 spatial viewer
 
 ## Entry Points
 - `uv run worldlabs-mcp` → `worldlabs_mcp.server:main`
-
-## Quick Ref
-
-```powershell
-uv run pytest tests/ -q
-```
 
 ## Standards
 - FastMCP 3.2+ portmanteau tool pattern — tools use `operation` enum param
@@ -21,7 +15,4 @@ uv run pytest tests/ -q
 ## Key Files
 - `README.md` — full documentation
 - `pyproject.toml` — build config and entry points
-- `CLAUDE.md` — Claude Code context (if present)
-- `justfile` — Marble Adventure play/ship recipes
-
-Install docs: follow mcp-central-docs/standards/AGENT_INSTALL_REFERENCE.md
+- `AGENTS.md` — OpenAI Codex agent context (if present)
