@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- **Marble Adventure competition entry** (`competition/marble-adventure/`) — Godot 4.4 game hub connecting to Marble 1.1 worlds via Spark 2.0 viewer. 8 themed ring portals with preview thumbnails, FPS controller, teleport-to-center, invisible edge walls. Each portal opens the real Gaussian splat world in the browser.
+### Added (Marble Adventure — June 2026)
+- **Vision pass (P6)** — Alphabetic portals A–H; shape tour puzzle; architect tokens; 3 fleet terminals; E-key portal agent notes; Fleet Museum title screen; layered procedural hub ambient; `SparkNarrator` autoload for local Spark TTS welcome.
+- **`data/portal_meta.json`** — kiosk copy, fleet tools, Spark welcome lines per portal.
+- **`WORLD_PROMPTS.md`** — multiline gallery-style Marble regen prompts; **`regenerate_worlds.ps1`** + `just marble-adventure-regen-worlds`.
+- **itch ship pipeline** — `ship-itch.ps1`, `export_presets.cfg`, hidden Butler push to `sandraschi/marble-adventure:win`; [SHIP_ITCH.md](competition/SHIP_ITCH.md).
+- **Docs** — [PRD_MARBLE_ADVENTURE.md](docs/PRD_MARBLE_ADVENTURE.md), [competition/README.md](competition/README.md), MCD [docs/games/MARBLE_ADVENTURE.md](https://github.com/sandraschi/mcp-central-docs/blob/main/docs/games/MARBLE_ADVENTURE.md).
+
+### Added (Marble Adventure — initial)
 - **8 Marble 1.1 worlds** — Gothic Cathedral, Sea of Fog, Midcentury Villa, Wonderland, Deep Forest, Neon Alley, Zen Temple, Sunken Ruins. Generated from detailed 100+ word prompts with `marble-1.1` model.
 - **World panoramas & thumbnails** — downloaded for each competition world, used as preview images in portal rings.
 - **Spark 2.0 viewer URLs** in portal configs — opens minimal viewer (no World Labs UI chrome) on local webapp port 10864.

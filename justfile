@@ -278,6 +278,44 @@ docs-gallery:
 docs-llms:
     Get-Content '{{justfile_directory()}}\llms.txt'
 
+# ── Marble Adventure (competition game) ───────────────────────────────────────
+
+# Validate Godot hub project loads
+marble-adventure-check godot="C:\Users\sandr\.local\bin\godot.exe":
+    Set-Location '{{justfile_directory()}}\competition\marble-adventure'; & '{{godot}}' --headless --path . --quit-after 1
+
+# Launch hub (public Marble URLs — no player account)
+marble-adventure-play:
+    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\play.ps1'
+
+# Download portal preview thumbnails (author machine, needs worldlabs API)
+marble-adventure-thumbs:
+    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\download_world_thumbs.ps1'
+
+# Download CDN thumbnails (no API key — for bundling in repo)
+marble-adventure-cdn-thumbs:
+    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\download_cdn_thumbs.ps1'
+
+# Trailer capture helper (opens game + prints checklist)
+marble-adventure-trailer:
+    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\capture_trailer.ps1'
+
+# Windows export for itch (no upload)
+marble-adventure-export-win godot="C:\Users\sandr\.local\bin\godot.exe":
+    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -ExportOnly
+
+# Butler push-preview (no upload)
+marble-adventure-ship-preview godot="C:\Users\sandr\.local\bin\godot.exe":
+    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -Preview
+
+# Hidden Butler push — needs BUTLER_API_KEY in competition/.env
+marble-adventure-ship-push godot="C:\Users\sandr\.local\bin\godot.exe":
+    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -Push
+
+# Regenerate Marble worlds from prompts (author, needs API + credits)
+marble-adventure-regen-worlds portal="":
+    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\regenerate_worlds.ps1' -Portal '{{portal}}'
+
 # ── CI Pipeline ───────────────────────────────────────────────────────────────
 
 # Full CI pipeline: sync, lint, typecheck, test

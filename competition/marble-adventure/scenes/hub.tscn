@@ -65,9 +65,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -200.0
-offset_top = 20.0
+offset_top = 56.0
 offset_right = 200.0
-offset_bottom = 60.0
+offset_bottom = 96.0
 grow_horizontal = 2
 text = ""
 horizontal_alignment = 1
@@ -80,13 +80,147 @@ anchors_preset = 7
 anchor_left = 0.5
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -300.0
+offset_left = -320.0
 offset_top = -80.0
-offset_right = 300.0
+offset_right = 320.0
 offset_bottom = -40.0
 grow_horizontal = 2
 grow_vertical = 0
-text = "Click to Play  |  Walk through rings to enter worlds"
+text = "Click to play  |  Tour: visit 5 featured worlds"
 horizontal_alignment = 1
 vertical_alignment = 1
 modulate = Color(1, 1, 1, 0.5)
+
+[node name="TourLabel" type="Label" parent="Player/HUD"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -220.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 48.0
+grow_horizontal = 0
+text = "World tour: 0 / 5"
+horizontal_alignment = 2
+label_settings = SubResource("LabelSettings_world")
+
+[node name="CompletionPanel" type="PanelContainer" parent="Player/HUD"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -80.0
+offset_right = 220.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Player/HUD/CompletionPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="CompletionText" type="Label" parent="Player/HUD/CompletionPanel/Margin"]
+layout_mode = 2
+text = "Tour complete!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatusBanner" type="PanelContainer" parent="Player/HUD"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 52.0
+grow_horizontal = 2
+
+[node name="Margin" type="MarginContainer" parent="Player/HUD/StatusBanner"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 6
+
+[node name="StatusText" type="Label" parent="Player/HUD/StatusBanner"]
+layout_mode = 2
+text = "Checking access mode..."
+horizontal_alignment = 1
+
+[node name="BonusLabel" type="Label" parent="Player/HUD"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -220.0
+offset_top = 48.0
+offset_right = -16.0
+offset_bottom = 80.0
+grow_horizontal = 0
+text = "Bonus F–H: 0 / 3"
+horizontal_alignment = 2
+label_settings = SubResource("LabelSettings_world")
+
+[node name="ShapeLabel" type="Label" parent="Player/HUD"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 48.0
+offset_right = 420.0
+offset_bottom = 80.0
+text = "Shape tour: next ● Sea of Fog"
+label_settings = SubResource("LabelSettings_world")
+
+[node name="TokenLabel" type="Label" parent="Player/HUD"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 80.0
+offset_right = 320.0
+offset_bottom = 112.0
+text = "Architect tokens: 0 / 3"
+modulate = Color(1, 0.92, 0.55, 0.95)
+label_settings = SubResource("LabelSettings_world")
+
+[node name="KioskPanel" type="PanelContainer" parent="Player/HUD"]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -360.0
+offset_top = -220.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="Margin" type="MarginContainer" parent="Player/HUD/KioskPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="KioskVBox" type="VBoxContainer" parent="Player/HUD/KioskPanel/Margin"]
+layout_mode = 2
+
+[node name="KioskTitle" type="Label" parent="Player/HUD/KioskPanel/Margin/KioskVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Terminal"
+
+[node name="KioskBody" type="Label" parent="Player/HUD/KioskPanel/Margin/KioskVBox"]
+layout_mode = 2
+text = ""
+autowrap_mode = 3

@@ -1,0 +1,5 @@
+# Local secrets — never commit
+.env
+
+# Windows export output (Godot + Butler)
+build/

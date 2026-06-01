@@ -69,6 +69,17 @@ All accept `seed` (deterministic), `tags`, and `disable_recaption`.
 
 ## Shipping
 
+### Marble Adventure (competition game)
+
+Godot 4.4 FPS hub with **8 ring portals** (A–H) into real **Marble 1.1** Gaussian splat worlds in the browser. Players need **no World Labs account** (`public_marble` default).
+
+| | |
+|--|--|
+| **Play** | `just marble-adventure-play` |
+| **Ship** | `just marble-adventure-ship-push` (Butler, hidden channel) |
+| **itch** | [sandraschi.itch.io/marble-adventure](https://sandraschi.itch.io/marble-adventure) (draft) |
+| **Docs** | [COMPETITION.md](./COMPETITION.md) · [PRD](./PRD_MARBLE_ADVENTURE.md) · [MCD games page](https://github.com/sandraschi/mcp-central-docs/blob/main/docs/games/MARBLE_ADVENTURE.md) |
+
 - **Painting Portals** — 14 famous paintings as image-to-world seeds
 - **Spatial Voice Agent** — Built-in TTS (edge-tts), no external service needed
 - **Default Agent Avatar** — Procedural 2KB GLB humanoid figure

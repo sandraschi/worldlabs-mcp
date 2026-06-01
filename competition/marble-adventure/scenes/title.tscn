@@ -1,0 +1,239 @@
+[gd_scene load_steps=2 format=3 uid="uid://title_main"]
+
+[ext_resource type="Script" path="res://scripts/title_screen.gd" id="1_title"]
+
+[node name="Title" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_title")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.02, 0.05, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainMenu" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="TitleLabel" type="Label" parent="Center/MainMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 56
+text = "MARBLE ADVENTURE"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="Center/MainMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Agent-built gallery — Marble worlds in your browser"
+horizontal_alignment = 1
+modulate = Color(0.75, 0.85, 1, 0.85)
+
+[node name="PlayButton" type="Button" parent="Center/MainMenu"]
+custom_minimum_size = Vector2(280, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Play"
+
+[node name="SettingsButton" type="Button" parent="Center/MainMenu"]
+custom_minimum_size = Vector2(280, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Settings"
+
+[node name="ControlsButton" type="Button" parent="Center/MainMenu"]
+custom_minimum_size = Vector2(280, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Controls"
+
+[node name="CreditsButton" type="Button" parent="Center/MainMenu"]
+custom_minimum_size = Vector2(280, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Fleet Museum"
+
+[node name="ControlsPanel" type="PanelContainer" parent="Center"]
+visible = false
+custom_minimum_size = Vector2(520, 360)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Center/ControlsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="ControlsVBox" type="VBoxContainer" parent="Center/ControlsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ControlsTitle" type="Label" parent="Center/ControlsPanel/Margin/ControlsVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Controls"
+horizontal_alignment = 1
+
+[node name="ControlsText" type="Label" parent="Center/ControlsPanel/Margin/ControlsVBox"]
+layout_mode = 2
+text = "WASD — move
+Mouse — look
+Scroll — field of view
+Space — jump
+H — hub center
+R — reset tour
+Esc — release mouse
+Click — capture mouse / start
+
+Walk through a ring portal to open a Marble world in your browser.
+Featured rings A–E (alpha order); bonus F–H outside.
+E at a ring = agent notes | Terminals = fleet pipeline lore
+Shape tour bonus: ● ■ ▲ ◆ ★ in that visit order"
+autowrap_mode = 3
+
+[node name="ControlsBack" type="Button" parent="Center/ControlsPanel/Margin/ControlsVBox"]
+layout_mode = 2
+text = "Back"
+
+[node name="CreditsPanel" type="PanelContainer" parent="Center"]
+visible = false
+custom_minimum_size = Vector2(520, 360)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Center/CreditsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="CreditsVBox" type="VBoxContainer" parent="Center/CreditsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CreditsTitle" type="Label" parent="Center/CreditsPanel/Margin/CreditsVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Fleet Museum"
+horizontal_alignment = 1
+
+[node name="CreditsText" type="Label" parent="Center/CreditsPanel/Margin/CreditsVBox"]
+layout_mode = 2
+text = "MARBLE ADVENTURE — agent-built gallery prototype
+
+WORLDS — Marble 1.1 (World Labs), multiline gallery-style prompts via worldlabs-mcp
+
+HUB — Godot 4.4, procedural ambient layers, tour + shape puzzle
+
+AGENTS — Cursor, MCP fleet (worldlabs-mcp, godot-mcp), prompt → UUID → portals.json
+
+SHIP — Butler hidden channel, itch.io draft page
+
+Players: no World Labs account. Walk ring A–E (featured), F–H (bonus)."
+autowrap_mode = 3
+
+[node name="CreditsBack" type="Button" parent="Center/CreditsPanel/Margin/CreditsVBox"]
+layout_mode = 2
+text = "Back"
+
+[node name="SettingsPanel" type="PanelContainer" parent="Center"]
+visible = false
+custom_minimum_size = Vector2(520, 320)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Center/SettingsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="SettingsVBox" type="VBoxContainer" parent="Center/SettingsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="SettingsTitle" type="Label" parent="Center/SettingsPanel/Margin/SettingsVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Settings"
+horizontal_alignment = 1
+
+[node name="FovRow" type="HBoxContainer" parent="Center/SettingsPanel/Margin/SettingsVBox"]
+layout_mode = 2
+
+[node name="FovLabel" type="Label" parent="Center/SettingsPanel/Margin/SettingsVBox/FovRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Field of view"
+
+[node name="FovSlider" type="HSlider" parent="Center/SettingsPanel/Margin/SettingsVBox/FovRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 30.0
+max_value = 110.0
+step = 1.0
+value = 80.0
+
+[node name="FovValue" type="Label" parent="Center/SettingsPanel/Margin/SettingsVBox/FovRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "80°"
+horizontal_alignment = 2
+
+[node name="SensRow" type="HBoxContainer" parent="Center/SettingsPanel/Margin/SettingsVBox"]
+layout_mode = 2
+
+[node name="SensLabel" type="Label" parent="Center/SettingsPanel/Margin/SettingsVBox/SensRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Mouse look"
+
+[node name="SensSlider" type="HSlider" parent="Center/SettingsPanel/Margin/SettingsVBox/SensRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.5
+max_value = 8.0
+step = 0.1
+value = 2.0
+
+[node name="SensValue" type="Label" parent="Center/SettingsPanel/Margin/SettingsVBox/SensRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "2.0"
+horizontal_alignment = 2
+
+[node name="ColorblindCheck" type="CheckBox" parent="Center/SettingsPanel/Margin/SettingsVBox"]
+layout_mode = 2
+text = "Color-blind portal icons (shapes on rings)"
+
+[node name="SettingsBack" type="Button" parent="Center/SettingsPanel/Margin/SettingsVBox"]
+layout_mode = 2
+text = "Back"
+
+[connection signal="pressed" from="Center/MainMenu/PlayButton" to="." method="_on_play_pressed"]
+[connection signal="pressed" from="Center/MainMenu/SettingsButton" to="." method="_on_settings_pressed"]
+[connection signal="pressed" from="Center/MainMenu/ControlsButton" to="." method="_on_controls_pressed"]
+[connection signal="pressed" from="Center/MainMenu/CreditsButton" to="." method="_on_credits_pressed"]
+[connection signal="pressed" from="Center/ControlsPanel/Margin/ControlsVBox/ControlsBack" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="Center/CreditsPanel/Margin/CreditsVBox/CreditsBack" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="Center/SettingsPanel/Margin/SettingsVBox/SettingsBack" to="." method="_on_back_pressed"]
+[connection signal="value_changed" from="Center/SettingsPanel/Margin/SettingsVBox/FovRow/FovSlider" to="." method="_on_fov_changed"]
+[connection signal="value_changed" from="Center/SettingsPanel/Margin/SettingsVBox/SensRow/SensSlider" to="." method="_on_sens_changed"]
+[connection signal="toggled" from="Center/SettingsPanel/Margin/SettingsVBox/ColorblindCheck" to="." method="_on_colorblind_toggled"]

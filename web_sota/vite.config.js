@@ -20,6 +20,7 @@ export default defineConfig({
     },
   },
   server: {
+    allowedHosts: ['goliath'],
     proxy: {
       "/api": {
         target: "http://localhost:10865",

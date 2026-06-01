@@ -8,7 +8,7 @@
 
 - 🚀 **[Setup & Quick Start](docs/SETUP.md)** — install, API key, launch
 - 💎 **[Features & Tools](docs/FEATURES.md)** — 20 MCP tools, generation modes, spatial voice agent, export pipelines
-- 🏆 **[Marble Adventure (Competition Entry)](docs/COMPETITION.md)** — Godot 4.4 game hub connecting 8 Marble 1.1 worlds via Spark 2.0 viewer
+- 🏆 **[Marble Adventure](docs/COMPETITION.md)** — Godot 4.4 agent-built gallery; 5+3 Marble portals; [itch draft](https://sandraschi.itch.io/marble-adventure) · [MCD](https://github.com/sandraschi/mcp-central-docs/blob/main/docs/games/MARBLE_ADVENTURE.md)
 - 🏗️ **[Architecture](docs/ARCHITECTURE.md)** — system design, ports, data flow
 - 🎯 **[Prompt Engineering Guide](docs/PROMPT_GUIDE.md)** — artist styles, landmarks, materials, categories
 - 🥽 **[VR & WebXR](docs/WEBXR.md)** — Quest, Pico 4, Vive streaming

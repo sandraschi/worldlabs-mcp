@@ -1,0 +1,90 @@
+{
+  "access_mode_default": "public_marble",
+  "spark_base_url": "http://127.0.0.1:10864",
+  "marble_public_base": "https://marble.worldlabs.ai/world",
+  "cdn_base": "https://cdn.marble.worldlabs.ai",
+  "tour_featured_count": 5,
+  "sort_portals": "label_alpha",
+  "portals": [
+    {
+      "id": "gothic_cathedral",
+      "tier": "featured",
+      "icon_shape": "square",
+      "marble_id": "a7936174-dfa9-4714-9e8e-d2db4389f0a3",
+      "label": "Gothic Cathedral",
+      "description": "Vaulted stone and rose light",
+      "color": "#F2BF59",
+      "splat_suffix": "7"
+    },
+    {
+      "id": "cyberpunk_alley",
+      "tier": "featured",
+      "icon_shape": "star",
+      "marble_id": "5e10e810-aaee-4240-9260-b74ea9cbfc9f",
+      "label": "Neon Alley",
+      "description": "Rain-slick neon backstreet",
+      "color": "#D940FF",
+      "splat_suffix": "6"
+    },
+    {
+      "id": "sea_of_fog",
+      "tier": "featured",
+      "icon_shape": "circle",
+      "marble_id": "5c56883a-6167-4634-84de-3f00d4ff492f",
+      "label": "Sea of Fog",
+      "description": "Mist over silent valleys",
+      "color": "#B8D6F2",
+      "splat_suffix": "0"
+    },
+    {
+      "id": "wonderland",
+      "tier": "featured",
+      "icon_shape": "triangle",
+      "marble_id": "043f6225-a612-43e5-bd27-0eb0eb4fd085",
+      "label": "Wonderland",
+      "description": "Floating bioluminescent islands",
+      "color": "#FF73BF",
+      "splat_suffix": "2"
+    },
+    {
+      "id": "japanese_temple",
+      "tier": "featured",
+      "icon_shape": "diamond",
+      "marble_id": "52620a3a-d5df-4793-be72-9fce88188f8e",
+      "label": "Zen Temple",
+      "description": "Autumn maples and koi pond",
+      "color": "#FF8C40",
+      "splat_suffix": "4"
+    },
+    {
+      "id": "deep_forest",
+      "tier": "bonus",
+      "icon_shape": "cross",
+      "marble_id": "0569591d-6e5e-469a-a285-5214bea5a3ef",
+      "label": "Deep Forest",
+      "description": "Redwood light and moss ruins",
+      "color": "#40F266",
+      "splat_suffix": "a"
+    },
+    {
+      "id": "midcentury_villa",
+      "tier": "bonus",
+      "icon_shape": "hex",
+      "marble_id": "b9b0bab8-9bea-408b-9159-2c6e5370cd5a",
+      "label": "Midcentury Villa",
+      "description": "Golden-hour modernist pool",
+      "color": "#73D98C",
+      "splat_suffix": "b"
+    },
+    {
+      "id": "underwater_ruins",
+      "tier": "bonus",
+      "icon_shape": "wave",
+      "marble_id": "6c1f938c-1972-49d9-bf97-4ccd08aedbd9",
+      "label": "Sunken Ruins",
+      "description": "Ruins under glowing sea",
+      "color": "#40A6F2",
+      "splat_suffix": "d"
+    }
+  ]
+}

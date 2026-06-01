@@ -19,9 +19,17 @@ func _ready() -> void:
 	add_to_group("player")
 	camera.current = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if PlayerSettings:
+		PlayerSettings.apply_to_player(self)
+		PlayerSettings.settings_changed.connect(_on_settings_changed)
 
 	if WorldManager:
 		WorldManager.register_player(self)
+
+
+func _on_settings_changed() -> void:
+	if PlayerSettings:
+		PlayerSettings.apply_to_player(self)
 
 
 func _input(event: InputEvent) -> void:
@@ -42,8 +50,14 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and _mouse_captured:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			camera.fov = clampf(camera.fov - 2.0, 30.0, 110.0)
+			if PlayerSettings:
+				PlayerSettings.fov = camera.fov
+				PlayerSettings.save()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			camera.fov = clampf(camera.fov + 2.0, 30.0, 110.0)
+			if PlayerSettings:
+				PlayerSettings.fov = camera.fov
+				PlayerSettings.save()
 
 	if event.is_action_pressed("menu"):
 		if _mouse_captured:
@@ -60,8 +74,14 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= gravity * delta
 
 	if Input.is_action_just_pressed("jump") and is_on_floor():
-		position = Vector3(0, 1.7, 0)
+		velocity.y = jump_velocity
+
+	if Input.is_action_just_pressed("home_center") and is_on_floor():
+		position = Vector3(0, 1.8, 0)
 		velocity = Vector3.ZERO
+
+	if Input.is_action_just_pressed("interact") and _game_started and WorldManager:
+		_try_portal_kiosk()
 
 	var input_dir := Input.get_vector("left", "right", "forward", "back")
 	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
@@ -88,3 +108,25 @@ func capture_mouse() -> void:
 func release_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_mouse_captured = false
+
+
+func _try_portal_kiosk() -> void:
+	var hub := get_tree().get_first_node_in_group("hub_root")
+	if hub == null:
+		return
+	var portals := hub.get_node_or_null("Portals")
+	if portals == null:
+		return
+	var best_id := ""
+	var best_dist := 5.5
+	for child in portals.get_children():
+		var trigger := child.get_node_or_null("Trigger")
+		if trigger == null:
+			continue
+		var dist := global_position.distance_to(trigger.global_position)
+		if dist < best_dist:
+			best_dist = dist
+			best_id = trigger.portal_id
+	if not best_id.is_empty():
+		WorldManager.show_portal_kiosk(best_id)
+

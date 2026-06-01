@@ -1,0 +1,93 @@
+{
+  "shape_tour_order": [
+    "sea_of_fog",
+    "gothic_cathedral",
+    "wonderland",
+    "japanese_temple",
+    "cyberpunk_alley"
+  ],
+  "architect_token_count": 3,
+  "kiosks": [
+    {
+      "id": "fleet_pipeline",
+      "title": "Fleet Pipeline",
+      "position": [0, 0, -4.5],
+      "body": "prompt → worldlabs-mcp → Marble UUID\nportals.json → Godot hub → Butler → itch.io\n\nEach ring is a public Marble splat.\nThe hub is agent-built; worlds open in your browser."
+    },
+    {
+      "id": "agent_log",
+      "title": "Agent Log (replay)",
+      "position": [4.5, 0, 0],
+      "body": "> plan worlds A–Z with gallery-style prompts\n> worldlabs_world.generate × 8\n> download_world_thumbs.ps1\n> hub_manager ring layout + tour save\n> ship-itch.ps1 --hidden\n\nPress E at any terminal for portal-specific notes."
+    },
+    {
+      "id": "photo_challenge",
+      "title": "Photo Challenge",
+      "position": [-4.5, 0, 0],
+      "body": "Stand inside a ring frame.\nScreenshot for itch / social.\nTag: Marble Adventure prototype.\n\nBonus: visit featured worlds in shape order\n● ■ ▲ ◆ ★ for Architect credit."
+    }
+  ],
+  "token_positions": [
+    [2.2, 0.9, -3.8],
+    [-2.2, 0.9, 3.8],
+    [3.8, 0.9, 2.2]
+  ],
+  "portals": {
+    "gothic_cathedral": {
+      "prompt_source": "gallery-adapted",
+      "fleet_tools": ["worldlabs_world", "download_world_thumbs", "ship-itch.ps1"],
+      "spark_welcome": "Gothic Cathedral. Vaulted stone, rose light, incense haze. Generated with a multiline Marble prompt via worldlabs-mcp.",
+      "spark_ambience_url": "",
+      "kiosk_note": "Gallery-style prompt: nave, rose windows, god rays, wet stone. Adapted for Marble Adventure series tone."
+    },
+    "cyberpunk_alley": {
+      "prompt_source": "gallery-adapted",
+      "fleet_tools": ["worldlabs_world", "broadcast_spatial_audio"],
+      "spark_welcome": "Neon Alley. Rain-slick cyberpunk backstreet. Spatial audio works in local Spark mode.",
+      "spark_ambience_url": "",
+      "kiosk_note": "Neon reflections, steam vents, narrow alley, holographic signs. Night, light rain."
+    },
+    "sea_of_fog": {
+      "prompt_source": "gallery-adapted",
+      "fleet_tools": ["worldlabs_world", "broadcast_spatial_notification"],
+      "spark_welcome": "Sea of Fog. Romantic mist above silent valleys. First stop on the shape tour: circle.",
+      "spark_ambience_url": "",
+      "kiosk_note": "Caspar Friedrich mood: figure-scale path, infinite mist, soft sunrise."
+    },
+    "wonderland": {
+      "prompt_source": "gallery-adapted",
+      "fleet_tools": ["worldlabs_world", "place_world_tv"],
+      "spark_welcome": "Wonderland. Floating bioluminescent islands. Escher meets Gaudi.",
+      "spark_ambience_url": "",
+      "kiosk_note": "Impossible architecture, glowing flora, dreamlike scale."
+    },
+    "japanese_temple": {
+      "prompt_source": "gallery-adapted",
+      "fleet_tools": ["worldlabs_world", "godot-mcp"],
+      "spark_welcome": "Zen Temple. Autumn maples, koi pond, quiet garden.",
+      "spark_ambience_url": "",
+      "kiosk_note": "Temple garden, maple crimson, stone lantern, still water."
+    },
+    "midcentury_villa": {
+      "prompt_source": "gallery-adapted",
+      "fleet_tools": ["worldlabs_world"],
+      "spark_welcome": "Midcentury Villa. Golden-hour modernist pool and gardens.",
+      "spark_ambience_url": "",
+      "kiosk_note": "Bonus ring. Palm shadows, infinity pool, tropical modernism."
+    },
+    "deep_forest": {
+      "prompt_source": "gallery-adapted",
+      "fleet_tools": ["worldlabs_world"],
+      "spark_welcome": "Deep Forest. Redwood light, moss, forgotten ruins.",
+      "spark_ambience_url": "",
+      "kiosk_note": "Bonus ring. Dappled green light, ancient trees, stone arch."
+    },
+    "underwater_ruins": {
+      "prompt_source": "gallery-adapted",
+      "fleet_tools": ["worldlabs_world"],
+      "spark_welcome": "Sunken Ruins. Greco-Roman columns under bioluminescent sea.",
+      "spark_ambience_url": "",
+      "kiosk_note": "Bonus ring. God rays underwater, coral glow, marble columns."
+    }
+  }
+}
