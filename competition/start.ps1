@@ -1,4 +1,4 @@
-# Marble Adventure — Launch Pipeline
+# Marble Adventure - Launch Pipeline
 # Starts Godot game + godot-mcp bridge + worldlabs-mcp backend
 # Required for full MCP-orchestrated world import workflow
 param(
