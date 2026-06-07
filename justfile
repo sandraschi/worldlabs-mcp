@@ -1,10 +1,10 @@
-set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
+﻿set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
 # Open the interactive recipe dashboard in the browser
 default:
-    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File ../mcp-central-docs/scripts/just-dashboard.ps1 -Path .
+    @just --list
 
 # ── Server ────────────────────────────────────────────────────────────────────
 
@@ -334,3 +334,4 @@ industrialize:
     just audit-deps
     just test-cov
     Write-Host "" ; Write-Host "Industrialization complete." -ForegroundColor Green
+

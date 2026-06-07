@@ -27,7 +27,7 @@ Write-Host "Backend  :$BackendPort   Frontend  :$WebPort" -ForegroundColor DarkG
 Write-Host ""
 
 # ===========================================================================
-# FUNCTION: Require-Command — install via winget if missing
+# FUNCTION: Require-Command - install via winget if missing
 # Naked PC Install Standard (fleet-wide).
 # winget returns non-zero even for "already installed" -- we only care
 # whether the command is available afterwards, not the exit code.
