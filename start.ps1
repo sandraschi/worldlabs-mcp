@@ -1,7 +1,8 @@
 Param(
     [switch]$Headless,
     [switch]$BackendOnly,
-    [switch]$NoBrowser
+    [switch]$NoBrowser,
+    [switch]$ReuseIfRunning
 )
 
 # --- SOTA Headless Standard 2026 ---
@@ -100,16 +101,33 @@ Require-Command "node" "OpenJS.NodeJS.LTS" "Node.js LTS"
 Require-Command "just" "Casey.Just"        "just (task runner)"
 Write-Host ""
 
-# ===========================================================================
-# 1. Kill stale processes on our ports
-# ===========================================================================
-Write-Host "[1/4] Checking for port squatters on $WebPort and $BackendPort ..." -ForegroundColor Yellow
-$stalePids = Get-NetTCPConnection -LocalPort $WebPort, $BackendPort -ErrorAction SilentlyContinue |
-    Where-Object { $_.OwningProcess -gt 4 } |
-    Select-Object -ExpandProperty OwningProcess -Unique
-foreach ($p in $stalePids) {
-    Write-Host "  Terminating PID $p ..." -ForegroundColor Red
-    try { Stop-Process -Id $p -Force -ErrorAction SilentlyContinue } catch { }
+$FleetStartPath = Join-Path $RepoRoot "scripts\FleetStartMode.ps1"
+if (-not (Test-Path -LiteralPath $FleetStartPath)) {
+    Write-Host "ERROR: Missing vendored launcher helper: $FleetStartPath" -ForegroundColor Red
+    exit 1
+}
+. $FleetStartPath
+$FleetStart = Initialize-FleetStartMode @PSBoundParameters
+Enter-FleetHeadlessConsole -Headless:$Headless -BackendOnly:$BackendOnly
+
+$portResolve = @{
+    Ports      = @($WebPort, $BackendPort)
+    Label      = "worldlabs-mcp"
+    AllowReuse = $ReuseIfRunning
+}
+if ($ReuseIfRunning) {
+    $portResolve.HealthChecks = @{
+        $BackendPort = "http://127.0.0.1:$BackendPort/health"
+        $WebPort     = "http://127.0.0.1:$WebPort/"
+    }
+}
+$portState = Resolve-FleetPortConflict @portResolve
+if ($portState.Action -eq 'Blocked') { exit 1 }
+if ($portState.Reuse) {
+    if (-not $NoBrowser -and -not $BackendOnly) {
+        Start-Process "http://127.0.0.1:$WebPort/"
+    }
+    return
 }
 
 # ===========================================================================
