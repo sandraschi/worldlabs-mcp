@@ -12,12 +12,8 @@ export default defineConfig({
     server: {
             allowedHosts: ['goliath'],
         proxy: {
-            '/api/logs': {
-                target: 'http://127.0.0.1:11061',
-                changeOrigin: true,
-            },
             '/api': {
-                target: 'http://localhost:10865',
+                target: 'http://127.0.0.1:11061',
                 changeOrigin: true,
             },
         },
