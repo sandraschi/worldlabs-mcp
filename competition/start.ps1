@@ -91,3 +91,11 @@ Write-Host " worldlabs-mcp       : port $WorldLabsPort"
 Write-Host "==========================================="
 Write-Host ""
 Write-Host "Next: use MCP tools to generate worlds and import into Godot"
+
+$FleetStartPath = Join-Path $ProjectRoot "scripts\FleetStartMode.ps1"
+if (-not (Test-Path -LiteralPath $FleetStartPath)) {
+    Write-Host "ERROR: Missing vendored launcher helper: $FleetStartPath" -ForegroundColor Red
+    exit 1
+}
+. $FleetStartPath
+
