@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/layout/app-layout";
+import FloatingChat from "@/components/FloatingChat";
 import { Apps } from "@/pages/apps";
 import { ChiselDetail } from "@/pages/chisel-detail";
 import { Dashboard } from "@/pages/dashboard";
@@ -33,33 +34,36 @@ const queryClient = new QueryClient({
 
 function App() {
 	return (
-		<QueryClientProvider client={queryClient}>
-			<Router>
-				<AppLayout>
-					<Routes>
-						<Route path="/" element={<Dashboard />} />
-						<Route path="/status" element={<Status />} />
-						<Route path="/tools" element={<Tools />} />
-						<Route path="/architect" element={<Architect />} />
-						<Route path="/library" element={<WorldLibrary />} />
-						<Route path="/library/viewer" element={<WorldViewer />} />
-						<Route path="/portals" element={<PaintingPortals />} />
-						<Route path="/onboarding" element={<Onboarding />} />
-						<Route path="/spark-viewer" element={<SparkViewer />} />
-						<Route path="/spark-v2" element={<SparkDetail />} />
-						<Route path="/chisel" element={<ChiselDetail />} />
-						<Route path="/immersive" element={<ImmersiveDetail />} />
-						<Route path="/tools-explorer" element={<ToolsExplorer />} />
-						<Route path="/local-llm" element={<LocalLlm />} />
-						<Route path="/apps" element={<Apps />} />
-						<Route path="/help" element={<Help />} />
-						<Route path="/settings" element={<Settings />} />
-						<Route path="/logs" element={<LogsPage />} />
-						<Route path="*" element={<Navigate to="/" replace />} />
-					</Routes>
-				</AppLayout>
-			</Router>
-		</QueryClientProvider>
+		<>
+			<QueryClientProvider client={queryClient}>
+				<Router>
+					<AppLayout>
+						<Routes>
+							<Route path="/" element={<Dashboard />} />
+							<Route path="/status" element={<Status />} />
+							<Route path="/tools" element={<Tools />} />
+							<Route path="/architect" element={<Architect />} />
+							<Route path="/library" element={<WorldLibrary />} />
+							<Route path="/library/viewer" element={<WorldViewer />} />
+							<Route path="/portals" element={<PaintingPortals />} />
+							<Route path="/onboarding" element={<Onboarding />} />
+							<Route path="/spark-viewer" element={<SparkViewer />} />
+							<Route path="/spark-v2" element={<SparkDetail />} />
+							<Route path="/chisel" element={<ChiselDetail />} />
+							<Route path="/immersive" element={<ImmersiveDetail />} />
+							<Route path="/tools-explorer" element={<ToolsExplorer />} />
+							<Route path="/local-llm" element={<LocalLlm />} />
+							<Route path="/apps" element={<Apps />} />
+							<Route path="/help" element={<Help />} />
+							<Route path="/settings" element={<Settings />} />
+							<Route path="/logs" element={<LogsPage />} />
+							<Route path="*" element={<Navigate to="/" replace />} />
+						</Routes>
+					</AppLayout>
+				</Router>
+			</QueryClientProvider>
+			<FloatingChat />
+		</>
 	);
 }
 
