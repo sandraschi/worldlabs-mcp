@@ -1,4 +1,5 @@
-﻿set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
+set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
+import 'scripts/just/fleet.just'
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
@@ -281,7 +282,7 @@ docs-llms:
 # ── Marble Adventure (competition game) ───────────────────────────────────────
 
 # Validate Godot hub project loads
-marble-adventure-check godot="C:\Users\sandr\.local\bin\godot.exe":
+marble-adventure-check godot= "C:\\Users\sandr\.local\bin\godot.exe":
     Set-Location '{{justfile_directory()}}\competition\marble-adventure'; & '{{godot}}' --headless --path . --quit-after 1
 
 # Launch hub (public Marble URLs — no player account)
@@ -301,15 +302,15 @@ marble-adventure-trailer:
     pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\capture_trailer.ps1'
 
 # Windows export for itch (no upload)
-marble-adventure-export-win godot="C:\Users\sandr\.local\bin\godot.exe":
+marble-adventure-export-win godot= "C:\\Users\sandr\.local\bin\godot.exe":
     pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -ExportOnly
 
 # Butler push-preview (no upload)
-marble-adventure-ship-preview godot="C:\Users\sandr\.local\bin\godot.exe":
+marble-adventure-ship-preview godot= "C:\\Users\sandr\.local\bin\godot.exe":
     pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -Preview
 
 # Hidden Butler push — needs BUTLER_API_KEY in competition/.env
-marble-adventure-ship-push godot="C:\Users\sandr\.local\bin\godot.exe":
+marble-adventure-ship-push godot= "C:\\Users\sandr\.local\bin\godot.exe":
     pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -Push
 
 # Regenerate Marble worlds from prompts (author, needs API + credits)
@@ -334,4 +335,34 @@ industrialize:
     just audit-deps
     just test-cov
     Write-Host "" ; Write-Host "Industrialization complete." -ForegroundColor Green
+
+# ── Tauri NSIS ─────────────────────────────────────────────────────────────────
+
+# Build the PyInstaller backend .exe and copy to Tauri resources
+build-sidecar:
+    pwsh -NoProfile -File native\build-sidecar.ps1
+
+# Build the Tauri NSIS desktop installer (full pipeline: frontend -> sidecar -> Rust -> NSIS)
+build-native: build-sidecar
+    $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
+    $vcvars = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+    $envOutput = cmd /c "`"$vcvars`" > nul & set" | Where-Object { $_ -match '^(INCLUDE|LIB|LIBPATH|VCToolsVersion|WindowsSdkDir|UniversalCRTSdkDir|UCRTVersion)=' }
+    foreach ($line in $envOutput) { $parts = $line.Split('=', 2); Set-Item -Path "env:$($parts[0])" -Value $parts[1] -ErrorAction SilentlyContinue }
+    Set-Location '{{justfile_directory()}}\native'
+    npx @tauri-apps/cli build --bundles nsis
+
+# Run the CUA smoke test against the installed NSIS app
+cua-nsis-test:
+    C:\Windows\py.exe scripts/cua-smoke.py
+# ── Playwright E2E ─────────────────────────────────────────────────────
+
+# Install Playwright browsers (one-time)
+e2e-install:
+    cd {{REPO}}\web_sota
+    npx playwright install chromium
+
+# Run Playwright E2E smoke tests (start backend first: just serve)
+e2e:
+    cd {{REPO}}\web_sota
+    npx playwright test
 
