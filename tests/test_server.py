@@ -310,9 +310,7 @@ def test_prepare_media_upload_invalid_kind():
 
 
 @pytest.mark.asyncio
-async def test_generate_world_from_media_asset_image(
-    httpx_mock: HTTPXMock, fake_operation_response
-):
+async def test_generate_world_from_media_asset_image(httpx_mock: HTTPXMock, fake_operation_response):
     httpx_mock.add_response(
         method="POST",
         url=f"{BASE_URL}/worlds:generate",
@@ -326,9 +324,7 @@ async def test_generate_world_from_media_asset_image(
 
 
 @pytest.mark.asyncio
-async def test_generate_world_from_media_asset_video(
-    httpx_mock: HTTPXMock, fake_operation_response
-):
+async def test_generate_world_from_media_asset_video(httpx_mock: HTTPXMock, fake_operation_response):
     httpx_mock.add_response(
         method="POST",
         url=f"{BASE_URL}/worlds:generate",
@@ -443,7 +439,9 @@ async def test_broadcast_spatial_notification(httpx_mock: HTTPXMock):
     )
     result = await broadcast_spatial_notification(
         text="Welcome to the garden",
-        x=1.0, y=2.0, z=3.0,
+        x=1.0,
+        y=2.0,
+        z=3.0,
     )
     assert "Success" in result
     assert "Recipients: 1" in result
@@ -474,7 +472,10 @@ async def test_broadcast_spatial_audio(httpx_mock: HTTPXMock):
     )
     result = await broadcast_spatial_audio(
         prompt_or_url="https://example.com/ambience.mp3",
-        x=0.0, y=1.5, z=0.0, is_loop=True,
+        x=0.0,
+        y=1.5,
+        z=0.0,
+        is_loop=True,
     )
     assert "Audio broadcasted" in result
 
@@ -493,7 +494,11 @@ async def test_place_world_tv(httpx_mock: HTTPXMock):
     )
     result = await place_world_tv(
         video_url="https://example.com/clip.mp4",
-        x=0.0, y=1.6, z=-5.0, rotation_y=0.0, scale=1.0,
+        x=0.0,
+        y=1.6,
+        z=-5.0,
+        rotation_y=0.0,
+        scale=1.0,
     )
     assert "TV Materialized" in result
 
@@ -512,6 +517,9 @@ async def test_spawn_agent_avatar(httpx_mock: HTTPXMock):
     )
     result = await spawn_agent_avatar(
         avatar_url="default_agent",
-        x=0.0, y=0.0, z=0.0, rotation=0.0,
+        x=0.0,
+        y=0.0,
+        z=0.0,
+        rotation=0.0,
     )
     assert "Avatar materialized" in result

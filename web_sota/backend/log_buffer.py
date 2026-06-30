@@ -21,14 +21,17 @@ class ActivityLog:
 
     def add(self, level: str, kind: str, detail: str, meta: dict | None = None) -> str:
         entry_id = f"{time.time():.6f}.{uuid4().hex[:6]}"
-        self._entries.append({
-            "id": entry_id,
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()) + f".{int(time.time()*1e6)%1000000:06d}Z",
-            "level": level.upper(),
-            "kind": kind,
-            "detail": detail,
-            "meta": meta or {},
-        })
+        self._entries.append(
+            {
+                "id": entry_id,
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
+                + f".{int(time.time() * 1e6) % 1000000:06d}Z",
+                "level": level.upper(),
+                "kind": kind,
+                "detail": detail,
+                "meta": meta or {},
+            }
+        )
         return entry_id
 
     def info(self, kind: str, detail: str, **meta) -> str:
@@ -51,10 +54,10 @@ class ActivityLog:
     def _tail_file(self, lines: int = 200) -> list[str]:
         if not self._file_path or not self._file_path.exists():
             return []
-        with open(self._file_path, "r", encoding="utf-8", errors="replace") as f:
+        with open(self._file_path, encoding="utf-8", errors="replace") as f:
             f.seek(0)
             all_lines = f.readlines()
-        return [l.rstrip("\n\r") for l in all_lines[-lines:]]
+        return [line.rstrip("\n\r") for line in all_lines[-lines:]]
 
     def query(
         self,
@@ -87,13 +90,12 @@ class ActivityLog:
         entries.sort(key=lambda e: e["id"], reverse=(sort == "desc"))
 
         total = len(entries)
-        page = entries[offset:offset + limit]
+        page = entries[offset : offset + limit]
 
         if not page and self._file_path:
             file_lines = self._tail_file(limit)
             page = [
-                {"id": f"file.{i}", "timestamp": "", "level": "INFO", "kind": "server",
-                 "detail": line, "meta": {}}
+                {"id": f"file.{i}", "timestamp": "", "level": "INFO", "kind": "server", "detail": line, "meta": {}}
                 for i, line in enumerate(file_lines)
             ]
             total = len(page)

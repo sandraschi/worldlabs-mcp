@@ -218,8 +218,7 @@ def _handle_http_error(e: httpx.HTTPStatusError) -> None:
         raise HTTPException(
             status_code=429,
             detail=(
-                f"World Labs API: 429 Too Many Requests. You have hit a rate limit. "
-                f"({api_message or 'No details'})"
+                f"World Labs API: 429 Too Many Requests. You have hit a rate limit. ({api_message or 'No details'})"
             ),
         )
 
@@ -364,11 +363,7 @@ def _get_vram_stats() -> dict[str, Any]:
         cmd = ["nvidia-smi", "--query-gpu=memory.used,memory.total", "--format=csv,noheader,nounits"]
         output = subprocess.check_output(cmd).decode("utf-8").strip()  # noqa: S603 — trusted hardcoded command list
         used, total = map(int, output.split(","))
-        return {
-            "vram_used": used,
-            "vram_total": total,
-            "vram_percent": round((used / total) * 100, 1)
-        }
+        return {"vram_used": used, "vram_total": total, "vram_percent": round((used / total) * 100, 1)}
     except Exception:
         return {"vram_used": 0, "vram_total": 0, "vram_percent": 0.0}
 
@@ -376,6 +371,7 @@ def _get_vram_stats() -> dict[str, Any]:
 def _get_disk_usage_percent() -> float:
     try:
         import platform
+
         root = "C:\\" if platform.system() == "Windows" else "/"
         return psutil.disk_usage(root).percent
     except Exception:
@@ -389,14 +385,13 @@ def _get_system_stats() -> dict[str, Any]:
         "memory_percent": psutil.virtual_memory().percent,
         "disk_percent": _get_disk_usage_percent(),
         "active_sse_clients": len(_narration_clients),
-        "gpu": vram
+        "gpu": vram,
     }
 
 
 @router.get("/system/stats")
 async def get_system_stats() -> dict[str, Any]:
     return _get_system_stats()
-
 
 
 # ---------------------------------------------------------------------------
@@ -455,6 +450,7 @@ async def adb_devices() -> dict[str, Any]:
     """List connected ADB devices. Requires ADB on the system PATH."""
     try:
         import subprocess
+
         result = subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=10)  # noqa: S607
         lines = result.stdout.strip().split("\n")[1:]  # Skip "List of devices attached"
         devices = []
@@ -664,11 +660,14 @@ def _with_optional(payload: dict, req: TextGenRequest | ImageGenRequest | VideoG
 
 @router.post("/generate/text")
 async def generate_from_text(req: TextGenRequest) -> dict[str, Any]:
-    payload = _with_optional({
-        "display_name": req.name,
-        "model": req.model,
-        "world_prompt": {"type": "text", "text_prompt": req.prompt},
-    }, req)
+    payload = _with_optional(
+        {
+            "display_name": req.name,
+            "model": req.model,
+            "world_prompt": {"type": "text", "text_prompt": req.prompt},
+        },
+        req,
+    )
     data = await _wl_post("/worlds:generate", payload)
     _save_operation(data)
     return data
@@ -1024,8 +1023,114 @@ async def delete_prompt(prompt_id: str) -> dict[str, Any]:
     return {"status": "ok"}
 
 
+class ChatRequest(BaseModel):
+    provider: str = "ollama"
+    model: str = ""
+    prompt: str
+    personality: str = "expert"
+    inject_skill: bool = True
+    skill_content: str = ""
+    session_id: str = ""
+
+
+# -- Embedded skill content for skill injection --
+WORLDLABS_EXPERT_SKILL = """You are a World Labs Marble expert. You help users generate
+explorable 3D worlds using the Marble API.
+
+## Models
+- **marble-1.1** — Default, 1500 credits, 1-3 min. Good fidelity, fixed cost.
+- **marble-1.1-plus** — Auto-expanding, 1500 + 300/dynamic cube (max 5).
+  Variable time. Best for outdoor scenes, large interiors.
+
+## Key Tools
+- `generate_world_from_text(prompt)` — 3D world from text
+- `generate_world_from_image(url)` — 3D world from photograph
+- `upload_and_generate(file_path, kind)` — Local file upload + generation
+- `get_operation(id)` / `wait_for_world(id)` — Poll generation status
+- `get_world(id)` — Download asset URLs (splat, mesh, panorama)
+- `list_worlds()` — Browse generated worlds
+
+## Output Formats
+- SPZ (100k/500k/full_res) — Gaussian splat for Blender/Unity/VR
+- GLB — Collision mesh for physics simulation
+- Panorama — 360-degree JPEG
+- Thumbnail + AI caption
+
+## Prompt Engineering
+Marble generates 3D scenes, not 2D images.
+Template: [ARCHITECTURE] + [MATERIALS] + [LIGHTING] + [WEATHER] + [SCALE].
+Works: architectural styles, materials, weather, lighting, places.
+Use archetypes, not references: "roadside motel + Victorian" not "Bates Motel".
+Does not work: 2D painting techniques, emotions without 3D decomposition,
+specific human faces.
+
+## Pricing
+- Credits are consumed per generation (separate from web subscription)
+- Check billing at https://platform.worldlabs.ai/billing"""
+
+PERSONALITY_MAP = {
+    "expert": "Be technically precise. Reference specific tool names, "
+    "parameters, and model capabilities. Prioritise accuracy.",
+    "creative": "Be artistic and evocative. Help the user craft vivid world "
+    "prompts. Suggest spatial layouts, lighting moods, material palettes.",
+    "guide": "Be a patient tutor. Explain step by step. Anticipate beginner confusion. Provide concrete examples.",
+    "concise": "Answer in 1-3 sentences. No explanations unless asked. Prefer bullet points.",
+}
+
+CHAT_SESSIONS_DIR = DATA_DIR / "chat_sessions"
+CHAT_SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+MAX_HISTORY_TURNS = 10
+
+
+def _load_chat_history(session_id: str) -> list[dict[str, str]]:
+    if not session_id:
+        return []
+    path = CHAT_SESSIONS_DIR / f"{session_id}.json"
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return data[-MAX_HISTORY_TURNS:] if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def _append_chat_turn(session_id: str, user_msg: str, assistant_msg: str) -> None:
+    if not session_id:
+        return
+    path = CHAT_SESSIONS_DIR / f"{session_id}.json"
+    try:
+        history = []
+        if path.exists():
+            history = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(history, list):
+            history = []
+        history.append({"role": "user", "content": user_msg})
+        history.append({"role": "assistant", "content": assistant_msg})
+        if len(history) > MAX_HISTORY_TURNS * 2:
+            history = history[-(MAX_HISTORY_TURNS * 2) :]
+        path.write_text(json.dumps(history, ensure_ascii=False), encoding="utf-8")
+    except Exception as exc:
+        logger.debug("Chat history write failed: %s", exc)
+
+
+def _build_system_prompt(req: ChatRequest) -> str:
+    parts = ["You are a helpful, concise assistant running on a local GPU."]
+
+    personality_extra = PERSONALITY_MAP.get(req.personality, "")
+    if personality_extra:
+        parts.append(personality_extra)
+
+    if req.inject_skill:
+        skill = req.skill_content or WORLDLABS_EXPERT_SKILL
+        parts.append("\n[Loaded Skill: World Labs Marble Expert]")
+        parts.append(skill)
+
+    return "\n\n".join(parts)
+
+
 # ---------------------------------------------------------------------------
-# Local LLM discovery (Ollama + LM Studio) + prompt refinement
+# Local LLM discovery (Ollama + LM Studio) + prompt refinement + chat
 # ---------------------------------------------------------------------------
 
 
@@ -1066,8 +1171,7 @@ async def _probe_lmstudio() -> dict[str, Any]:
             resp.raise_for_status()
             data = resp.json()
             models = [
-                {"id": m.get("id", ""), "name": m.get("id", ""), "provider": "lmstudio"}
-                for m in data.get("data", [])
+                {"id": m.get("id", ""), "name": m.get("id", ""), "provider": "lmstudio"} for m in data.get("data", [])
             ]
             return {"available": True, "models": models, "url": url}
     except Exception:
@@ -1129,9 +1233,7 @@ no markdown, no introduction."""
                 resp = await client.post(url, json=payload)
                 resp.raise_for_status()
                 result = resp.json()
-                refined = (
-                    result.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
-                )
+                refined = result.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
         else:
             raise HTTPException(status_code=400, detail=f"Unknown provider: {req.provider}")
 
@@ -1141,6 +1243,88 @@ no markdown, no introduction."""
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Refinement failed: {e}") from e
+
+
+@router.get("/llm/providers")
+async def list_llm_providers() -> dict[str, Any]:
+    """List LLM providers with their available models (for chat dropdown)."""
+    ollama, lmstudio = await asyncio.gather(_probe_ollama(), _probe_lmstudio())
+    providers = []
+    if ollama["available"]:
+        providers.append({"name": "Ollama", "provider": "ollama", "models": ollama["models"]})
+    if lmstudio["available"]:
+        providers.append({"name": "LM Studio", "provider": "lmstudio", "models": lmstudio["models"]})
+    return {"providers": providers, "ollama_url": OLLAMA_URL, "lmstudio_url": "http://localhost:1234"}
+
+
+@router.post("/llm/chat")
+async def llm_chat(req: ChatRequest) -> dict[str, Any]:
+    """Send a chat message to a local LLM with personality, skill injection, and conversation memory.
+
+    Returns the assistant response text. Falls back to the first available
+    model if the requested model is empty or unavailable.
+    """
+    model = req.model
+    if not model:
+        ollama, lmstudio = await asyncio.gather(_probe_ollama(), _probe_lmstudio())
+        if ollama["available"] and ollama["models"]:
+            model = ollama["models"][0]["id"]
+            req.provider = "ollama"
+        elif lmstudio["available"] and lmstudio["models"]:
+            model = lmstudio["models"][0]["id"]
+            req.provider = "lmstudio"
+        else:
+            raise HTTPException(
+                status_code=503,
+                detail="No local LLM providers available. Install Ollama or LM Studio.",
+            )
+
+    system_prompt = _build_system_prompt(req)
+    history = _load_chat_history(req.session_id)
+    messages: list[dict] = [{"role": "system", "content": system_prompt}]
+    for turn in history:
+        messages.append(turn)
+    messages.append({"role": "user", "content": req.prompt})
+
+    try:
+        if req.provider == "ollama":
+            payload = {"model": model, "messages": messages, "stream": False}
+            async with httpx.AsyncClient(timeout=120) as client:
+                resp = await client.post(f"{OLLAMA_URL}/api/chat", json=payload)
+                resp.raise_for_status()
+                result = resp.json()
+                response = result.get("message", {}).get("content", "").strip()
+        elif req.provider == "lmstudio":
+            payload = {"model": model, "messages": messages, "temperature": 0.7, "max_tokens": 2048}
+            async with httpx.AsyncClient(timeout=120) as client:
+                resp = await client.post("http://localhost:1234/v1/chat/completions", json=payload)
+                resp.raise_for_status()
+                result = resp.json()
+                response = result.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown provider: {req.provider}")
+
+        if req.session_id:
+            _append_chat_turn(req.session_id, req.prompt, response)
+
+        return {
+            "response": response,
+            "provider": req.provider,
+            "model": model,
+            "personality": req.personality,
+            "skill_injected": req.inject_skill,
+            "session_id": req.session_id,
+        }
+
+    except HTTPException:
+        raise
+    except httpx.ConnectError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Could not connect to {req.provider}. Is it running?",
+        ) from e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LLM chat failed: {e}") from e
 
 
 # ---------------------------------------------------------------------------
@@ -1175,6 +1359,7 @@ async def export_to_blender(req: ExportRequest) -> dict[str, Any]:
 
     # Autostart Blender if not running
     from .dcc_launcher import ensure_blender
+
     auto_msg = await ensure_blender(port=blender_port)
     if auto_msg:
         results["launcher"] = auto_msg
@@ -1192,9 +1377,7 @@ async def export_to_blender(req: ExportRequest) -> dict[str, Any]:
                     json={"file_path": spz_path, "sh_degree": 3, "setup_proxy": True},
                 )
                 results["splat_import"] = (
-                    resp.json()
-                    if resp.status_code == 200
-                    else {"status": "error", "detail": resp.text}
+                    resp.json() if resp.status_code == 200 else {"status": "error", "detail": resp.text}
                 )
         except Exception as e:
             results["splat_import"] = {"status": "error", "detail": str(e)}
@@ -1209,9 +1392,7 @@ async def export_to_blender(req: ExportRequest) -> dict[str, Any]:
                     json={"filepath": glb_path, "file_format": "GLB"},
                 )
                 results["mesh_import"] = (
-                    resp.json()
-                    if resp.status_code == 200
-                    else {"status": "error", "detail": resp.text}
+                    resp.json() if resp.status_code == 200 else {"status": "error", "detail": resp.text}
                 )
         except Exception as e:
             results["mesh_import"] = {"status": "error", "detail": str(e)}
@@ -1252,9 +1433,7 @@ async def export_to_unity3d(req: ExportRequest) -> dict[str, Any]:
                     },
                 )
                 results[f"{kind}_import"] = (
-                    resp.json()
-                    if resp.status_code == 200
-                    else {"status": "error", "detail": resp.text}
+                    resp.json() if resp.status_code == 200 else {"status": "error", "detail": resp.text}
                 )
         except Exception as e:
             results[f"{kind}_import"] = {"status": "error", "detail": str(e)}
@@ -1294,6 +1473,7 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
 
     # Autostart resonite-mcp if not running
     from .dcc_launcher import ensure_resonite
+
     await ensure_resonite(port=resonite_mcp_port)
 
     # Try resonite-mcp first
@@ -1362,12 +1542,14 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
 async def proxy_splat_asset(url: str = Query(...)) -> StreamingResponse:
     """CORS proxy for remote splat files — the Spark viewer loads SPZ/GLB
     files through this endpoint to avoid CORS issues with the Marble CDN."""
+
     async def _stream() -> AsyncGenerator[bytes, None]:
         async with httpx.AsyncClient(timeout=300, follow_redirects=True) as client:
             async with client.stream("GET", url) as resp:
                 resp.raise_for_status()
                 async for chunk in resp.aiter_bytes(65536):
                     yield chunk
+
     return StreamingResponse(
         _stream(),
         media_type="application/octet-stream",
@@ -1389,6 +1571,7 @@ async def handoff_asset(req: HandoffRequest) -> dict[str, Any]:
         resonite_mcp_port_res = int(os.getenv("RESONITE_MCP_PORT", "10715"))
         bridge_url_res = os.getenv("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
         from .dcc_launcher import ensure_resonite
+
         await ensure_resonite(port=resonite_mcp_port_res)
         local_url_res = f"{bridge_url_res}/api/handoff?url={req.asset_url}"
         try:
@@ -1462,6 +1645,8 @@ async def handoff_asset(req: HandoffRequest) -> dict[str, Any]:
         results["detail"] = f"Unknown target: {req.target}"
 
     return results
+
+
 # ---------------------------------------------------------------------------
 # Scene Persistence (Baking)
 # ---------------------------------------------------------------------------
@@ -1499,50 +1684,332 @@ async def delete_scene(scene_id: str) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Plex Media Integration
+# Plex Media Integration — Cinema Worlds
 # ---------------------------------------------------------------------------
 
 
-@router.get("/plex/search")
-async def search_plex(q: str = Query(...)) -> list[dict[str, Any]]:
-    """Search Plex library for movies and shows."""
+@router.get("/plex/status")
+async def plex_status() -> dict[str, Any]:
+    """Check if Plex is reachable and token is configured."""
     if not PLEX_TOKEN:
-        raise HTTPException(
-            status_code=400,
-            detail="PLEX_TOKEN not configured. Set the PLEX_TOKEN environment variable.",
-        )
-    url = f"{PLEX_BASE_URL.rstrip('/')}/search"
-    params = {"query": q, "X-Plex-Token": PLEX_TOKEN}
-    headers = {"Accept": "application/json"}
-
+        return {"available": False, "error": "PLEX_TOKEN not set"}
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
-            resp = await client.get(url, params=params, headers=headers)
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(
+                f"{PLEX_BASE_URL}/",
+                params={"X-Plex-Token": PLEX_TOKEN},
+                headers={"Accept": "application/json"},
+            )
             resp.raise_for_status()
             data = resp.json()
-
-            items = data.get("MediaContainer", {}).get("Metadata", [])
-            results = []
-            for item in items:
-                thumb = item.get("thumb")
-                plex_token_param = f"X-Plex-Token={PLEX_TOKEN}"
-                base = f"{PLEX_BASE_URL}/photo/:/transcode?width=300&height=450&minSize=1"
-                thumb_url = f"{base}&url={thumb}&{plex_token_param}" if thumb else ""
-
-                results.append({
-                    "id": item.get("ratingKey"),
-                    "title": item.get("title"),
-                    "type": item.get("type"),
-                    "summary": item.get("summary"),
-                    "year": item.get("year"),
-                    "thumb": thumb_url,
-                    "key": item.get("key")
-                })
-            return results
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=e.response.status_code, detail=f"Plex search failed: {e}") from e
+            mc = data.get("MediaContainer", {})
+            return {
+                "available": True,
+                "server_name": mc.get("friendlyName", "Plex"),
+                "version": mc.get("version"),
+                "base_url": PLEX_BASE_URL,
+            }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Plex search failed: {e}") from e
+        return {"available": False, "error": str(e)}
+
+
+@router.get("/plex/libraries")
+async def list_plex_libraries() -> list[dict[str, Any]]:
+    """List all Plex library sections."""
+    if not PLEX_TOKEN:
+        raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured.")
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.get(
+            f"{PLEX_BASE_URL}/library/sections",
+            params={"X-Plex-Token": PLEX_TOKEN},
+            headers={"Accept": "application/json"},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        sections = data.get("MediaContainer", {}).get("Directory", [])
+        return [
+            {
+                "id": s.get("key"),
+                "title": s.get("title"),
+                "type": s.get("type"),
+                "count": s.get("count"),
+            }
+            for s in sections
+        ]
+
+
+@router.get("/plex/library/{section_id}")
+async def browse_plex_library(
+    section_id: str,
+    page: int = 0,
+    page_size: int = 30,
+) -> dict[str, Any]:
+    """Browse items in a Plex library section."""
+    if not PLEX_TOKEN:
+        raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured.")
+    start = page * page_size
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(
+            f"{PLEX_BASE_URL}/library/sections/{section_id}/all",
+            params={
+                "X-Plex-Token": PLEX_TOKEN,
+                "X-Plex-Container-Start": start,
+                "X-Plex-Container-Size": page_size,
+                "sort": "titleSort",
+            },
+            headers={"Accept": "application/json"},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        mc = data.get("MediaContainer", {})
+        items = mc.get("Metadata", [])
+        return {
+            "total": mc.get("totalSize", len(items)),
+            "page": page,
+            "page_size": page_size,
+            "items": [_format_plex_item(i) for i in items],
+        }
+
+
+@router.get("/plex/item/{rating_key}")
+async def get_plex_item(rating_key: str) -> dict[str, Any]:
+    """Get details for a specific Plex item (movie, episode, etc)."""
+    if not PLEX_TOKEN:
+        raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured.")
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.get(
+            f"{PLEX_BASE_URL}/library/metadata/{rating_key}",
+            params={"X-Plex-Token": PLEX_TOKEN},
+            headers={"Accept": "application/json"},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        items = data.get("MediaContainer", {}).get("Metadata", [])
+        if not items:
+            raise HTTPException(status_code=404, detail="Item not found")
+        return _format_plex_item(items[0])
+
+
+@router.get("/plex/item/{rating_key}/episodes")
+async def get_plex_episodes(rating_key: str) -> list[dict[str, Any]]:
+    """Get all episodes for a show or season."""
+    if not PLEX_TOKEN:
+        raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured.")
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(
+            f"{PLEX_BASE_URL}/library/metadata/{rating_key}/allLeaves",
+            params={"X-Plex-Token": PLEX_TOKEN},
+            headers={"Accept": "application/json"},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        items = data.get("MediaContainer", {}).get("Metadata", [])
+        return [_format_plex_item(i) for i in items[:50]]  # cap at 50
+
+
+def _format_plex_item(item: dict[str, Any]) -> dict[str, Any]:
+    """Normalise a Plex Metadata object to a flat dict for the frontend."""
+    rating_key = item.get("ratingKey", "")
+    thumb = item.get("thumb", "")
+    art = item.get("art", "")
+    thumb_url = ""
+    if thumb and PLEX_TOKEN:
+        thumb_url = (
+            f"{PLEX_BASE_URL}/photo/:/transcode?width=400&height=600&minSize=1&url={thumb}&X-Plex-Token={PLEX_TOKEN}"
+        )
+    # Get the first media part key (video file path within Plex)
+    media_parts = item.get("Media", [{}])
+    part_key = ""
+    duration_ms = 0
+    for media in media_parts:
+        parts = media.get("Part", [])
+        if parts:
+            part_key = parts[0].get("key", "")
+            duration_ms = media.get("duration", 0)
+            break
+    return {
+        "rating_key": rating_key,
+        "title": item.get("title", ""),
+        "type": item.get("type", ""),
+        "year": item.get("year"),
+        "summary": item.get("summary", ""),
+        "thumb": thumb_url,
+        "art": art,
+        "duration_ms": duration_ms,
+        "duration_s": duration_ms // 1000 if duration_ms else 0,
+        "part_key": part_key,  # e.g. /library/parts/123/file.mkv
+        "grandparent_title": item.get("grandparentTitle", ""),
+        "parent_index": item.get("parentIndex"),
+        "index": item.get("index"),
+    }
+
+
+@router.get("/plex/video/{rating_key}")
+async def get_plex_video_url(rating_key: str) -> dict[str, Any]:
+    """Get a streamable/downloadable URL for a Plex video item.
+
+    Returns a proxied URL through this bridge so Marble can fetch it.
+    """
+    if not PLEX_TOKEN:
+        raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured.")
+    item = await get_plex_item(rating_key)
+    part_key = item.get("part_key", "")
+    if not part_key:
+        raise HTTPException(status_code=404, detail="No media part found for this item.")
+    bridge_url = os.getenv("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
+    proxy_url = f"{bridge_url}/api/plex/proxy{part_key}"
+    return {
+        "proxy_url": proxy_url,
+        "direct_url": f"{PLEX_BASE_URL}{part_key}?X-Plex-Token={PLEX_TOKEN}",
+        "title": item.get("title"),
+        "part_key": part_key,
+    }
+
+
+@router.get("/plex/proxy/{part_path:path}")
+async def proxy_plex_video(part_path: str, request: Request) -> StreamingResponse:
+    """Stream Plex video bytes with auth injected — provides a localhost URL
+    the generate/upload flow can download from."""
+    if not PLEX_TOKEN:
+        raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured.")
+    plex_url = f"{PLEX_BASE_URL}/{part_path}?X-Plex-Token={PLEX_TOKEN}"
+
+    async def _stream() -> AsyncGenerator[bytes, None]:
+        async with httpx.AsyncClient(timeout=300, follow_redirects=True) as client:
+            async with client.stream("GET", plex_url) as resp:
+                resp.raise_for_status()
+                async for chunk in resp.aiter_bytes(65536):
+                    yield chunk
+
+    return StreamingResponse(
+        _stream(),
+        media_type="video/mp4",
+        headers={"Access-Control-Allow-Origin": "*"},
+    )
+
+
+class PlexGenerateRequest(BaseModel):
+    rating_key: str
+    display_name: str = ""
+    text_prompt: str = ""
+    model: str = DEFAULT_MODEL
+
+
+@router.post("/plex/generate")
+async def generate_world_from_plex(req: PlexGenerateRequest) -> dict[str, Any]:
+    """Download a Plex video to temp storage, upload to Marble, start generation.
+
+    This is the one-shot endpoint for Cinema Worlds. The video is downloaded
+    from Plex, uploaded to Marble's GCS bucket, and world generation kicks off.
+    Returns the operation immediately (async generation).
+    """
+    if not PLEX_TOKEN:
+        raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured.")
+
+    # 1. Get item metadata
+    item = await get_plex_item(req.rating_key)
+    part_key = item.get("part_key", "")
+    if not part_key:
+        raise HTTPException(status_code=404, detail="No media part found for this Plex item.")
+
+    title = req.display_name or item.get("title") or f"PlexWorld_{req.rating_key}"
+    grandparent = item.get("grandparent_title", "")
+    if grandparent:
+        title = f"{grandparent} - {title}"
+
+    # 2. Stream Plex video to a temp file (max 500MB — Marble limit is 100MB
+    #    but we truncate at the ffmpeg clip step if added later; for now pass as-is)
+    plex_url = f"{PLEX_BASE_URL}{part_key}?X-Plex-Token={PLEX_TOKEN}"
+    tmp_dir = Path(tempfile.gettempdir()) / "worldlabs_plex"
+    tmp_dir.mkdir(exist_ok=True)
+    tmp_file = tmp_dir / f"plex_{req.rating_key}.mkv"
+
+    MAX_BYTES = 95 * 1024 * 1024  # 95MB — stay under Marble's 100MB limit
+
+    try:
+        async with httpx.AsyncClient(timeout=120, follow_redirects=True) as client:
+            async with client.stream("GET", plex_url) as resp:
+                resp.raise_for_status()
+                written = 0
+                with open(tmp_file, "wb") as f:
+                    async for chunk in resp.aiter_bytes(65536):
+                        if written + len(chunk) > MAX_BYTES:
+                            # Write remainder up to limit and stop
+                            remaining = MAX_BYTES - written
+                            if remaining > 0:
+                                f.write(chunk[:remaining])
+                            break
+                        f.write(chunk)
+                        written += len(chunk)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to download from Plex: {e}") from e
+
+    file_size = tmp_file.stat().st_size
+    if file_size < 1024:
+        raise HTTPException(status_code=502, detail="Downloaded file is too small — check Plex token/key.")
+
+    # 3. Upload to Marble GCS
+    ext = "mkv"
+    filename = f"{req.rating_key}.{ext}"
+    file_bytes = tmp_file.read_bytes()
+
+    async with httpx.AsyncClient(timeout=60) as client:
+        try:
+            prepare_resp = await client.post(
+                f"{BASE_URL}/media-assets:prepare_upload",
+                headers=_headers(),
+                json={"file_name": filename, "kind": "video", "extension": ext},
+            )
+            prepare_resp.raise_for_status()
+            prepare_data = prepare_resp.json()
+        except httpx.HTTPStatusError as e:
+            _handle_http_error(e)
+
+        media_asset_id: str = prepare_data["media_asset"]["id"]
+        upload_info: dict = prepare_data["upload_info"]
+        upload_url: str = upload_info["upload_url"]
+        upload_headers: dict = upload_info.get("required_headers") or upload_info.get("headers", {})
+
+        try:
+            put_resp = await client.put(upload_url, content=file_bytes, headers=upload_headers)
+            put_resp.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            _handle_http_error(e)
+
+    # 4. Generate world
+    world_prompt: dict = {
+        "type": "video",
+        "video_prompt": {"source": "media_asset", "media_asset_id": media_asset_id},
+    }
+    if req.text_prompt:
+        world_prompt["text_prompt"] = req.text_prompt
+
+    payload = {
+        "display_name": title,
+        "model": req.model,
+        "world_prompt": world_prompt,
+        "tags": ["plex", "cinema-worlds"],
+    }
+
+    try:
+        data = await _wl_post("/worlds:generate", payload)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Marble generation failed: {e}") from e
+
+    # Save to local history
+    _save_operation(data)
+
+    # Attach plex metadata for the frontend
+    data["_plex"] = {
+        "rating_key": req.rating_key,
+        "title": item.get("title"),
+        "grandparent_title": item.get("grandparent_title"),
+        "thumb": item.get("thumb"),
+        "part_key": part_key,
+        "file_size_mb": round(file_size / 1024 / 1024, 1),
+    }
+
+    return data
 
 
 @router.get("/plex/stream_url")

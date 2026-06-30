@@ -45,22 +45,12 @@ _MODEL_LABELS = {
 
 def _status_badge(world: dict[str, Any]) -> str:
     """Return a human-readable status string from a world dict."""
-    status = (
-        world.get("status")
-        or world.get("state")
-        or (world.get("assets") and "SUCCEEDED")
-        or "UNKNOWN"
-    )
+    status = world.get("status") or world.get("state") or (world.get("assets") and "SUCCEEDED") or "UNKNOWN"
     return _STATUS_LABELS.get(status.upper(), status)
 
 
 def _world_name(world: dict[str, Any]) -> str:
-    return (
-        world.get("display_name")
-        or world.get("name", "")
-        or world.get("id", "")[:12]
-        or "Unnamed World"
-    )
+    return world.get("display_name") or world.get("name", "") or world.get("id", "")[:12] or "Unnamed World"
 
 
 def _world_id(world: dict[str, Any]) -> str:
@@ -80,11 +70,7 @@ def _thumb(world: dict[str, Any]) -> str | None:
 
 def _caption(world: dict[str, Any]) -> str:
     assets = world.get("assets", {})
-    return (
-        assets.get("caption")
-        or world.get("caption")
-        or ""
-    )
+    return assets.get("caption") or world.get("caption") or ""
 
 
 def _marble_url(world: dict[str, Any]) -> str:
@@ -122,22 +108,12 @@ def _splat_urls(world: dict[str, Any]) -> dict[str, str]:
 
 def _mesh_url(world: dict[str, Any]) -> str:
     assets = world.get("assets", {})
-    return (
-        assets.get("mesh", {}).get("collider_mesh_url")
-        or assets.get("mesh_url")
-        or world.get("mesh_url")
-        or ""
-    )
+    return assets.get("mesh", {}).get("collider_mesh_url") or assets.get("mesh_url") or world.get("mesh_url") or ""
 
 
 def _pano_url(world: dict[str, Any]) -> str:
     assets = world.get("assets", {})
-    return (
-        assets.get("imagery", {}).get("pano_url")
-        or assets.get("panorama_url")
-        or world.get("panorama_url")
-        or ""
-    )
+    return assets.get("imagery", {}).get("pano_url") or assets.get("panorama_url") or world.get("panorama_url") or ""
 
 
 # ---------------------------------------------------------------------------
@@ -190,8 +166,10 @@ def register_prefab_tools(mcp) -> None:
                 CardDescription(subtitle)
             with CardContent():
                 if not worlds:
-                    Text("No worlds found. Generate one with generate_world_from_text.",
-                         css_class="text-muted-foreground")
+                    Text(
+                        "No worlds found. Generate one with generate_world_from_text.",
+                        css_class="text-muted-foreground",
+                    )
                 else:
                     # Column headers
                     Text(
@@ -261,8 +239,7 @@ def register_prefab_tools(mcp) -> None:
         except Exception as exc:
             with Card(css_class="max-w-2xl") as view:
                 with CardContent():
-                    Text(f"Error fetching world {world_id!r}: {exc}",
-                         css_class="text-destructive")
+                    Text(f"Error fetching world {world_id!r}: {exc}", css_class="text-destructive")
             return PrefabApp(view=view, title="Error")
 
         # get_world returns the world object directly or nested under "world"
@@ -321,8 +298,10 @@ def register_prefab_tools(mcp) -> None:
                 if asset_lines:
                     Separator(spacing=2)
                     Text("Assets", css_class="font-semibold text-sm")
-                    Text("⚠ CDN links are time-limited — download promptly.",
-                         css_class="text-xs text-muted-foreground mb-1")
+                    Text(
+                        "⚠ CDN links are time-limited — download promptly.",
+                        css_class="text-xs text-muted-foreground mb-1",
+                    )
                     for line in asset_lines:
                         Markdown(f"• {line}")
 

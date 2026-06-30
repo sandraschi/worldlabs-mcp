@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 os.chdir(r"D:\Dev\repos\worldlabs-mcp")
-result = subprocess.run(
+result = subprocess.run(  # noqa: S603
     [sys.executable, "-m", "pytest", "tests/", "-v", "--tb=short"],
     capture_output=True,
     text=True,

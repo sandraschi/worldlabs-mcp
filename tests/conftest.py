@@ -33,6 +33,7 @@ import pytest
 # Markers
 # ---------------------------------------------------------------------------
 
+
 def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "live: requires WORLDLABS_LIVE_TESTS=1 and real API key")
     config.addinivalue_line("markers", "slow: long-running generation test (live only)")
@@ -40,15 +41,15 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "prefab: prefab card rendering test (no HTTP)")
 
 
-def pytest_collection_modifyitems(
-    config: pytest.Config, items: list[pytest.Item]
-) -> None:
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     """Skip live/bridge tests unless the corresponding env vars are set."""
     live_enabled = os.environ.get("WORLDLABS_LIVE_TESTS", "").strip() == "1"
     bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
 
     skip_live = pytest.mark.skip(reason="Set WORLDLABS_LIVE_TESTS=1 to run live API tests")
-    skip_bridge = pytest.mark.skip(reason=f"Bridge not enabled (set WORLDLABS_BRIDGE_URL or start backend at {bridge_url})")
+    skip_bridge = pytest.mark.skip(
+        reason=f"Bridge not enabled (set WORLDLABS_BRIDGE_URL or start backend at {bridge_url})"
+    )
 
     for item in items:
         if "live" in item.keywords and not live_enabled:
@@ -60,6 +61,7 @@ def pytest_collection_modifyitems(
 # ---------------------------------------------------------------------------
 # API key fixture
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(autouse=True)
 def set_fake_api_key(monkeypatch):
@@ -74,6 +76,7 @@ def set_fake_api_key(monkeypatch):
 # ---------------------------------------------------------------------------
 # Operation fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def fake_operation_response():
@@ -116,9 +119,7 @@ def fake_operation_done():
                             "full_res": "https://cdn.worldlabs.ai/worlds/world-uuid-456/splat_full.spz",
                         }
                     },
-                    "mesh": {
-                        "collider_mesh_url": "https://cdn.worldlabs.ai/worlds/world-uuid-456/mesh.glb"
-                    },
+                    "mesh": {"collider_mesh_url": "https://cdn.worldlabs.ai/worlds/world-uuid-456/mesh.glb"},
                     "imagery": {
                         "pano_url": "https://cdn.worldlabs.ai/worlds/world-uuid-456/pano.jpg",
                         "thumbnail_url": "https://cdn.worldlabs.ai/worlds/world-uuid-456/thumb.jpg",
@@ -159,6 +160,7 @@ def fake_operation_pending():
 # World fixtures — multiple shapes to test tolerant parsing
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def fake_world():
     """Full world with nested asset structure (current Marble API shape)."""
@@ -177,9 +179,7 @@ def fake_world():
                     "full_res": "https://cdn.worldlabs.ai/worlds/world-uuid-456/splat_full.spz",
                 }
             },
-            "mesh": {
-                "collider_mesh_url": "https://cdn.worldlabs.ai/worlds/world-uuid-456/mesh.glb"
-            },
+            "mesh": {"collider_mesh_url": "https://cdn.worldlabs.ai/worlds/world-uuid-456/mesh.glb"},
             "imagery": {
                 "pano_url": "https://cdn.worldlabs.ai/worlds/world-uuid-456/pano.jpg",
                 "thumbnail_url": "https://cdn.worldlabs.ai/worlds/world-uuid-456/thumb.jpg",
@@ -258,6 +258,7 @@ def fake_world_list_empty():
 # Upload / media asset fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def fake_prepare_upload_response():
     return {
@@ -285,6 +286,7 @@ def fake_prepare_upload_video_response():
 # ---------------------------------------------------------------------------
 # Spatial / bridge fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def fake_narration_response():

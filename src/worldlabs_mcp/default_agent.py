@@ -26,10 +26,14 @@ def _pack_uint16(*vals: int) -> bytes:
 def _make_box(cx: float, cy: float, cz: float, hw: float, hh: float, hd: float, r: float, g: float, b: float):
     """Return (vertices, indices, colors) for an axis-aligned box centered at (cx,cy,z)."""
     v = [
-        (cx - hw, cy - hh, cz - hd), (cx + hw, cy - hh, cz - hd),
-        (cx + hw, cy + hh, cz - hd), (cx - hw, cy + hh, cz - hd),
-        (cx - hw, cy - hh, cz + hd), (cx + hw, cy - hh, cz + hd),
-        (cx + hw, cy + hh, cz + hd), (cx - hw, cy + hh, cz + hd),
+        (cx - hw, cy - hh, cz - hd),
+        (cx + hw, cy - hh, cz - hd),
+        (cx + hw, cy + hh, cz - hd),
+        (cx - hw, cy + hh, cz - hd),
+        (cx - hw, cy - hh, cz + hd),
+        (cx + hw, cy - hh, cz + hd),
+        (cx + hw, cy + hh, cz + hd),
+        (cx - hw, cy + hh, cz + hd),
     ]
     i = [0, 1, 2, 0, 2, 3, 1, 5, 6, 1, 6, 2, 5, 4, 7, 5, 7, 6, 4, 0, 3, 4, 3, 7, 3, 2, 6, 3, 6, 7, 4, 5, 1, 4, 1, 0]
     c = [(r, g, b)] * 8
@@ -88,12 +92,16 @@ def generate_default_agent(output_path: str | Path) -> Path:
         "scene": 0,
         "scenes": [{"nodes": [0]}],
         "nodes": [{"mesh": 0}],
-        "meshes": [{
-            "primitives": [{
-                "attributes": {"POSITION": 0, "COLOR_0": 0},
-                "indices": 1,
-            }],
-        }],
+        "meshes": [
+            {
+                "primitives": [
+                    {
+                        "attributes": {"POSITION": 0, "COLOR_0": 0},
+                        "indices": 1,
+                    }
+                ],
+            }
+        ],
         "accessors": [
             {
                 "bufferView": 0,
@@ -125,6 +133,7 @@ def generate_default_agent(output_path: str | Path) -> Path:
     }
 
     import json
+
     json_bytes = json.dumps(gltf, separators=(",", ":")).encode()
 
     # GLB header: magic(4) + version(4) + length(4)

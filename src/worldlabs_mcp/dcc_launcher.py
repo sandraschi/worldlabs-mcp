@@ -18,6 +18,7 @@ from pathlib import Path
 async def _wait_for_port(host: str, port: int, timeout: float = 15.0) -> bool:
     """Poll a TCP port until it responds or timeout expires."""
     import socket
+
     deadline = asyncio.get_event_loop().time() + timeout
     while asyncio.get_event_loop().time() < deadline:
         try:
@@ -78,8 +79,12 @@ async def ensure_blender(host: str = "127.0.0.1", port: int = 10700) -> str | No
 
     try:
         subprocess.Popen(  # noqa: S603
-            [blender_path, "--background", "--python-expr",
-             "import bpy; bpy.ops.preferences.addon_enable(module='blender_mcp')"],
+            [
+                blender_path,
+                "--background",
+                "--python-expr",
+                "import bpy; bpy.ops.preferences.addon_enable(module='blender_mcp')",
+            ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
@@ -125,7 +130,8 @@ async def ensure_resonite(host: str = "127.0.0.1", port: int = 10715, osc_port: 
         if mcp_path == "uvx":
             subprocess.Popen(
                 ["uvx", "resonite-mcp"],  # noqa: S607
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
                 creationflags=subprocess.CREATE_NO_WINDOW,
             )
         else:
@@ -133,13 +139,15 @@ async def ensure_resonite(host: str = "127.0.0.1", port: int = 10715, osc_port: 
             if start_script.is_file():
                 subprocess.Popen(  # noqa: S603
                     ["cmd", "/c", str(start_script)],  # noqa: S607
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
                     creationflags=subprocess.CREATE_NO_WINDOW,
                 )
             else:
                 subprocess.Popen(  # noqa: S603
                     ["uv", "run", "--directory", mcp_path, "python", "-m", "src.resonite_mcp.server"],  # noqa: S607
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
                     creationflags=subprocess.CREATE_NO_WINDOW,
                 )
         if await _wait_for_port(host, port, timeout=30):

@@ -40,7 +40,7 @@ load_dotenv()
 # ---------------------------------------------------------------------------
 mcp = FastMCP(
     name="worldlabs-mcp",
-    version="0.4.0",
+    version="0.5.0",
 )
 
 # Register Prefab card tools immediately after mcp instantiation so they are
@@ -76,8 +76,7 @@ def _get_api_key() -> str:
     key = os.environ.get("WORLDLABS_API_KEY", "")
     if not key:
         raise ValueError(
-            "WORLDLABS_API_KEY environment variable is not set. "
-            "Get your key at https://platform.worldlabs.ai/api-keys"
+            "WORLDLABS_API_KEY environment variable is not set. Get your key at https://platform.worldlabs.ai/api-keys"
         )
     return key
 
@@ -102,8 +101,7 @@ def _handle_status_error(e: httpx.HTTPStatusError) -> None:
 
     if status_code == 401:
         raise RuntimeError(
-            f"World Labs API: 401 Unauthorized. Your WORLDLABS_API_KEY may be invalid. "
-            f"({api_message or 'No details'})"
+            f"World Labs API: 401 Unauthorized. Your WORLDLABS_API_KEY may be invalid. ({api_message or 'No details'})"
         )
 
     if status_code == 402:
@@ -115,8 +113,7 @@ def _handle_status_error(e: httpx.HTTPStatusError) -> None:
 
     if status_code == 429:
         raise RuntimeError(
-            f"World Labs API: 429 Too Many Requests. You have hit a rate limit. "
-            f"({api_message or 'No details'})"
+            f"World Labs API: 429 Too Many Requests. You have hit a rate limit. ({api_message or 'No details'})"
         )
 
     raise RuntimeError(f"World Labs API Error {status_code}: {api_message or response.text}")
@@ -129,6 +126,34 @@ def _check_error(data: dict, operation_id: str) -> None:
         code = err.get("code", "UNKNOWN")
         message = err.get("message", "No details provided")
         raise RuntimeError(f"Operation {operation_id} failed [{code}]: {message}")
+
+
+async def _api_call(method: str, path: str, json_data: dict | None = None, timeout: float = 30) -> dict:
+    """Unified httpx call with transport error handling and logging."""
+    url = f"{BASE_URL}{path}"
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            if method == "GET":
+                resp = await client.get(url, headers=_headers())
+            elif method == "POST":
+                resp = await client.post(url, headers=_headers(), json=json_data or {})
+            elif method == "DELETE":
+                resp = await client.delete(url, headers=_headers())
+            else:
+                raise ValueError(f"Unsupported method: {method}")
+            resp.raise_for_status()
+            return resp.json()
+    except httpx.HTTPStatusError as e:
+        _handle_status_error(e)
+    except httpx.ConnectError as e:
+        logger.error(f"ConnectError to {method} {url}: {e}")
+        raise RuntimeError(f"World Labs API unreachable at {BASE_URL}. Check network connectivity.") from e
+    except httpx.TimeoutException as e:
+        logger.error(f"Timeout {method} {url}: {e}")
+        raise RuntimeError(f"World Labs API request timed out after {timeout}s.") from e
+    except httpx.RequestError as e:
+        logger.error(f"RequestError {method} {url}: {e}")
+        raise RuntimeError(f"World Labs API transport error: {e}") from e
 
 
 # ---------------------------------------------------------------------------
@@ -144,8 +169,7 @@ async def generate_world_from_text(
     seed: int | None = None,
     tags: list[str] | None = None,
 ) -> dict:
-    """
-    Generate a 3D world from a text description.
+    """Generate a 3D world from a text description.
 
     Returns immediately with an operation_id.  Use get_operation to check
     status, or wait_for_world for blocking poll (≤90s by default).
@@ -172,17 +196,7 @@ async def generate_world_from_text(
         payload["seed"] = seed
     if tags:
         payload["tags"] = tags
-    async with httpx.AsyncClient(timeout=30) as client:
-        try:
-            resp = await client.post(
-                f"{BASE_URL}/worlds:generate",
-                headers=_headers(),
-                json=payload,
-            )
-            resp.raise_for_status()
-            return resp.json()
-        except httpx.HTTPStatusError as e:
-            _handle_status_error(e)
+    return await _api_call("POST", "/worlds:generate", json_data=payload)
 
 
 @mcp.tool()
@@ -273,8 +287,7 @@ async def generate_world_from_multi_image(
     """
     if len(image_urls) != len(azimuths_deg):
         raise ValueError(
-            f"image_urls ({len(image_urls)}) and azimuths_deg ({len(azimuths_deg)}) "
-            "must have the same length"
+            f"image_urls ({len(image_urls)}) and azimuths_deg ({len(azimuths_deg)}) must have the same length"
         )
     if len(image_urls) < 2:
         raise ValueError("At least 2 images required for multi-image generation")
@@ -402,13 +415,9 @@ async def upload_and_generate(
 
     extension = file_path.suffix.lstrip(".").lower()
     if kind == "image" and extension not in VALID_IMAGE_EXTENSIONS:
-        raise ValueError(
-            f"Unsupported image extension '{extension}'. Use: {VALID_IMAGE_EXTENSIONS}"
-        )
+        raise ValueError(f"Unsupported image extension '{extension}'. Use: {VALID_IMAGE_EXTENSIONS}")
     if kind == "video" and extension not in VALID_VIDEO_EXTENSIONS:
-        raise ValueError(
-            f"Unsupported video extension '{extension}'. Use: {VALID_VIDEO_EXTENSIONS}"
-        )
+        raise ValueError(f"Unsupported video extension '{extension}'. Use: {VALID_VIDEO_EXTENSIONS}")
 
     file_bytes = file_path.read_bytes()
     file_size = len(file_bytes)
@@ -571,19 +580,10 @@ async def get_operation(operation_id: str) -> dict:
         'response' contains the world. metadata.progress.status is
         IN_PROGRESS, SUCCEEDED, or FAILED.
     """
-    async with httpx.AsyncClient(timeout=30) as client:
-        try:
-            resp = await client.get(
-                f"{BASE_URL}/operations/{operation_id}",
-                headers=_headers(),
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            if data.get("done"):
-                _check_error(data, operation_id)
-            return data
-        except httpx.HTTPStatusError as e:
-            _handle_status_error(e)
+    data = await _api_call("GET", f"/operations/{operation_id}")
+    if data.get("done"):
+        _check_error(data, operation_id)
+    return data
 
 
 @mcp.tool()
@@ -658,18 +658,7 @@ async def list_worlds(
     body: dict = {"page_size": page_size, "sort_by": "created_at"}
     if page_token:
         body["page_token"] = page_token
-
-    async with httpx.AsyncClient(timeout=30) as client:
-        try:
-            resp = await client.post(
-                f"{BASE_URL}/worlds:list",
-                headers=_headers(),
-                json=body,
-            )
-            resp.raise_for_status()
-            return resp.json()
-        except httpx.HTTPStatusError as e:
-            _handle_status_error(e)
+    return await _api_call("POST", "/worlds:list", json_data=body)
 
 
 @mcp.tool()
@@ -684,16 +673,7 @@ async def get_world(world_id: str) -> dict:
         World object with assets: splat URLs (SPZ), collision mesh (GLB),
         panorama, thumbnail, AI-generated caption.
     """
-    async with httpx.AsyncClient(timeout=30) as client:
-        try:
-            resp = await client.get(
-                f"{BASE_URL}/worlds/{world_id}",
-                headers=_headers(),
-            )
-            resp.raise_for_status()
-            return resp.json()
-        except httpx.HTTPStatusError as e:
-            _handle_status_error(e)
+    return await _api_call("GET", f"/worlds/{world_id}")
 
 
 @mcp.tool()
@@ -777,10 +757,10 @@ _TOOL_CATALOG = [
         },
         "returns": "Operation dict",
         "example": (
-            'generate_world_from_multi_image(\n'
+            "generate_world_from_multi_image(\n"
             '  image_urls=["https://example.com/north.jpg", "https://example.com/south.jpg"],\n'
-            '  azimuths_deg=[0, 180]\n'
-            ')'
+            "  azimuths_deg=[0, 180]\n"
+            ")"
         ),
         "docstring": (
             "Reconstructs a 3D scene from multiple views. Use 2-8 images at known azimuth "
@@ -867,10 +847,7 @@ _TOOL_CATALOG = [
         "description": "Single poll of an operation status",
         "group": "poll",
         "args": {"operation_id": "str — from any generate call"},
-        "returns": (
-            "Operation dict. Check done field. "
-            "metadata.progress.status: IN_PROGRESS | SUCCEEDED | FAILED"
-        ),
+        "returns": ("Operation dict. Check done field. metadata.progress.status: IN_PROGRESS | SUCCEEDED | FAILED"),
         "example": 'get_operation("op-abc123")',
         "docstring": (
             "One-shot poll. Returns immediately with current state. "
@@ -943,7 +920,7 @@ _TOOL_CATALOG = [
             "page_token": "str (optional) — pagination token",
         },
         "returns": "Rich card UI with world list",
-        "example": 'show_worlds_card(page_size=5)',
+        "example": "show_worlds_card(page_size=5)",
         "docstring": "Displays worlds in a rich in-chat card format using Prefab UI.",
         "notes": "",
     },
@@ -1002,7 +979,9 @@ _TOOL_CATALOG = [
         "group": "spatial",
         "args": {
             "prompt_or_url": "str — URL to audio file, or future: text prompt for Lyria generation",
-            "x": "float", "y": "float", "z": "float",
+            "x": "float",
+            "y": "float",
+            "z": "float",
             "is_loop": "bool (default True)",
         },
         "returns": "Status string",
@@ -1033,7 +1012,9 @@ _TOOL_CATALOG = [
         "group": "spatial",
         "args": {
             "avatar_url": "str — URL to a glTF, or 'default_agent'",
-            "x": "float", "y": "float", "z": "float",
+            "x": "float",
+            "y": "float",
+            "z": "float",
             "rotation": "float — yaw in radians",
         },
         "returns": "Status string",
@@ -1093,8 +1074,7 @@ _WORKFLOW = [
 _WORLDLABS_CONTEXT = {
     "founded": "2023, San Francisco. Led by Fei-Fei Li (former Stanford AI Lab director).",
     "mission": (
-        "Build spatial intelligence — AI that understands the 3D structure of the world, "
-        "not just text and images."
+        "Build spatial intelligence — AI that understands the 3D structure of the world, not just text and images."
     ),
     "marble_api": (
         "Marble is the World Labs world-generation API. It takes text, image, or video as input "
@@ -1144,7 +1124,6 @@ _WORLDLABS_CONTEXT = {
 }
 
 
-
 @mcp.tool()
 async def broadcast_spatial_audio(
     prompt_or_url: str,
@@ -1177,6 +1156,7 @@ async def broadcast_spatial_audio(
         res.raise_for_status()
         return f"Audio broadcasted: {prompt_or_url} at [{x}, {y}, {z}]"
 
+
 @mcp.tool()
 async def place_world_tv(
     video_url: str,
@@ -1190,17 +1170,12 @@ async def place_world_tv(
     Place a virtual TV screen in the 3D world playing a Veo 3.1 video.
     """
     bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
-    payload = {
-        "type": "video",
-        "url": video_url,
-        "x": x, "y": y, "z": z,
-        "rotation": rotation_y,
-        "scale": scale
-    }
+    payload = {"type": "video", "url": video_url, "x": x, "y": y, "z": z, "rotation": rotation_y, "scale": scale}
     async with httpx.AsyncClient(timeout=10) as client:
         res = await client.post(f"{bridge_url}/api/narration", json=payload)
         res.raise_for_status()
         return f"TV Materialized at [{x}, {y}, {z}] with video: {video_url}"
+
 
 @mcp.tool()
 async def spawn_agent_avatar(
@@ -1215,17 +1190,8 @@ async def spawn_agent_avatar(
     The viewer will attempt to ground the avatar on the collider mesh.
     """
     bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
-    resolved_url = (
-        f"{bridge_url}/api/default-agent"
-        if avatar_url == "default_agent"
-        else avatar_url
-    )
-    payload = {
-        "type": "avatar",
-        "url": resolved_url,
-        "x": x, "y": y, "z": z,
-        "rotation": rotation
-    }
+    resolved_url = f"{bridge_url}/api/default-agent" if avatar_url == "default_agent" else avatar_url
+    payload = {"type": "avatar", "url": resolved_url, "x": x, "y": y, "z": z, "rotation": rotation}
     async with httpx.AsyncClient(timeout=10) as client:
         res = await client.post(f"{bridge_url}/api/narration", json=payload)
         res.raise_for_status()
@@ -1392,8 +1358,10 @@ async def worldlabs_help(
 # ASGI app for uvicorn (web_sota/start.ps1): worldlabs_mcp.server:app
 # REST /api/* for web_sota + Spatial Voice Agent narration stream
 # ---------------------------------------------------------------------------
-_web_app = FastAPI(title="worldlabs-mcp", version="0.4.0")
+_web_app = FastAPI(title="worldlabs-mcp", version="0.5.0")
 _FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:10864")
+_tauri = os.environ.get("WORLDLABS_TAURI", "").lower() in ("1", "true", "yes")
+
 
 @_web_app.middleware("http")
 async def catch_exceptions_middleware(request: Request, call_next):
@@ -1401,22 +1369,28 @@ async def catch_exceptions_middleware(request: Request, call_next):
         return await call_next(request)
     except Exception as e:
         logger.exception(f"Unhandled exception during {request.method} {request.url.path}")
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Internal Server Error", "error": str(e)}
-        )
+        return JSONResponse(status_code=500, content={"detail": "Internal Server Error", "error": str(e)})
+
 
 _web_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "*",
+        "http://tauri.localhost",
+        "https://tauri.localhost",
+        "tauri://localhost",
+    ],
+    allow_origin_regex=r"https?://tauri\.localhost(:\d+)?" if _tauri else None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
 @_web_app.get("/health")
 async def health():
     return {"status": "ok", "server": "worldlabs-mcp"}
+
 
 _web_app.include_router(api_router, prefix="/api")
 app = _web_app

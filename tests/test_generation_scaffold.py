@@ -97,9 +97,7 @@ async def _generate_and_poll(
         display_name=display_name,
         model=model,
     )
-    assert "name" in op or "operation_id" in op or "metadata" in op, (
-        f"Unexpected operation response shape: {op}"
-    )
+    assert "name" in op or "operation_id" in op or "metadata" in op, f"Unexpected operation response shape: {op}"
 
     # Extract operation_id — API may return name="operations/<id>" or operation_id directly
     op_id: str = ""
@@ -120,8 +118,7 @@ async def _generate_and_poll(
             return status
         if time.monotonic() > deadline:
             pytest.fail(
-                f"Operation {op_id} did not complete in {max_wait}s. "
-                "Increase max_wait or use 'plus' model expectation."
+                f"Operation {op_id} did not complete in {max_wait}s. Increase max_wait or use 'plus' model expectation."
             )
         await asyncio.sleep(poll_interval)
 

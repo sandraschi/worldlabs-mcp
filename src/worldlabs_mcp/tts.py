@@ -17,6 +17,7 @@ AUDIO_DIR = Path(tempfile.gettempdir()) / "worldlabs-tts"
 def _get_edge_tts_available() -> bool:
     try:
         import edge_tts  # noqa: F401
+
         return True
     except ImportError:
         return False
