@@ -32,5 +32,10 @@ fn main() {
                     let _ = child.kill();
                 }
             }
+            if let tauri::RunEvent::ExitRequested { .. } = event {
+                if let Some(mut child) = app_handle.state::<BackendProcess>().0.lock().unwrap().take() {
+                    let _ = child.kill();
+                }
+            }
         });
 }

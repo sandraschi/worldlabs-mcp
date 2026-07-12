@@ -1,3 +1,4 @@
+export const API_BASE = "http://127.0.0.1:10865";
 const BASE = "/api";
 
 // ── Asset types ───────────────────────────────────────────────────────────────
@@ -11,7 +12,17 @@ export interface SpzUrls {
 export interface WorldAssets {
 	caption?: string;
 	thumbnail_url?: string;
-	splats?: { spz_urls: SpzUrls };
+	splats?: { spz_urls: SpzUrls 	// Plex Cinema Worlds
+	plexStatus: () => get<PlexStatus>("/plex/status"),
+	plexLibraries: () => get<PlexLibrary[]>("/plex/libraries"),
+	plexBrowse: (sectionId: string, page = 0, pageSize = 30) =>
+		get<PlexBrowseResult>(`/plex/library/${sectionId}?page=${page}&page_size=${pageSize}`),
+	plexSearch: (q: string) => get<PlexItem[]>(`/plex/search?q=${encodeURIComponent(q)}`),
+	plexItem: (ratingKey: string) => get<PlexItem>(`/plex/item/${ratingKey}`),
+	plexEpisodes: (ratingKey: string) => get<PlexItem[]>(`/plex/item/${ratingKey}/episodes`),
+	plexVideoUrl: (ratingKey: string) => get<PlexVideoUrl>(`/plex/video/${ratingKey}`),
+	plexGenerate: (req: PlexGenerateRequest) => post<Operation>("/plex/generate", req),
+};
 	mesh?: { collider_mesh_url: string };
 	imagery?: { pano_url: string };
 	_assets?: FlatAssets;
@@ -165,6 +176,60 @@ export interface PromptUpdate {
 	comment?: string;
 }
 
+// ── Plex types ────────────────────────────────────────────────────────────────
+
+export interface PlexStatus {
+	available: boolean;
+	server_name?: string;
+	version?: string;
+	base_url?: string;
+	error?: string;
+}
+
+export interface PlexLibrary {
+	id: string;
+	title: string;
+	type: string;
+	count?: number;
+}
+
+export interface PlexItem {
+	rating_key: string;
+	title: string;
+	type: string;
+	year?: number;
+	summary?: string;
+	thumb?: string;
+	art?: string;
+	duration_ms?: number;
+	duration_s?: number;
+	part_key?: string;
+	grandparent_title?: string;
+	parent_index?: number;
+	index?: number;
+}
+
+export interface PlexBrowseResult {
+	total: number;
+	page: number;
+	page_size: number;
+	items: PlexItem[];
+}
+
+export interface PlexVideoUrl {
+	proxy_url: string;
+	direct_url: string;
+	title?: string;
+	part_key?: string;
+}
+
+export interface PlexGenerateRequest {
+	rating_key: string;
+	display_name?: string;
+	text_prompt?: string;
+	model?: string;
+}
+
 export interface NarrationRequest {
 	type: "speech" | "audio" | "video" | "avatar" | "event";
 	text?: string;
@@ -184,38 +249,42 @@ export interface NarrationResponse {
 
 // ── HTTP helpers ──────────────────────────────────────────────────────────────
 
+function urlFor(path: string): string {
+  return `${API_BASE}${BASE}${path}`;
+}
+
 async function get<T>(path: string): Promise<T> {
-	const res = await fetch(`${BASE}${path}`);
-	if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
-	return res.json() as Promise<T>;
+  const res = await fetch(urlFor(path));
+  if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+  return res.json() as Promise<T>;
 }
 
 async function post<T>(path: string, body: unknown): Promise<T> {
-	const res = await fetch(`${BASE}${path}`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify(body),
-	});
-	if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
-	return res.json() as Promise<T>;
+  const res = await fetch(urlFor(path), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+  return res.json() as Promise<T>;
 }
 
 async function patch<T>(path: string, body: unknown): Promise<T> {
-	const res = await fetch(`${BASE}${path}`, {
-		method: "PATCH",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify(body),
-	});
-	if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
-	return res.json() as Promise<T>;
+  const res = await fetch(urlFor(path), {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+  return res.json() as Promise<T>;
 }
 
 async function del<T>(path: string): Promise<T> {
-	const res = await fetch(`${BASE}${path}`, {
-		method: "DELETE",
-	});
-	if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
-	return res.json() as Promise<T>;
+  const res = await fetch(urlFor(path), {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+  return res.json() as Promise<T>;
 }
 
 // ── Download helper ───────────────────────────────────────────────────────────

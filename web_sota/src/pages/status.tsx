@@ -1,3 +1,4 @@
+import { API_BASE } from "@/lib/api";
 import { logger } from "@/lib/logger";
 import { Cpu, Database, Globe, HardDrive } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -17,7 +18,7 @@ export function Status() {
 	useEffect(() => {
 		const fetchStatus = async () => {
 			try {
-				const res = await fetch("/api/health");
+				const res = await fetch(API_BASE + "/api/health");
 				const data = await res.json();
 				setStats(data);
 			} catch (err) {

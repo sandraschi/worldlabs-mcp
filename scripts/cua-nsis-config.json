@@ -1,0 +1,14 @@
+{
+  "product_name": "World Labs MCP",
+  "install_dir": "%LOCALAPPDATA%\\World Labs MCP",
+  "operator_exe": "worldlabs-mcp-operator.exe",
+  "backend_process_names": ["worldlabs-mcp-operator", "worldlabs-mcp-backend"],
+  "backend_port": 10865,
+  "health_path": "/health",
+  "diagnostics_path": "/api/v1/diagnostics",
+  "feature_smoke_path": "/api/v1/status",
+  "window_title_re": "World Labs MCP",
+  "nsis_glob": "native/target/release/bundle/nsis/World Labs MCP_*_x64-setup.exe",
+  "bridge_ok_text": "API reachable",
+  "uninstall_registry_filter": "*World Labs MCP*"
+}

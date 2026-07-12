@@ -4,6 +4,7 @@ import {
 	type HandoffRequest,
 	type Operation,
 	type OperationStreamEvent,
+	API_BASE,
 	api,
 	streamOperation,
 	triggerDownload,
@@ -949,7 +950,7 @@ export default function WorldGenPage() {
 				if (displayName) formData.append("name", displayName);
 				formData.append("model", model);
 				formData.append("is_panorama", String(isPanorama));
-				const res = await fetch("/api/generate/upload", {
+				const res = await fetch(API_BASE + "/api/generate/upload", {
 					method: "POST",
 					body: formData,
 				});

@@ -1,6 +1,7 @@
 import {
 	ArrowRight,
 	BookOpen,
+	Brain,
 	ChevronDown,
 	ChevronRight,
 	Clock,
@@ -14,14 +15,11 @@ import {
 	Key,
 	Layers,
 	MessageSquare,
+	Search,
 	Smartphone,
 	Wrench,
 } from "lucide-react";
 import { useState } from "react";
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 interface Tool {
 	name: string;
@@ -40,108 +38,49 @@ interface SectionProps {
 	children: React.ReactNode;
 }
 
-// ---------------------------------------------------------------------------
-// Collapsible section wrapper
-// ---------------------------------------------------------------------------
-
-function Section({
-	title,
-	icon: Icon,
-	defaultOpen = true,
-	children,
-}: SectionProps) {
+function Section({ title, icon: Icon, defaultOpen = true, children }: SectionProps) {
 	const [open, setOpen] = useState(defaultOpen);
 	return (
 		<div className="glass-card overflow-hidden">
-			<button
-				onClick={() => setOpen((o) => !o)}
-				className="w-full flex items-center justify-between gap-2 p-5 text-left"
-				aria-expanded={open}
-			>
+			<button onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between gap-2 p-5 text-left" aria-expanded={open}>
 				<div className="flex items-center gap-2">
-					<Icon
-						className="w-4 h-4 text-cosmos-400 flex-shrink-0"
-						aria-hidden="true"
-					/>
+					<Icon className="w-4 h-4 text-cosmos-400 flex-shrink-0" aria-hidden="true" />
 					<span className="text-sm font-bold text-slate-200">{title}</span>
 				</div>
-				{open ? (
-					<ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-				) : (
-					<ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-				)}
+				{open ? <ChevronDown className="w-3.5 h-3.5 text-slate-500" /> : <ChevronRight className="w-3.5 h-3.5 text-slate-500" />}
 			</button>
 			{open && <div className="px-5 pb-5 space-y-3">{children}</div>}
 		</div>
 	);
 }
 
-// ---------------------------------------------------------------------------
-// Tool entry card — two display modes
-// ---------------------------------------------------------------------------
-
 type DetailLevel = "quick" | "standard" | "verbose";
 
 function ToolCard({ tool, detail }: { tool: Tool; detail: DetailLevel }) {
 	const [expanded, setExpanded] = useState(false);
-
 	return (
 		<div className="glass-card p-3 space-y-1.5">
-			<div
-				className="flex items-start gap-2 cursor-pointer"
-				onClick={() => detail !== "quick" && setExpanded((e) => !e)}
-				role={detail !== "quick" ? "button" : undefined}
-				tabIndex={detail !== "quick" ? 0 : undefined}
-				onKeyDown={(e) => e.key === "Enter" && setExpanded((v) => !v)}
-			>
-				<Code2
-					className="w-3.5 h-3.5 text-cosmos-400 flex-shrink-0 mt-0.5"
-					aria-hidden="true"
-				/>
+			<div className="flex items-start gap-2 cursor-pointer" onClick={() => detail !== "quick" && setExpanded((e) => !e)} role={detail !== "quick" ? "button" : undefined} tabIndex={detail !== "quick" ? 0 : undefined} onKeyDown={(e) => e.key === "Enter" && setExpanded((v) => !v)}>
+				<Code2 className="w-3.5 h-3.5 text-cosmos-400 flex-shrink-0 mt-0.5" />
 				<div className="flex-1 min-w-0">
 					<code className="text-xs font-mono text-cosmos-300">{tool.name}</code>
 					<p className="text-xs text-slate-500 mt-0.5">{tool.description}</p>
 				</div>
-				{detail !== "quick" && (
-					<span className="text-[10px] text-slate-600 flex-shrink-0 mt-0.5">
-						{expanded ? "▲" : "▼"}
-					</span>
-				)}
+				{detail !== "quick" && <span className="text-[10px] text-slate-600 mt-0.5">{expanded ? "▲" : "▼"}</span>}
 			</div>
-
 			{expanded && detail !== "quick" && (
 				<div className="mt-2 space-y-2 pl-5 border-l border-white/[0.06]">
 					{tool.args && (
 						<div>
-							<p className="text-[10px] uppercase tracking-wider text-slate-600 mb-1">
-								Args
-							</p>
+							<p className="text-[10px] uppercase tracking-wider text-slate-600 mb-1">Args</p>
 							{Object.entries(tool.args).map(([k, v]) => (
-								<div key={k} className="text-xs text-slate-400 flex gap-1.5">
-									<code className="text-cosmos-400 flex-shrink-0">{k}</code>
-									<span className="text-slate-500">{v}</span>
-								</div>
+								<div key={k} className="text-xs text-slate-400 flex gap-1.5"><code className="text-cosmos-400 flex-shrink-0">{k}</code><span className="text-slate-500">{v}</span></div>
 							))}
 						</div>
 					)}
-					{detail === "verbose" && tool.docstring && (
-						<p className="text-xs text-slate-400 leading-relaxed">
-							{tool.docstring}
-						</p>
-					)}
-					{detail === "verbose" && tool.example && (
-						<div>
-							<p className="text-[10px] uppercase tracking-wider text-slate-600 mb-1">
-								Example
-							</p>
-							<pre className="text-[11px] font-mono text-slate-300 bg-black/30 rounded p-2 overflow-x-auto whitespace-pre-wrap">
-								{tool.example}
-							</pre>
-						</div>
-					)}
-					{detail === "verbose" && tool.notes && (
-						<p className="text-[11px] text-amber-500/70 italic">{tool.notes}</p>
-					)}
+					{detail === "verbose" && tool.docstring && <p className="text-xs text-slate-400 leading-relaxed">{tool.docstring}</p>}
+					{detail === "verbose" && tool.example && <div><p className="text-[10px] uppercase tracking-wider text-slate-600 mb-1">Example</p><pre className="text-[11px] font-mono text-slate-300 bg-black/30 rounded p-2 overflow-x-auto">{tool.example}</pre></div>}
+					{detail === "verbose" && tool.notes && <p className="text-[11px] text-amber-500/70 italic">{tool.notes}</p>}
 				</div>
 			)}
 		</div>
@@ -160,13 +99,11 @@ const TOOLS: Tool[] = [
 		args: {
 			text_prompt: "str — scene description",
 			display_name: "str (optional)",
-			model: "'Marble 0.1-mini' (default) or 'Marble 0.1-plus'",
+			model: "'marble-1.1' (default) or 'marble-1.1-plus'",
 		},
-		docstring:
-			"Submits a text-to-world request. Returns immediately with an in-progress operation. Poll with get_operation or block with wait_for_world.",
-		example:
-			'generate_world_from_text(\n  text_prompt="A gothic cathedral interior at night"\n)',
-		notes: "Credits are consumed per generation.",
+		docstring: "Submits a text-to-world request to the Marble API. Returns immediately with an in-progress operation. Poll with get_operation or block with wait_for_world.",
+		example: 'generate_world_from_text(\n  text_prompt="A gothic cathedral interior at night"\n)',
+		notes: "Credits are consumed per generation. Check billing at platform.worldlabs.ai.",
 	},
 	{
 		name: "generate_world_from_image",
@@ -178,11 +115,9 @@ const TOOLS: Tool[] = [
 			is_panorama: "bool — True for 360-degree equirectangular images",
 			model: "str",
 		},
-		docstring:
-			"Lifts a photograph into a navigable 3D space. Panoramas produce fuller 360-degree worlds. Non-panorama images are extrapolated.",
-		example:
-			'generate_world_from_image(\n  image_url="https://example.com/photo.jpg"\n)',
-		notes: "Image must be publicly accessible.",
+		docstring: "Lifts a photograph into a navigable 3D space. Panoramas produce fuller 360-degree worlds. Non-panorama images are extrapolated.",
+		example: 'generate_world_from_image(\n  image_url="https://example.com/photo.jpg"\n)',
+		notes: "Image must be publicly accessible. GCS signed URLs are not supported here.",
 	},
 	{
 		name: "generate_world_from_multi_image",
@@ -191,12 +126,11 @@ const TOOLS: Tool[] = [
 		args: {
 			image_urls: "list[str] — public image URLs",
 			azimuths_deg: "list[float] — angle per image, 0-360",
+			text_prompt: "str (optional)",
 		},
-		docstring:
-			"Reconstructs a 3D scene from multiple views. 2-8 images at known azimuth angles. Cardinal directions (0/90/180/270) work well.",
-		example:
-			'generate_world_from_multi_image(\n  image_urls=["north.jpg", "south.jpg"],\n  azimuths_deg=[0, 180]\n)',
-		notes: "Minimum 2 images. URLs and azimuths must have equal length.",
+		docstring: "Reconstructs a 3D scene from multiple views. 2-8 images at known azimuth angles for best results. Cardinal directions (0/90/180/270) work well.",
+		example: 'generate_world_from_multi_image(\n  image_urls=["north.jpg", "south.jpg"],\n  azimuths_deg=[0, 180]\n)',
+		notes: "Minimum 2 images. image_urls and azimuths_deg must have equal length.",
 	},
 	{
 		name: "generate_world_from_video",
@@ -206,10 +140,8 @@ const TOOLS: Tool[] = [
 			video_url: "str — public URL (mp4, mov, mkv)",
 			text_prompt: "str (optional)",
 		},
-		docstring:
-			"Extracts 3D structure from video. Works well with slow pans and walkthrough recordings. Fast movement degrades quality.",
-		example:
-			'generate_world_from_video(video_url="https://example.com/walk.mp4")',
+		docstring: "Extracts 3D structure from video. Works well with slow pans and walkthrough recordings. Fast movement degrades quality.",
+		example: 'generate_world_from_video(video_url="https://example.com/walk.mp4")',
 		notes: "Video must be publicly accessible.",
 	},
 	{
@@ -222,25 +154,21 @@ const TOOLS: Tool[] = [
 			text_prompt: "str (optional)",
 			is_panorama: "bool (image only)",
 		},
-		docstring:
-			"Handles signed GCS upload then generation in one call. Preferred over the two-step manual flow for local files.",
-		example:
-			'upload_and_generate(\n  local_file_path="D:/photos/garden.jpg",\n  kind="image"\n)',
-		notes: "Supported: jpg, jpeg, png, webp (image); mp4, mov, mkv (video).",
+		docstring: "Handles the full GCS signed-upload flow then generation in one call. Supports jpg, jpeg, png, webp (image); mp4, mov, mkv (video).",
+		example: 'upload_and_generate(\n  local_file_path="D:/photos/garden.jpg",\n  kind="image"\n)',
+		notes: "Files up to 100MB.",
 	},
 	{
 		name: "prepare_media_upload",
 		group: "upload",
 		description: "Get a signed GCS upload URL for manual file upload",
 		args: {
-			file_name: "str",
+			file_name: "str — original filename",
 			kind: "'image' or 'video'",
-			extension: "str — without dot",
+			extension: "str — file extension without dot",
 		},
-		docstring:
-			"Step 1 of the manual upload flow. PUT the raw bytes to upload_info.upload_url, then call generate_world_from_media_asset.",
-		example:
-			'prepare_media_upload(file_name="photo.jpg", kind="image", extension="jpg")',
+		docstring: "Step 1 of the manual upload flow. PUT the raw bytes to upload_info.upload_url, then call generate_world_from_media_asset. Prefer upload_and_generate for simpler usage.",
+		example: 'prepare_media_upload(file_name="photo.jpg", kind="image", extension="jpg")',
 		notes: "Signed URLs expire after ~15 minutes.",
 	},
 	{
@@ -252,20 +180,17 @@ const TOOLS: Tool[] = [
 			kind: "'image' or 'video'",
 		},
 		docstring: "Step 2 of the manual upload flow.",
-		example:
-			'generate_world_from_media_asset(media_asset_id="asset-xyz", kind="image")',
-		notes: "Prefer upload_and_generate for simpler usage.",
+		example: 'generate_world_from_media_asset(media_asset_id="asset-xyz", kind="image")',
+		notes: "Use upload_and_generate instead unless you need the two-step flow.",
 	},
 	{
 		name: "get_operation",
 		group: "poll",
 		description: "Single poll of an operation status",
 		args: { operation_id: "str — from any generate call" },
-		docstring:
-			"One-shot poll. Returns immediately with current state. Call in a loop for Marble 0.1-plus jobs (~5 min).",
+		docstring: "One-shot poll. Returns immediately with current state. Call in a loop for marble-1.1-plus jobs (often multi-minute). Preferred over wait_for_world for plus jobs.",
 		example: 'get_operation("op-abc123")',
-		notes:
-			"Preferred over wait_for_world for Marble 0.1-plus to avoid MCP timeouts.",
+		notes: "Check the 'done' field. If done, 'response' contains the world data.",
 	},
 	{
 		name: "wait_for_world",
@@ -276,12 +201,9 @@ const TOOLS: Tool[] = [
 			poll_interval_seconds: "int (default 15)",
 			timeout_seconds: "int (default 90)",
 		},
-		docstring:
-			"Blocks until done or timeout. Raises RuntimeError on API failure, TimeoutError if timeout elapses.",
-		example:
-			'wait_for_world("op-abc123", poll_interval_seconds=10, timeout_seconds=90)',
-		notes:
-			"Default 90s is safe for Marble 0.1-mini. For plus use get_operation in a loop.",
+		docstring: "Blocks until done or timeout. Raises RuntimeError on API failure, TimeoutError if timeout elapses. Default 90s is safe for marble-1.1. For plus use get_operation in a loop.",
+		example: 'wait_for_world("op-abc123", poll_interval_seconds=10, timeout_seconds=90)',
+		notes: "MCP client timeouts (~120s) limit how long this can block.",
 	},
 	{
 		name: "list_worlds",
@@ -289,10 +211,9 @@ const TOOLS: Tool[] = [
 		description: "Paginated list of all generated worlds",
 		args: {
 			page_size: "int (default 20, max 100)",
-			page_token: "str (optional)",
+			page_token: "str (optional) — from previous next_page_token",
 		},
-		docstring:
-			"Returns all worlds in the account. Paginate using next_page_token. Worlds are returned newest-first.",
+		docstring: "Returns all worlds in the account. Paginate using next_page_token. Worlds are returned newest-first.",
 		example: "list_worlds(page_size=50)",
 	},
 	{
@@ -300,25 +221,75 @@ const TOOLS: Tool[] = [
 		group: "world",
 		description: "Fetch full details and asset URLs for a world",
 		args: { world_id: "str — UUID from list_worlds or operation response" },
-		docstring:
-			"Returns splat URLs (SPZ), mesh (GLB), panorama, thumbnail, AI caption, and Marble viewer link.",
+		docstring: "Returns splat URLs (SPZ), collision mesh (GLB), panorama, thumbnail, AI caption, and Marble viewer link.",
 		example: 'get_world("world-uuid-456")',
 		notes: "Asset URLs are time-limited CDN links. Download promptly.",
 	},
 	{
+		name: "delete_world",
+		group: "world",
+		description: "Permanently delete a world and all its assets",
+		args: { world_id: "str — UUID" },
+		example: 'delete_world("world-uuid-456")',
+		docstring: "Permanently removes the world and all associated assets. This action cannot be undone.",
+		notes: "Only the world owner can delete.",
+	},
+	{
+		name: "show_worlds_card",
+		group: "ui",
+		description: "Paginated world library as a scannable table card (Prefab UI)",
+		args: { page_size: "int (default 5)", page_token: "str (optional)" },
+		example: "show_worlds_card(page_size=5)",
+	},
+	{
+		name: "show_world_card",
+		group: "ui",
+		description: "Single world detail card with asset links and thumbnail (Prefab UI)",
+		args: { world_id: "str" },
+		example: 'show_world_card("world-uuid-456")',
+	},
+	{
+		name: "broadcast_spatial_audio",
+		group: "spatial",
+		description: "Broadcast spatial audio (Music/Ambience) to the scene",
+		args: { prompt_or_url: "str — URL to audio file", x: "float", y: "float", z: "float" },
+	},
+	{
+		name: "broadcast_spatial_notification",
+		group: "spatial",
+		description: "Speak text at a 3D coordinate via the Spatial Voice Agent",
+		args: { text: "str — message", x: "float", y: "float", z: "float" },
+		notes: "Built-in TTS via edge-tts. Auto-generates audio.",
+	},
+	{
+		name: "place_world_tv",
+		group: "spatial",
+		description: "Place a virtual TV screen playing a video in the scene",
+		args: { video_url: "str", x: "float", y: "float", z: "float", rotation_y: "float" },
+	},
+	{
+		name: "spawn_agent_avatar",
+		group: "spatial",
+		description: "Materialise an animated agent avatar in the scene",
+		args: { avatar_url: "str — glTF URL or 'default_agent'", x: "float", y: "float", z: "float" },
+	},
+	{
+		name: "refine_with_local_llm",
+		group: "meta",
+		description: "Refine a world prompt using a local Ollama model",
+		args: { prompt: "str", style: "str (optional)", model: "str (optional)" },
+		notes: "Requires Ollama running locally.",
+	},
+	{
 		name: "worldlabs_help",
 		group: "meta",
-		description:
-			"This help tool — API reference at quick / standard / verbose detail levels",
-		args: {
-			detail: "'quick' | 'standard' (default) | 'verbose'",
-			topic: "str (optional) — filter: generate, upload, poll, world, meta",
-		},
+		description: "This help tool — API reference at three detail levels",
+		args: { detail: "'quick' | 'standard' (default) | 'verbose'", topic: "str (optional)" },
 		example: 'worldlabs_help(detail="verbose", topic="generate")',
 	},
 ];
 
-const GROUPS = ["generate", "upload", "poll", "world", "meta"] as const;
+const GROUPS = ["generate", "upload", "poll", "world", "spatial", "ui", "meta"] as const;
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -327,9 +298,19 @@ const GROUPS = ["generate", "upload", "poll", "world", "meta"] as const;
 export function Help() {
 	const [detail, setDetail] = useState<DetailLevel>("standard");
 	const [group, setGroup] = useState<string>("all");
+	const [searchQuery, setSearchQuery] = useState("");
 
 	const filtered =
-		group === "all" ? TOOLS : TOOLS.filter((t) => t.group === group);
+		group === "all"
+			? TOOLS
+			: TOOLS.filter((t) => t.group === group);
+	const searched = searchQuery
+		? filtered.filter(
+				(t) =>
+					t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+					t.description.toLowerCase().includes(searchQuery.toLowerCase()),
+			)
+		: filtered;
 
 	return (
 		<div className="space-y-6 page-enter max-w-3xl mx-auto">
@@ -341,7 +322,7 @@ export function Help() {
 						Help &amp; Documentation
 					</h2>
 					<p className="text-sm text-slate-500 mt-0.5">
-						worldlabs-mcp · Marble API reference
+						worldlabs-mcp · Marble API v1 · v0.5.0
 					</p>
 				</div>
 			</div>
@@ -600,20 +581,47 @@ export function Help() {
 				</div>
 			</Section>
 
+			{/* ---- LLM Chat & Skills ---- */}
+			<Section title="LLM Chat &amp; Skill Injection" icon={Brain} defaultOpen={true}>
+				<div className="space-y-3 text-sm text-slate-400 leading-relaxed">
+					<p>
+						The <strong>Local LLM</strong> page at <code className="text-cosmos-400">/local-llm</code> provides an interactive AI chat
+						running entirely on your local GPU via Ollama or LM Studio.
+					</p>
+					<h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">Personalities</h4>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+						{[
+							{ label: "Expert", body: "Technically precise. References specific tool names and parameters. Default." },
+							{ label: "Creative", body: "Artistic and evocative. Helps craft vivid world prompts with sensory language." },
+							{ label: "Guide", body: "Patient tutor. Walks through workflows step by step with concrete examples." },
+							{ label: "Concise", body: "Short, direct answers in 1-3 sentences. Prefers bullet points." },
+						].map((p) => (
+							<div key={p.label} className="glass-card p-3">
+								<p className="text-[10px] font-bold uppercase tracking-wider text-cosmos-300">{p.label}</p>
+								<p className="text-xs text-slate-500 mt-0.5">{p.body}</p>
+							</div>
+						))}
+					</div>
+					<h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mt-2">Skill Injection</h4>
+					<p>When the <strong>Marble Skill</strong> toggle is on, the World Labs Marble Expert skill is injected into the system prompt, giving the LLM detailed knowledge of all tools, models, output formats, prompt engineering, and pricing.</p>
+					<p className="text-xs text-slate-500 border-l border-white/10 pl-3 italic">Conversation history is persisted per session and included as context for up to 10 previous exchanges.</p>
+				</div>
+			</Section>
+
 			{/* ---- Models ---- */}
 			<Section title="Generation Models" icon={Clock} defaultOpen={true}>
 				<div className="space-y-2">
 					{[
 						{
-							name: "Marble 0.1-mini",
-							time: "~30–45 seconds",
-							desc: "Fast iteration, lower geometric fidelity. Default. Good for prompt development and high-volume generation.",
+							name: "marble-1.1",
+							time: "~1-3 minutes",
+							desc: "Default model. Improved fidelity over marble-1.0 at the same fixed cost (1500 credits). Good for most generations.",
 							badge: "badge-pending",
 						},
 						{
-							name: "Marble 0.1-plus",
-							time: "~5 minutes",
-							desc: "High fidelity, detailed geometry, better material separation. Use for final assets and DCC export.",
+							name: "marble-1.1-plus",
+							time: "variable; longer for larger scenes",
+							desc: "Auto-expanding — produces larger worlds when the scene allows. 1500 base + 300 per additional dynamic cube (up to 5 cubes). Use for outdoor scenes and large interiors.",
 							badge: "badge-succeeded",
 						},
 					].map((m) => (
@@ -671,22 +679,33 @@ export function Help() {
 
 			{/* ---- Tools ---- */}
 			<Section title="MCP Tools Reference" icon={Wrench} defaultOpen={true}>
-				{/* Controls */}
 				<div className="flex flex-wrap gap-2 mb-3">
-					<div className="flex gap-1.5">
-						{(["quick", "standard", "verbose"] as DetailLevel[]).map((d) => (
-							<button
-								key={d}
-								onClick={() => setDetail(d)}
-								className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-									detail === d
-										? "bg-cosmos-600/40 text-cosmos-300 border border-cosmos-500/40"
-										: "text-slate-500 hover:text-slate-300 border border-transparent"
-								}`}
-							>
-								{d}
-							</button>
-						))}
+					<div className="flex items-center gap-2 flex-1 min-w-0">
+						<div className="relative flex-1 max-w-[240px]">
+							<Search className="w-3 h-3 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+							<input
+								type="text"
+								placeholder="Search tools..."
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								className="w-full bg-slate-800/60 border border-slate-700 rounded pl-7 pr-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cosmos-500"
+							/>
+						</div>
+						<div className="flex gap-1.5">
+							{(["quick", "standard", "verbose"] as DetailLevel[]).map((d) => (
+								<button
+									key={d}
+									onClick={() => setDetail(d)}
+									className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+										detail === d
+											? "bg-cosmos-600/40 text-cosmos-300 border border-cosmos-500/40"
+											: "text-slate-500 hover:text-slate-300 border border-transparent"
+									}`}
+								>
+									{d}
+								</button>
+							))}
+						</div>
 					</div>
 					<div className="flex gap-1.5">
 						{(["all", ...GROUPS] as string[]).map((g) => (
@@ -710,7 +729,10 @@ export function Help() {
 				</p>
 
 				<div className="space-y-2">
-					{filtered.map((tool) => (
+					{searched.length === 0 && (
+						<p className="text-xs text-slate-500 text-center py-4">No tools match "{searchQuery}".</p>
+					)}
+					{searched.map((tool) => (
 						<ToolCard key={tool.name} tool={tool} detail={detail} />
 					))}
 				</div>

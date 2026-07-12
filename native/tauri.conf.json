@@ -27,7 +27,9 @@
 		"targets": ["nsis"],
 		"icon": ["icons/icon.png", "icons/icon.ico"],
 		"resources": [
-			"resources/worldlabs-mcp-backend.exe"
+			"resources/worldlabs-mcp-backend.exe",
+            "resources/.env.example",
+			"../scripts/install-mcp-clients.ps1"
 		],
 		"windows": {
 			"webviewInstallMode": {
@@ -41,6 +43,7 @@
 	},
 	"plugins": {}
 }
+
 
 
 

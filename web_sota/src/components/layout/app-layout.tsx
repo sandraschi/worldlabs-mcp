@@ -1,7 +1,9 @@
 import { cn } from "@/lib/utils";
+import { useZoom } from "@/hooks/use-zoom";
 import {
 	Activity,
 	Binary,
+	Clapperboard,
 	ChevronLeft,
 	ChevronRight,
 	Glasses,
@@ -18,8 +20,9 @@ import {
 	Wrench,
 	Zap,
 } from "lucide-react";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useAppStore } from "@/lib/store";
 
 interface SidebarContextValue {
 	collapsed: boolean;
@@ -46,6 +49,7 @@ const navItems = [
 const creativeItems = [
 	{ to: "/portals", label: "Painting Portals", icon: Palette },
 	{ to: "/onboarding", label: "Headset Setup", icon: Smartphone },
+	{ to: "/plex", label: "Cinema Worlds", icon: Clapperboard },
 ];
 
 const engineItems = [
@@ -241,8 +245,9 @@ function Sidebar() {
 }
 
 function Topbar() {
-	const { setCollapsed, collapsed } = useSidebar();
+	const { setCollapse, collapsed } = useSidebar();
 	const location = useLocation();
+	const backend = useAppStore((s) => s.backend);
 
 	const currentPage = [
 		...navItems,
@@ -287,12 +292,31 @@ function Topbar() {
 			<div className="flex-1" />
 
 			{/* Status pill */}
-			<div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-aurora-500/10 border border-aurora-500/20">
+			<div
+				data-testid="backend-dot"
+				className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${
+					backend.ok === null
+						? "bg-gray-500/10 border-gray-500/20"
+						: backend.ok
+							? "bg-aurora-500/10 border-aurora-500/20"
+							: "bg-red-500/10 border-red-500/20"
+				}`}
+			>
 				<span
-					className="w-1.5 h-1.5 rounded-full bg-aurora-400 animate-pulse-slow"
+					className={`w-1.5 h-1.5 rounded-full ${
+						backend.ok === null
+							? "bg-gray-400"
+							: backend.ok
+								? "bg-aurora-400 animate-pulse"
+								: "bg-red-400 animate-pulse"
+					}`}
 					aria-hidden="true"
 				/>
-				<span className="text-xs font-semibold text-aurora-400">Live</span>
+				<span className={`text-xs font-semibold ${
+					backend.ok === null ? "text-gray-400" : backend.ok ? "text-aurora-400" : "text-red-400"
+				}`}>
+					{backend.ok === null ? "Connecting..." : backend.ok ? "Live" : "Offline"}
+				</span>
 			</div>
 
 			{/* World Labs link */}
@@ -316,6 +340,28 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
 	const [collapsed, setCollapsed] = useState(false);
+	const checkHealth = useAppStore((s) => s.checkHealth);
+	const setBackend = useAppStore((s) => s.setBackend);
+	useZoom();
+
+	useEffect(() => {
+		let unlisten: (() => void) | undefined;
+		(async () => {
+			try {
+				const { listen } = await import("@tauri-apps/api/event");
+				unlisten = await listen<string>("backend-status", (event) => {
+					if (event.payload === "ready") {
+						checkHealth();
+					} else if (typeof event.payload === "string" && event.payload.startsWith("error:")) {
+						setBackend({ ok: false, error: event.payload });
+					}
+				});
+			} catch {
+				// Not inside Tauri -- HTTP polling handles it
+			}
+		})();
+		return () => { if (unlisten) unlisten(); };
+	}, [checkHealth, setBackend]);
 
 	return (
 		<SidebarContext.Provider value={{ collapsed, setCollapsed }}>

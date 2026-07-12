@@ -256,12 +256,30 @@ export function SparkViewer() {
 		if (low) urls["100k"] = low;
 		setAvailableUrls(urls);
 
+		const cinemaVideo = params.get("cinema_video");
+
 		if (url) {
 			setUrlInput(url);
 			setLoadedName(name);
 			setWorldName(name);
 			setCaption(cap);
-			void loadWorld(url);
+			void loadWorld(url).then(() => {
+				// Auto-place cinema TV if coming from Cinema Worlds
+				if (cinemaVideo) {
+					setTimeout(() => {
+						void handleSpatialVideo({
+							id: "cinema_tv_auto",
+							type: "video",
+							url: cinemaVideo,
+							x: 0,
+							y: 1.8,
+							z: -4,
+							rotation: 0,
+							scale: 0.22,
+						});
+					}, 3000); // Give the world time to load before placing the TV
+				}
+			});
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);

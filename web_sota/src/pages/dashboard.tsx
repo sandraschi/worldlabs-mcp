@@ -1,9 +1,34 @@
 import { Activity, Box, Globe, Wand2, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { useAppStore } from "@/lib/store";
+
+function useHealthPoll() {
+  const checkHealth = useAppStore((s) => s.checkHealth);
+  const backend = useAppStore((s) => s.backend);
+  const attemptRef = useRef(0);
+
+  useEffect(() => {
+    const intervals = [1, 2, 4, 8, 16];
+    attemptRef.current = 0;
+    const poll = async () => {
+      await checkHealth();
+      if (!backend.ok) {
+        const idx = Math.min(attemptRef.current, intervals.length - 1);
+        attemptRef.current += 1;
+        setTimeout(poll, intervals[idx] * 1000);
+      }
+    };
+    poll();
+  }, [checkHealth]);
+}
 
 export function Dashboard() {
-	return (
-		<div className="space-y-8 pb-10 relative isolate">
+  useHealthPoll();
+  const backend = useAppStore((s) => s.backend);
+
+  return (
+    <div data-testid="dashboard" className="space-y-8 pb-10 relative isolate">
 			{/* SOTA Background Aesthetics - Refined for content area only */}
 			<div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-cyan-900/10 blur-[150px] rounded-full" />
@@ -16,9 +41,33 @@ export function Dashboard() {
 				<div className="absolute -top-16 -right-16 w-64 h-64 bg-cyan-500/10 blur-[100px] rounded-full animate-pulse" />
 
 				<div className="relative px-6 py-8 md:px-8 md:py-10 max-w-3xl">
-					<div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold text-cyan-400 border border-cyan-500/20 mb-4 backdrop-blur-md uppercase tracking-wide">
-						<Zap className="h-3 w-3 fill-cyan-400" />
-						World Labs · Marble · Chisel
+					<div className="flex flex-wrap items-center gap-3 mb-4">
+						<div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold text-cyan-400 border border-cyan-500/20 backdrop-blur-md uppercase tracking-wide">
+							<Zap className="h-3 w-3 fill-cyan-400" />
+							World Labs · Marble · Chisel
+						</div>
+						<div
+							data-testid="backend-dot"
+							className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold backdrop-blur-md border ${
+								backend.ok === null
+									? "bg-gray-500/10 text-gray-400 border-gray-500/20"
+									: backend.ok
+										? "bg-aurora-500/10 text-aurora-400 border-aurora-500/20"
+										: "bg-red-500/10 text-red-400 border-red-500/20"
+							}`}
+						>
+							<span
+								data-testid="backend-dot"
+								className={`w-1.5 h-1.5 rounded-full ${
+									backend.ok === null
+										? "bg-gray-400"
+										: backend.ok
+											? "bg-aurora-400 animate-pulse"
+											: "bg-red-400 animate-pulse"
+								}`}
+							/>
+							{backend.ok === null ? "Connecting..." : backend.ok ? "Connected" : "Offline"}
+						</div>
 					</div>
 					<h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-4 leading-tight">
 						Generate{" "}
@@ -87,6 +136,55 @@ export function Dashboard() {
 					</div>
 				</div>
 			</section>
+
+			{/* KPI Cards */}
+			<div className="grid gap-4 md:grid-cols-4">
+				<div
+					data-testid="kpi-server"
+					className="rounded-xl border border-slate-800 bg-slate-900/30 p-4 backdrop-blur-sm"
+				>
+					<div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Backend</div>
+					<div className="flex items-center gap-2">
+						<span
+							className={`w-2 h-2 rounded-full ${
+								backend.ok === null ? "bg-gray-500" : backend.ok ? "bg-aurora-400 animate-pulse" : "bg-red-400 animate-pulse"
+							}`}
+						/>
+						<span className="text-sm font-medium text-white">
+							{backend.ok === null ? "Connecting..." : backend.ok ? "Connected" : "Offline"}
+						</span>
+					</div>
+				</div>
+				<div
+					data-testid="kpi-tools"
+					className="rounded-xl border border-slate-800 bg-slate-900/30 p-4 backdrop-blur-sm"
+				>
+					<div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Tools</div>
+					<div className="text-sm font-medium text-white">
+						{backend.ok ? "12+ MCP tools" : backend.ok === null ? "..." : "--"}
+					</div>
+				</div>
+				<div
+					data-testid="kpi-marble"
+					className="rounded-xl border border-slate-800 bg-slate-900/30 p-4 backdrop-blur-sm"
+				>
+					<div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Marble API</div>
+					<div className="flex items-center gap-2">
+						<span className={`w-2 h-2 rounded-full ${backend.ok ? "bg-aurora-400" : "bg-gray-500"}`} />
+						<span className="text-sm font-medium text-white">{backend.ok ? "Ready" : "Unknown"}</span>
+					</div>
+				</div>
+				<div
+					data-testid="kpi-spark"
+					className="rounded-xl border border-slate-800 bg-slate-900/30 p-4 backdrop-blur-sm"
+				>
+					<div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Spark Engine</div>
+					<div className="flex items-center gap-2">
+						<span className={`w-2 h-2 rounded-full ${backend.ok ? "bg-aurora-400" : "bg-gray-500"}`} />
+						<span className="text-sm font-medium text-white">{backend.ok ? "Available" : "N/A"}</span>
+					</div>
+				</div>
+			</div>
 
 			{/* Feature Grid */}
 			<div className="grid gap-6 md:grid-cols-4">

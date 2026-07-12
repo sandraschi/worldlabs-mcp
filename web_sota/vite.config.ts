@@ -13,7 +13,7 @@ export default defineConfig({
             allowedHosts: ['goliath'],
         proxy: {
             '/api': {
-                target: 'http://127.0.0.1:11061',
+                target: 'http://127.0.0.1:10865',
                 changeOrigin: true,
             },
         },

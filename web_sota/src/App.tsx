@@ -16,6 +16,7 @@ import { SparkViewer } from "@/pages/spark-viewer";
 import { Status } from "@/pages/status";
 import { Tools } from "@/pages/tools";
 import { ToolsExplorer } from "@/pages/tools-explorer";
+import PlexCinema from "@/pages/plex-cinema";
 import Architect from "@/pages/world-gen";
 import { WorldViewer } from "@/pages/world-viewer";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -57,6 +58,7 @@ function App() {
 							<Route path="/help" element={<Help />} />
 							<Route path="/settings" element={<Settings />} />
 							<Route path="/logs" element={<LogsPage />} />
+							<Route path="/plex" element={<PlexCinema />} />
 							<Route path="*" element={<Navigate to="/" replace />} />
 						</Routes>
 					</AppLayout>

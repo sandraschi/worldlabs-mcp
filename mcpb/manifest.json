@@ -1,0 +1,41 @@
+{
+  "manifest_version": "0.2",
+  "name": "worldlabs-mcp",
+  "version": "0.5.0",
+  "description": "MCP server wrapping the World Labs Marble API for 3D world generation and the Spark 2.0 spatial viewer",
+  "author": { "name": "sandraschi" },
+  "server": {
+    "type": "python",
+    "entry_point": "src/worldlabs_mcp/__main__.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run","--directory","${PWD}","python","-m","worldlabs_mcp"],
+      "env": {
+        "PYTHONPATH": "${PWD}/src",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  },
+  "tools": [
+    { "name": "generate_world_from_text", "description": "Generate a 3D world from a text description" },
+    { "name": "generate_world_from_image", "description": "Generate a 3D world from a public image URL" },
+    { "name": "generate_world_from_multi_image", "description": "Generate from multiple images at specified azimuth angles" },
+    { "name": "generate_world_from_video", "description": "Generate a 3D world from a public video URL" },
+    { "name": "upload_and_generate", "description": "Upload a local file and generate end-to-end" },
+    { "name": "prepare_media_upload", "description": "Get a signed GCS upload URL for manual file upload" },
+    { "name": "generate_world_from_media_asset", "description": "Generate from a previously uploaded media asset ID" },
+    { "name": "get_operation", "description": "Single poll of an operation status" },
+    { "name": "wait_for_world", "description": "Blocking poll until operation completes or times out" },
+    { "name": "list_worlds", "description": "Paginated list of all generated worlds" },
+    { "name": "get_world", "description": "Fetch full details and asset URLs for a world" },
+    { "name": "delete_world", "description": "Permanently delete a world and all its assets" },
+    { "name": "show_worlds_card", "description": "Paginated world library as a scannable table card (Prefab UI)" },
+    { "name": "show_world_card", "description": "Single world detail card with asset links and thumbnail (Prefab UI)" },
+    { "name": "broadcast_spatial_audio", "description": "Broadcast spatial audio (Music/Ambience) to the scene" },
+    { "name": "place_world_tv", "description": "Place a virtual TV screen playing a video in the scene" },
+    { "name": "spawn_agent_avatar", "description": "Materialise an animated agent avatar in the scene" },
+    { "name": "broadcast_spatial_notification", "description": "Speak text at a 3D coordinate via the Spatial Voice Agent" },
+    { "name": "refine_with_local_llm", "description": "Refine a world prompt using a local Ollama model" },
+    { "name": "worldlabs_help", "description": "World Labs MCP API reference at three detail levels" }
+  ]
+}
