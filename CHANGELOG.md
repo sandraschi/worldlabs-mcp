@@ -1,15 +1,3 @@
-
-## [Unreleased] — 2026-06-14
-
-### Added
-- Tauri native wrapper (native/ directory) with bundle.resources + std::process::Command
-- CUA-NSIS: just cua-nsis-test recipe, scripts/cua-smoke.py, scripts/cua-nsis-config.json
-- Tauri CORS: tauri://localhost origins for WebView API access
-- NSIS installer at dist/ and native/target/release/bundle/nsis/
-
-### Changed
-- Frontend API calls use absolute http://127.0.0.1:{port} URLs in production build
-- CORS middleware includes allow_origin_regex for tauri.localhost
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -18,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added (Tauri desktop — June 2026)
+- Tauri native wrapper (`native/`) with `bundle.resources` + `std::process::Command` sidecar spawn
+- CUA-NSIS: `just cua-nsis-test` recipe, `scripts/cua-smoke.py`, `scripts/cua-nsis-config.json`
+- Tauri CORS: `tauri://localhost` origins for WebView API access
+- NSIS installer at `dist/` and `native/target/release/bundle/nsis/`
+- Frontend API calls use absolute `http://127.0.0.1:{port}` URLs in production build
+
+### Changed (audit remediation — 2026-07-12)
+- **Version unified to 0.5.0** across pyproject, mcpb manifest/pyproject, tauri.conf.json, Cargo.toml, web package.json; `__init__.py` now single-sources `__version__` from installed metadata; server.py FastMCP/FastAPI read it.
+- **glama.json** corrected: 20 tools, FastMCP 3.4+.
+- `just pack` / `just validate` now stage-sync `src/` into `mcpb/` and run mcpb inside `mcpb/` (previously broken: no root manifest.json).
+
+### Removed (audit remediation — 2026-07-12)
+- Stale transpiled `web_sota/src/main.js` / `App.js` (dead May-era CommonJS output).
+- `web_sota/vite.config.js` — it shadowed `vite.config.ts` in Vite's resolve order, making the TS config dead; the TS config's `__dirname` fixed for ESM.
+- Loose duplicate `mcpb/src/*.py` files; tracked `stderr.txt`/`stdout.txt` and `start.ps1.bak.*`.
+
+### Security (audit remediation — 2026-07-12)
+- **CORS wildcard removed** — bridge no longer allows `*` origin with credentials; explicit allow-list (frontend + tauri origins, `WORLDLABS_EXTRA_ORIGINS` to extend).
+- **`GET /api/handoff` SSRF guard** — proxy restricted to `worldlabs.ai` / `storage.googleapis.com` host suffixes (`WORLDLABS_HANDOFF_ALLOWED_HOSTS` to extend); was an open URL proxy reachable from any local browser tab.
+- MCP bridge proxy registration failures are now logged instead of silently swallowed.
 
 ### Added (Marble Adventure — June 2026)
 - **Vision pass (P6)** — Alphabetic portals A–H; shape tour puzzle; architect tokens; 3 fleet terminals; E-key portal agent notes; Fleet Museum title screen; layered procedural hub ambient; `SparkNarrator` autoload for local Spark TTS welcome.

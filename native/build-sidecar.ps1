@@ -25,5 +25,5 @@ if ($backendExe) {
     Copy-Item $backendExe.FullName "$DevDir\${RepoName}-backend-$Triple.exe" -Force
     Write-Host "Backend copied: $($backendExe.Name)"
 } else {
-    Write-Host "WARNING: Backend .exe not found in dist/ — build PyInstaller spec first" -ForegroundColor Yellow
+    Write-Host "WARNING: Backend .exe not found in dist/ - build PyInstaller spec first" -ForegroundColor Yellow
 }

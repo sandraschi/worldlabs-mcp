@@ -38,9 +38,11 @@ load_dotenv()
 # ---------------------------------------------------------------------------
 # Server setup
 # ---------------------------------------------------------------------------
+from . import __version__ as _pkg_version  # noqa: E402
+
 mcp = FastMCP(
     name="worldlabs-mcp",
-    version="0.5.0",
+    version=_pkg_version,
 )
 
 # Register Prefab card tools immediately after mcp instantiation so they are
@@ -59,8 +61,10 @@ if bridge_urls:
             try:
                 mcp.add_provider(create_proxy(url))
                 _bridge_proxies.append(url)
-            except Exception:  # noqa: S110
-                pass  # bridge not running yet, skip silently
+            except Exception as e:
+                # Implementation-honesty: never fail silently. The bridge may
+                # simply not be running yet, but the operator should see it.
+                logger.warning(f"MCP bridge proxy not registered for {url}: {e!s}")
 
 
 VALID_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
@@ -1358,8 +1362,9 @@ async def worldlabs_help(
 # ASGI app for uvicorn (web_sota/start.ps1): worldlabs_mcp.server:app
 # REST /api/* for web_sota + Spatial Voice Agent narration stream
 # ---------------------------------------------------------------------------
-_web_app = FastAPI(title="worldlabs-mcp", version="0.5.0")
+_web_app = FastAPI(title="worldlabs-mcp", version=_pkg_version)
 _FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:10864")
+_tauri = os.environ.get("WORLDLABS_TAURI", "").lower() in ("1", "true", "yes")
 
 
 @_web_app.middleware("http")
@@ -1371,9 +1376,25 @@ async def catch_exceptions_middleware(request: Request, call_next):
         return JSONResponse(status_code=500, content={"detail": "Internal Server Error", "error": str(e)})
 
 
+# SECURITY: no wildcard origin. This bridge can launch DCC apps, run adb,
+# proxy remote assets, and serve local files — a wildcard + credentials CORS
+# policy lets any webpage in a local browser read responses from it.
+# Extra origins (e.g. another LAN host) via WORLDLABS_EXTRA_ORIGINS (comma-sep).
+_allowed_origins = [
+    _FRONTEND_ORIGIN,
+    "http://localhost:10864",
+    "http://127.0.0.1:10864",
+    "http://goliath:10864",
+    "http://tauri.localhost",
+    "https://tauri.localhost",
+    "tauri://localhost",
+]
+_allowed_origins += [o.strip() for o in os.getenv("WORLDLABS_EXTRA_ORIGINS", "").split(",") if o.strip()]
+
 _web_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=sorted(set(_allowed_origins)),
+    allow_origin_regex=r"https?://tauri\.localhost(:\d+)?" if _tauri else None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -5,8 +5,8 @@
   "description": "Generate explorable 3D worlds from text, images, panoramas, multi-view sets, or video via the World Labs Marble API (marble-1.1 / marble-1.1-plus). Includes a Spark 2.0 splat viewer and a scaffolded Spatial Voice Agent.",
   "type": "mcp_server",
   "status": "beta",
-  "framework": "FastMCP 3.2+",
-  "tools": 19,
+  "framework": "FastMCP 3.4+",
+  "tools": 20,
   "transport": ["stdio"],
   "keywords": [
     "worldlabs",

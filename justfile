@@ -160,13 +160,18 @@ audit-all:
 build-py:
     Set-Location '{{justfile_directory()}}'; uv build
 
-# Pack MCP server for mcpb distribution
-pack:
-    Set-Location '{{justfile_directory()}}'; mcpb pack
+# Sync src/ into the mcpb/ staging bundle (run before pack/validate)
+mcpb-sync:
+    pwsh -NoProfile -File '{{justfile_directory()}}\scripts\sync-mcpb-staging.ps1' '{{justfile_directory()}}'
 
-# Validate mcpb package before publishing
-validate:
-    Set-Location '{{justfile_directory()}}'; mcpb validate
+# Pack MCP server for mcpb distribution (stages src/ first, packs from mcpb/)
+pack: mcpb-sync
+    New-Item -ItemType Directory -Force -Path '{{justfile_directory()}}\dist' | Out-Null; \
+    Set-Location '{{justfile_directory()}}\mcpb'; bunx @anthropic-ai/mcpb pack . '{{justfile_directory()}}\dist\worldlabs-mcp.mcpb'
+
+# Validate mcpb manifest before publishing (stages src/ first)
+validate: mcpb-sync
+    Set-Location '{{justfile_directory()}}\mcpb'; bunx @anthropic-ai/mcpb validate manifest.json
 
 # Show installed package version
 version:
@@ -282,10 +287,10 @@ docs-llms:
 # ── Marble Adventure (competition game) ───────────────────────────────────────
 
 # Validate Godot hub project loads
-marble-adventure-check godot= "C:\\Users\sandr\.local\bin\godot.exe":
+marble-adventure-check godot='C:\Users\sandr\.local\bin\godot.exe':
     Set-Location '{{justfile_directory()}}\competition\marble-adventure'; & '{{godot}}' --headless --path . --quit-after 1
 
-# Launch hub (public Marble URLs — no player account)
+# Launch hub (public Marble URLs - no player account)
 marble-adventure-play:
     pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\play.ps1'
 
@@ -293,7 +298,7 @@ marble-adventure-play:
 marble-adventure-thumbs:
     pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\download_world_thumbs.ps1'
 
-# Download CDN thumbnails (no API key — for bundling in repo)
+# Download CDN thumbnails (no API key - for bundling in repo)
 marble-adventure-cdn-thumbs:
     pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\download_cdn_thumbs.ps1'
 
@@ -302,15 +307,15 @@ marble-adventure-trailer:
     pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\capture_trailer.ps1'
 
 # Windows export for itch (no upload)
-marble-adventure-export-win godot= "C:\\Users\sandr\.local\bin\godot.exe":
+marble-adventure-export-win godot='C:\Users\sandr\.local\bin\godot.exe':
     pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -ExportOnly
 
 # Butler push-preview (no upload)
-marble-adventure-ship-preview godot= "C:\\Users\sandr\.local\bin\godot.exe":
+marble-adventure-ship-preview godot='C:\Users\sandr\.local\bin\godot.exe':
     pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -Preview
 
-# Hidden Butler push — needs BUTLER_API_KEY in competition/.env
-marble-adventure-ship-push godot= "C:\\Users\sandr\.local\bin\godot.exe":
+# Hidden Butler push - needs BUTLER_API_KEY in competition/.env
+marble-adventure-ship-push godot='C:\Users\sandr\.local\bin\godot.exe':
     pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -Push
 
 # Regenerate Marble worlds from prompts (author, needs API + credits)
@@ -351,18 +356,14 @@ build-native: build-sidecar
     Set-Location '{{justfile_directory()}}\native'
     npx @tauri-apps/cli build --bundles nsis
 
-# Run the CUA smoke test against the installed NSIS app
-cua-nsis-test:
-    C:\Windows\py.exe scripts/cua-smoke.py
+# (cua-nsis-test comes from scripts/just/fleet.just)
 # ── Playwright E2E ─────────────────────────────────────────────────────
 
 # Install Playwright browsers (one-time)
 e2e-install:
-    cd {{REPO}}\web_sota
-    npx playwright install chromium
+    Set-Location '{{justfile_directory()}}\web_sota'; npx playwright install chromium
 
-# Run Playwright E2E smoke tests (start backend first: just serve)
+# Run Playwright E2E smoke tests (start backend first: just start-backend)
 e2e:
-    cd {{REPO}}\web_sota
-    npx playwright test
+    Set-Location '{{justfile_directory()}}\web_sota'; npx playwright test
 

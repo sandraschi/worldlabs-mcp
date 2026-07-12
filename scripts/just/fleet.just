@@ -2,7 +2,7 @@
 # Import this file in any repo's justfile:
 #     import 'scripts/just/fleet.just'
 # Defines only recipes repos typically don't ship themselves.
-# build-native/build-sidecar are NOT here — repos define their own with VC vars.
+# build-native/build-sidecar are NOT here - repos define their own with VC vars.
 
 REPO_DIR := justfile_directory()
 

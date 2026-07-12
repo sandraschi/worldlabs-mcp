@@ -1,6 +1,6 @@
 [package]
 name = "worldlabs-mcp-operator"
-version = "0.1.0"
+version = "0.5.0"
 description = "Tauri desktop shell for World Labs MCP operator UI"
 edition = "2021"
 

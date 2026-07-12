@@ -1,4 +1,4 @@
-# install-mcp-clients.ps1 — Register worldlabs-mcp in Cursor / Claude Desktop
+# install-mcp-clients.ps1 - Register worldlabs-mcp in Cursor / Claude Desktop
 param([switch]$Interactive)
 $ErrorActionPreference = "Stop"
 $Port = 10865
@@ -24,7 +24,7 @@ if (Test-Path $cursorConfig) {
         Write-Host "  Cursor config update failed: $_" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "  Cursor config not found at $cursorConfig — skipping." -ForegroundColor DarkGray
+    Write-Host "  Cursor config not found at $cursorConfig - skipping." -ForegroundColor DarkGray
 }
 
 # Claude Desktop config
@@ -44,7 +44,7 @@ if (Test-Path $claudeConfig) {
         Write-Host "  Claude Desktop config update failed: $_" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "  Claude Desktop config not found at $claudeConfig — skipping." -ForegroundColor DarkGray
+    Write-Host "  Claude Desktop config not found at $claudeConfig - skipping." -ForegroundColor DarkGray
 }
 
 if ($Interactive) {

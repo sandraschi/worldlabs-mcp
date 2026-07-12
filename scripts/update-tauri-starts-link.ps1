@@ -1,4 +1,4 @@
-# update-tauri-starts-link.ps1 — Create/refresh D:\Dev\Tauri starts\worldlabs-mcp-setup.lnk
+# update-tauri-starts-link.ps1 - Create/refresh D:\Dev\Tauri starts\worldlabs-mcp-setup.lnk
 param(
     [string]$InstallerPath = ""
 )

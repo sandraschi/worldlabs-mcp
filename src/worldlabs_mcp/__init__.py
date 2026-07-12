@@ -1,8 +1,13 @@
 """worldlabs-mcp - MCP server wrapping the World Labs Marble API."""
 
 import importlib
+import importlib.metadata
 
-__version__ = "0.5.0"
+try:
+    __version__ = importlib.metadata.version("worldlabs-mcp")
+except importlib.metadata.PackageNotFoundError:
+    # Running from source without an installed dist (e.g. PYTHONPATH=src)
+    __version__ = "0.5.0"
 
 
 def __getattr__(name: str):

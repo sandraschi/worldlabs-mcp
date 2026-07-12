@@ -1538,10 +1538,45 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
         return {"status": "error", "world_id": world_id, "detail": str(e)}
 
 
+# SSRF guard for the handoff proxy: only fetch from known asset hosts.
+# Extend via WORLDLABS_HANDOFF_ALLOWED_HOSTS (comma-separated host suffixes).
+_HANDOFF_ALLOWED_HOST_SUFFIXES: tuple[str, ...] = tuple(
+    s.strip().lower()
+    for s in (
+        "worldlabs.ai",
+        "storage.googleapis.com",
+        *os.getenv("WORLDLABS_HANDOFF_ALLOWED_HOSTS", "").split(","),
+    )
+    if s.strip()
+)
+
+
+def _handoff_url_allowed(url: str) -> bool:
+    from urllib.parse import urlparse
+
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        return False
+    host = parsed.hostname.lower()
+    return any(host == suf or host.endswith("." + suf) for suf in _HANDOFF_ALLOWED_HOST_SUFFIXES)
+
+
 @router.get("/handoff")
 async def proxy_splat_asset(url: str = Query(...)) -> StreamingResponse:
     """CORS proxy for remote splat files — the Spark viewer loads SPZ/GLB
-    files through this endpoint to avoid CORS issues with the Marble CDN."""
+    files through this endpoint to avoid CORS issues with the Marble CDN.
+
+    SECURITY: restricted to an allow-list of asset hosts. Without it this
+    endpoint is an open SSRF proxy reachable from any local browser tab.
+    """
+    if not _handoff_url_allowed(url):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Host not in handoff allow-list. Set WORLDLABS_HANDOFF_ALLOWED_HOSTS "
+                "to extend (comma-separated host suffixes)."
+            ),
+        )
 
     async def _stream() -> AsyncGenerator[bytes, None]:
         async with httpx.AsyncClient(timeout=300, follow_redirects=True) as client:
