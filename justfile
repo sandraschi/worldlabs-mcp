@@ -1,13 +1,20 @@
-set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
+﻿set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
 import 'scripts/just/fleet.just'
 
-# ── Dashboard ─────────────────────────────────────────────────────────────────
+# â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Open the interactive recipe dashboard in the browser
 default:
     @just --list
 
-# ── Server ────────────────────────────────────────────────────────────────────
+
+# Synchronize deps, pre-commit hooks, and web frontend
+bootstrap:
+    uv sync --extra dev --group dev
+    uv run pre-commit install
+    Set-Location web_sota; npm ci; if ($LASTEXITCODE -ne 0) { npm install }
+    Write-Host "Pre-commit hooks installed." -ForegroundColor Green
+# â”€â”€ Server â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Start full stack (backend + frontend webapp)
 start:
@@ -41,7 +48,7 @@ build:
 preview:
     Set-Location '{{justfile_directory()}}\web_sota'; npm run preview -- --port 10864
 
-# ── Dependencies ──────────────────────────────────────────────────────────────
+# â”€â”€ Dependencies â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Sync Python deps from pyproject.toml (creates/updates .venv)
 sync:
@@ -71,7 +78,7 @@ update-python:
 update-npm:
     Set-Location '{{justfile_directory()}}\web_sota'; npm update
 
-# ── Quality ───────────────────────────────────────────────────────────────────
+# â”€â”€ Quality â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Run Ruff linter (Python) + Biome linter (frontend)
 lint:
@@ -108,7 +115,7 @@ typecheck:
 typecheck-fe:
     Set-Location '{{justfile_directory()}}\web_sota'; npx tsc --noEmit
 
-# ── Testing ───────────────────────────────────────────────────────────────────
+# â”€â”€ Testing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Run full test suite
 test:
@@ -134,7 +141,7 @@ test-k KEYWORD:
 test-fail-fast:
     Set-Location '{{justfile_directory()}}'; uv run pytest tests/ -v -x
 
-# ── Security ──────────────────────────────────────────────────────────────────
+# â”€â”€ Security â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Run Bandit security audit on Python source
 audit-sec:
@@ -154,7 +161,7 @@ audit-all:
     just audit-deps
     just audit-npm
 
-# ── Packaging ─────────────────────────────────────────────────────────────────
+# â”€â”€ Packaging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Build Python distribution (sdist + wheel)
 build-py:
@@ -162,7 +169,7 @@ build-py:
 
 # Sync src/ into the mcpb/ staging bundle (run before pack/validate)
 mcpb-sync:
-    pwsh -NoProfile -File '{{justfile_directory()}}\scripts\sync-mcpb-staging.ps1' '{{justfile_directory()}}'
+    powershell.exe -NoProfile -File '{{justfile_directory()}}\scripts\sync-mcpb-staging.ps1' '{{justfile_directory()}}'
 
 # Pack MCP server for mcpb distribution (stages src/ first, packs from mcpb/)
 pack: mcpb-sync
@@ -177,7 +184,7 @@ validate: mcpb-sync
 version:
     Set-Location '{{justfile_directory()}}'; uv run python -c "from worldlabs_mcp import __version__; print(__version__)" 2>$null; if ($LASTEXITCODE -ne 0) { uv run python -c "import importlib.metadata; print(importlib.metadata.version('worldlabs-mcp'))" }
 
-# ── Demos ─────────────────────────────────────────────────────────────────────
+# â”€â”€ Demos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Launch Spark 2.0 Viewer with a local Gaussian splat asset
 view:
@@ -203,7 +210,7 @@ capabilities:
 probe-llm:
     $r = Invoke-RestMethod -Uri 'http://localhost:10865/api/llm/discover' -ErrorAction SilentlyContinue; if ($r) { $r | ConvertTo-Json -Depth 4 } else { Write-Host "Backend not responding" -ForegroundColor Red }
 
-# ── Logging ───────────────────────────────────────────────────────────────────
+# â”€â”€ Logging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Tail the bridge log (src/logs/bridge.log)
 log:
@@ -225,7 +232,7 @@ log-mcp:
 log-mcp-tail:
     Get-Content "$env:APPDATA\Claude\logs\mcp-server-worldlabs-mcp.log" -Wait -Tail 50 -ErrorAction SilentlyContinue
 
-# ── Maintenance ───────────────────────────────────────────────────────────────
+# â”€â”€ Maintenance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Remove Python build artifacts (.venv, dist, __pycache__, .egg-info)
 clean-py:
@@ -266,7 +273,7 @@ clean-all:
 backup:
     pwsh -File '{{justfile_directory()}}\scripts\backup-repo.ps1'
 
-# ── Documentation ─────────────────────────────────────────────────────────────
+# â”€â”€ Documentation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Open API docs in browser (requires backend running)
 docs-api:
@@ -284,7 +291,7 @@ docs-gallery:
 docs-llms:
     Get-Content '{{justfile_directory()}}\llms.txt'
 
-# ── Marble Adventure (competition game) ───────────────────────────────────────
+# â”€â”€ Marble Adventure (competition game) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Validate Godot hub project loads
 marble-adventure-check godot='C:\Users\sandr\.local\bin\godot.exe':
@@ -292,37 +299,37 @@ marble-adventure-check godot='C:\Users\sandr\.local\bin\godot.exe':
 
 # Launch hub (public Marble URLs - no player account)
 marble-adventure-play:
-    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\play.ps1'
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\play.ps1'
 
 # Download portal preview thumbnails (author machine, needs worldlabs API)
 marble-adventure-thumbs:
-    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\download_world_thumbs.ps1'
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\download_world_thumbs.ps1'
 
 # Download CDN thumbnails (no API key - for bundling in repo)
 marble-adventure-cdn-thumbs:
-    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\download_cdn_thumbs.ps1'
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\download_cdn_thumbs.ps1'
 
 # Trailer capture helper (opens game + prints checklist)
 marble-adventure-trailer:
-    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\capture_trailer.ps1'
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\capture_trailer.ps1'
 
 # Windows export for itch (no upload)
 marble-adventure-export-win godot='C:\Users\sandr\.local\bin\godot.exe':
-    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -ExportOnly
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -ExportOnly
 
 # Butler push-preview (no upload)
 marble-adventure-ship-preview godot='C:\Users\sandr\.local\bin\godot.exe':
-    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -Preview
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -Preview
 
 # Hidden Butler push - needs BUTLER_API_KEY in competition/.env
 marble-adventure-ship-push godot='C:\Users\sandr\.local\bin\godot.exe':
-    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -Push
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\ship-itch.ps1' -GodotExe '{{godot}}' -Push
 
 # Regenerate Marble worlds from prompts (author, needs API + credits)
 marble-adventure-regen-worlds portal="":
-    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\regenerate_worlds.ps1' -Portal '{{portal}}'
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\regenerate_worlds.ps1' -Portal '{{portal}}'
 
-# ── CI Pipeline ───────────────────────────────────────────────────────────────
+# â”€â”€ CI Pipeline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Full CI pipeline: sync, lint, typecheck, test
 ci:
@@ -341,11 +348,11 @@ industrialize:
     just test-cov
     Write-Host "" ; Write-Host "Industrialization complete." -ForegroundColor Green
 
-# ── Tauri NSIS ─────────────────────────────────────────────────────────────────
+# â”€â”€ Tauri NSIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Build the PyInstaller backend .exe and copy to Tauri resources
 build-sidecar:
-    pwsh -NoProfile -File native\build-sidecar.ps1
+    powershell.exe -NoProfile -File native\build-sidecar.ps1
 
 # Build the Tauri NSIS desktop installer (full pipeline: frontend -> sidecar -> Rust -> NSIS)
 build-native: build-sidecar
@@ -357,7 +364,7 @@ build-native: build-sidecar
     npx @tauri-apps/cli build --bundles nsis
 
 # (cua-nsis-test comes from scripts/just/fleet.just)
-# ── Playwright E2E ─────────────────────────────────────────────────────
+# â”€â”€ Playwright E2E â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Install Playwright browsers (one-time)
 e2e-install:
