@@ -3,149 +3,150 @@
 @tailwind utilities;
 
 @layer base {
-	:root {
-		color-scheme: dark;
-	}
+  :root {
+    color-scheme: dark;
+  }
 
-	* {
-		@apply border-cosmos-800/40;
-	}
+  * {
+    @apply border-cosmos-800/40;
+  }
 
-	body {
-		@apply bg-[#0a0812] text-slate-100 font-sans antialiased;
-		background-image: radial-gradient(
-				ellipse 80% 60% at 50% -20%,
-				rgba(92, 84, 255, 0.12) 0%,
-				transparent 70%
-			),
-			radial-gradient(
-				ellipse 40% 40% at 90% 10%,
-				rgba(116, 68, 255, 0.08) 0%,
-				transparent 60%
-			);
-	}
+  body {
+    @apply bg-[#0a0812] text-slate-100 font-sans antialiased;
+    background-image:
+      radial-gradient(
+        ellipse 80% 60% at 50% -20%,
+        rgba(92, 84, 255, 0.12) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 40% 40% at 90% 10%,
+        rgba(116, 68, 255, 0.08) 0%,
+        transparent 60%
+      );
+  }
 
-	::-webkit-scrollbar {
-		@apply w-1.5;
-	}
+  ::-webkit-scrollbar {
+    @apply w-1.5;
+  }
 
-	::-webkit-scrollbar-track {
-		@apply bg-transparent;
-	}
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
 
-	::-webkit-scrollbar-thumb {
-		@apply bg-cosmos-700/60 rounded-full;
-	}
+  ::-webkit-scrollbar-thumb {
+    @apply bg-cosmos-700/60 rounded-full;
+  }
 
-	::-webkit-scrollbar-thumb:hover {
-		@apply bg-cosmos-600/80;
-	}
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-cosmos-600/80;
+  }
 }
 
 @layer components {
-	/* Glass card — core glassmorphism component */
-	.glass-card {
-		@apply bg-white/[0.04] backdrop-blur-sm border border-white/[0.06] rounded-xl;
-	}
+  /* Glass card — core glassmorphism component */
+  .glass-card {
+    @apply bg-white/[0.04] backdrop-blur-sm border border-white/[0.06] rounded-xl;
+  }
 
-	.glass-card-hover {
-		@apply glass-card transition-all duration-200 hover:bg-white/[0.07] hover:border-white/[0.1] hover:shadow-lg hover:shadow-cosmos-900/30;
-	}
+  .glass-card-hover {
+    @apply glass-card transition-all duration-200 hover:bg-white/[0.07] hover:border-white/[0.1] hover:shadow-lg hover:shadow-cosmos-900/30;
+  }
 
-	/* Gradient text */
-	.gradient-text {
-		@apply bg-gradient-to-r from-cosmos-400 via-void-400 to-nebula-400 bg-clip-text text-transparent;
-	}
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-cosmos-400 via-void-400 to-nebula-400 bg-clip-text text-transparent;
+  }
 
-	/* Glow button */
-	.btn-glow {
-		@apply relative overflow-hidden transition-all duration-200 bg-gradient-to-r from-cosmos-600 to-void-600 hover:from-cosmos-500 hover:to-void-500;
-		box-shadow: 0 0 20px rgba(92, 84, 255, 0.25);
-	}
+  /* Glow button */
+  .btn-glow {
+    @apply relative overflow-hidden transition-all duration-200 bg-gradient-to-r from-cosmos-600 to-void-600 hover:from-cosmos-500 hover:to-void-500;
+    box-shadow: 0 0 20px rgba(92, 84, 255, 0.25);
+  }
 
-	.btn-glow:hover {
-		box-shadow: 0 0 30px rgba(92, 84, 255, 0.4);
-	}
+  .btn-glow:hover {
+    box-shadow: 0 0 30px rgba(92, 84, 255, 0.4);
+  }
 
-	/* Status badges */
-	.badge-success {
-		@apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-aurora-500/20 text-aurora-400 border border-aurora-500/30;
-	}
+  /* Status badges */
+  .badge-success {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-aurora-500/20 text-aurora-400 border border-aurora-500/30;
+  }
 
-	.badge-pending {
-		@apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30;
-	}
+  .badge-pending {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30;
+  }
 
-	.badge-error {
-		@apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30;
-	}
+  .badge-error {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30;
+  }
 
-	.badge-info {
-		@apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-cosmos-500/20 text-cosmos-400 border border-cosmos-500/30;
-	}
+  .badge-info {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-cosmos-500/20 text-cosmos-400 border border-cosmos-500/30;
+  }
 
-	/* Page transition */
-	.page-enter {
-		@apply animate-fade-in;
-	}
+  /* Page transition */
+  .page-enter {
+    @apply animate-fade-in;
+  }
 
-	/* Input styles */
-	.input-glass {
-		@apply w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-cosmos-500/50 focus:bg-white/[0.07] transition-all duration-200;
-	}
+  /* Input styles */
+  .input-glass {
+    @apply w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-cosmos-500/50 focus:bg-white/[0.07] transition-all duration-200;
+  }
 
-	/* Section header */
-	.section-label {
-		@apply text-[11px] font-semibold uppercase tracking-widest text-slate-400;
-	}
+  /* Section header */
+  .section-label {
+    @apply text-[11px] font-semibold uppercase tracking-widest text-slate-400;
+  }
 
-	/* Primary button */
-	.btn-primary {
-		@apply flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cosmos-600 to-void-600 hover:from-cosmos-500 hover:to-void-500 text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
-	}
+  /* Primary button */
+  .btn-primary {
+    @apply flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cosmos-600 to-void-600 hover:from-cosmos-500 hover:to-void-500 text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
 
-	/* Custom scrollbar — used on scroll containers like the main page area */
-	.custom-scrollbar {
-		scrollbar-width: thin;
-		scrollbar-color: rgba(92, 84, 255, 0.4) transparent;
-	}
+  /* Custom scrollbar — used on scroll containers like the main page area */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(92, 84, 255, 0.4) transparent;
+  }
 
-	.custom-scrollbar::-webkit-scrollbar {
-		width: 6px;
-	}
-	.custom-scrollbar::-webkit-scrollbar-track {
-		background: transparent;
-	}
-	.custom-scrollbar::-webkit-scrollbar-thumb {
-		@apply bg-cosmos-700/50 rounded-full;
-	}
-	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-		@apply bg-cosmos-600/70;
-	}
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-cosmos-700/50 rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-cosmos-600/70;
+  }
 
-	.animate-spin-reverse {
-		animation: spin-reverse 1s linear infinite;
-	}
+  .animate-spin-reverse {
+    animation: spin-reverse 1s linear infinite;
+  }
 }
 
 @keyframes spin-reverse {
-	from {
-		transform: rotate(0deg);
-	}
-	to {
-		transform: rotate(-360deg);
-	}
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
 }
 
 /* Generation modal progress bar — indeterminate slide animation */
 @keyframes progress-slide {
-	0% {
-		transform: translateX(-100%);
-	}
-	50% {
-		transform: translateX(150%);
-	}
-	100% {
-		transform: translateX(400%);
-	}
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(150%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
 }

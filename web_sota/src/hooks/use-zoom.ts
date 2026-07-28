@@ -16,9 +16,17 @@ export function useZoom() {
     localStorage.setItem("tauri-zoom", String(level));
     try {
       // Uses `(window as any)` to avoid Tauri type dependency in dev
-      const w = window as unknown as { __TAURI__?: { window: { getCurrentWindow: () => { setZoom: (l: number) => Promise<void> } } } };
+      const w = window as unknown as {
+        __TAURI__?: {
+          window: {
+            getCurrentWindow: () => { setZoom: (l: number) => Promise<void> };
+          };
+        };
+      };
       if (w.__TAURI__?.window) {
-        const win = await Promise.resolve().then(() => w.__TAURI__!.window!.getCurrentWindow());
+        const win = await Promise.resolve().then(() =>
+          w.__TAURI__!.window!.getCurrentWindow(),
+        );
         await win.setZoom(level);
       }
     } catch {

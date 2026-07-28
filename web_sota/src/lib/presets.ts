@@ -1,180 +1,180 @@
 export interface WorldPreset {
-	id: string;
-	name: string;
-	description: string;
-	prompt: string;
-	style: string;
-	model: "marble-1.1-plus" | "marble-1.1";
-	categories: string[];
+  id: string;
+  name: string;
+  description: string;
+  prompt: string;
+  style: string;
+  model: "marble-1.1-plus" | "marble-1.1";
+  categories: string[];
 }
 
 export const PRESET_CATEGORIES = [
-	"interior",
-	"exterior",
-	"landmark",
-	"fantasy",
-	"scifi",
-	"nature",
-	"urban",
-	"sacred",
-	"domestic",
-	"industrial",
-	"ruins",
-	"surreal",
-	"historical",
+  "interior",
+  "exterior",
+  "landmark",
+  "fantasy",
+  "scifi",
+  "nature",
+  "urban",
+  "sacred",
+  "domestic",
+  "industrial",
+  "ruins",
+  "surreal",
+  "historical",
 ] as const;
 
 export type PresetCategory = (typeof PRESET_CATEGORIES)[number];
 
 export const WORLD_PRESETS: WorldPreset[] = [
-	{
-		id: "gothic-cathedral",
-		name: "Gothic Cathedral Interior",
-		description:
-			"A vast medieval gothic cathedral with towering rib-vaulted ceilings, rose windows casting coloured light through dust-filled air.",
-		style: "Cinematic",
-		categories: ["interior", "sacred", "landmark", "historical"],
-		model: "marble-1.1-plus",
-		prompt: `A vast gothic cathedral interior at dusk. Towering rib-vaulted stone ceilings receding into darkness 60 metres above the nave floor. Three massive stained-glass rose windows on the east wall casting deep ruby, sapphire and amber light shafts through slowly drifting dust motes. Rows of slender clustered columns with carved foliate capitals flanking the main aisle. A carved stone altar at the eastern terminus with a single flickering votive candle. Worn flagstone floor with irregular slabs and shallow depressions worn by centuries of footsteps. Deep side chapels with pointed arched openings revealing shadowy alcoves. Flying buttresses visible through tall lancet windows on the south wall. Atmospheric haze in the upper vaults. Cool stone greys and warm amber light. Profound sense of scale and silence.`,
-	},
-	{
-		id: "neon-noir",
-		name: "Neon Noir Alley",
-		description:
-			"A rain-slicked cyberpunk alleyway at midnight with neon signs, reflective puddles, and dense urban atmosphere.",
-		style: "Cinematic",
-		categories: ["urban", "scifi", "exterior"],
-		model: "marble-1.1-plus",
-		prompt: `A claustrophobic urban alleyway at midnight during heavy rain. Walls on both sides rising 8-10 storeys, lined with rusted fire escapes, exposed ductwork, and mismatched window units — some lit with warm tungsten, others dark. Saturated cyan and magenta neon signs casting sharp coloured light onto wet pavement. Deep puddles with oil-slick rainbow sheens reflecting the neon glow. A single flickering red tube sign at the far end. Steam rising from a grate near the centre. Discarded newspapers matted against a drain grate. Narrow enough to touch both walls with outstretched arms. Dense volumetric fog illuminated by the neon. High contrast — near-black shadows in corners, saturated colour where light hits. Cinematic anamorphic lens feel, shallow depth of field towards the distant end.`,
-	},
-	{
-		id: "crystal-cavern",
-		name: "Crystal Cavern",
-		description:
-			"A vast underground chamber filled with giant translucent crystals refracting light into rainbow beams.",
-		style: "Fantasy",
-		categories: ["interior", "fantasy", "nature", "surreal"],
-		model: "marble-1.1-plus",
-		prompt: `A colossal underground cavern, 40 metres wide and 30 metres tall. The space is densely populated with giant translucent crystals growing from floor and ceiling — some as thick as tree trunks, others as delicate as fingernails. Crystals in emerald green, sapphire blue, and pale amethyst, many faceted and sharply geometric. A bioluminescent pool of electric cyan water at the cavern's centre, its surface perfectly still, reflecting the crystal forest above. Light entering from an unseen source above refracts through the crystals, casting shifting rainbow patterns across the rough stone walls and the mist rising from the pool. Delicate mineral formations hang like chandeliers from the ceiling. A narrow natural stone bridge crosses the pool at its narrowest point. The air is cool and visibly dense with a faint blue haze. Silence except for the occasional drip of mineral-rich water.`,
-	},
-	{
-		id: "brutalist-megastructure",
-		name: "Brutalist Megastructure",
-		description:
-			"Monolithic raw concrete mega-architecture in a stark desert under harsh midday sun.",
-		style: "Cinematic",
-		categories: ["exterior", "industrial", "landmark", "urban"],
-		model: "marble-1.1-plus",
-		prompt: `A monolithic brutalist megastructure complex in a barren desert landscape under harsh midday sun. Massive raw concrete geometric forms — interlocking cubes, tilted planes, and cyclopean retaining walls — arranged in an asymmetrical composition across 200 metres of flat arid terrain. The concrete is textured with visible formwork grain, water stains, and shallow surface cracking. Deep shadow recesses between the masses creating extreme contrast against sun-bleached upper surfaces. A single monumental stairway ascending 15 metres between two converging walls, leading to a dark rectangular aperture. No vegetation except sparse dry scrub at the base. The horizon is flat and featureless. Dust haze at the distant edges. The scale is deliberately disorienting — no doors, windows, or human-scale references. Temperature feels baked into the concrete.`,
-	},
-	{
-		id: "suspended-forest",
-		name: "Suspended Forest Canopy",
-		description:
-			"A walkway suspended high in a primordial forest canopy with giant trees, vines, and misty undergrowth far below.",
-		style: "Fantasy",
-		categories: ["nature", "fantasy", "exterior"],
-		model: "marble-1.1-plus",
-		prompt: `A network of weathered rope-and-plank suspension bridges strung between colossal ancient trees in a primordial forest canopy 50 metres above the ground. The trees are enormous — trunks 5 metres in diameter, their bark thick with moss, lichen, and climbing ferns. Dappled golden-green light filtering through multiple canopy layers, creating shifting light shafts and deep shadow pools on the walkway. Giant buttress roots disappearing into thick mist below. Epiphytic orchids and luminous fungi growing from the bridge supports. A secondary canopy level of ferns and saplings 10 metres above the main walkway. The ground below is completely obscured by dense blue-white mist, giving the feeling of being suspended over an ocean. Warm humid air, visible atmospheric haze in the distance. Vibrant greens, amber light, deep brown trunks. Extremely dense vegetation filling every visual gap.`,
-	},
-	{
-		id: "derelict-station",
-		name: "Derelict Space Station",
-		description:
-			"An abandoned retro-futuristic space station corridor with flickering lights, floating debris, and views of a gas giant through cracked windows.",
-		style: "Cinematic",
-		categories: ["interior", "scifi", "industrial", "ruins"],
-		model: "marble-1.1-plus",
-		prompt: `A wide corridor of an abandoned retro-futuristic space station. The architecture is 1970s analogue sci-fi — brushed aluminium wall panels with riveted seams, worn vinyl floor tiles in orange and brown geometric patterns, banks of dead cathode-ray tube monitors along one wall. Emergency strobe lights casting long pulsing shadows every 4 seconds. Zero-gravity debris floating in the still air — loose papers, a floating coffee mug, tangled cables drifting like seaweed. A large curved observation window on the starboard side, its surface crazed with impact cracks, revealing a swirling ochre-and-cream gas giant planet filling half the sky. The corridor is lit primarily by the reflected planetary light — warm amber and cream tones. A single functional fluorescent panel at the far end flickering irregularly. Dust settled on every horizontal surface. Abandoned personal effects: a jacket draped over a chair, a terminal showing static. Profound stillness.`,
-	},
-	{
-		id: "sunken-temple",
-		name: "Sunken Temple",
-		description:
-			"An overgrown Khmer-style temple being slowly consumed by jungle, with massive roots splitting stone and dappled light.",
-		style: "Cinematic",
-		categories: ["landmark", "sacred", "historical", "ruins", "nature"],
-		model: "marble-1.1-plus",
-		prompt: `An ancient Khmer-style stone temple complex in advanced stages of jungle reclamation. The central structure is a stepped pyramid with three tiers, approximately 25 metres tall, built of massive sandstone blocks now darkened by centuries of moisture and lichen. Gigantic strangler fig roots — some as thick as a human torso — snake down the stone faces, splitting masonry and cascading over carved lintels. Headless sandstone statues of guardian figures lining the approach, their surfaces eroded and covered in moss. Dappled sunlight breaking through a dense triple-canopy jungle overhead, creating shifting pools of hot white light on the dark stone. Steam rising from the sun-warmed upper stones after a morning rain. Fallen columns scattered across the courtyard, half-buried in leaf litter. The jungle presses in from all sides — lianas, broad-leafed undergrowth, and flowering vines filling every gap. Vibrant green moss contrasting with dark grey stone. Shafts of light with visible dust and moisture particles.`,
-	},
-	{
-		id: "steampunk-airport",
-		name: "Steampunk Airship Harbour",
-		description:
-			"A Victorian-era airship terminal at high altitude, with brass fittings, moored zeppelins, and a city visible through clouds far below.",
-		style: "Steampunk",
-		categories: ["exterior", "industrial", "landmark", "historical", "scifi"],
-		model: "marble-1.1-plus",
-		prompt: `A vast Victorian-era airship terminal perched at 3,000 metres altitude on a mountain peak. The terminal is an open-sided structure of wrought iron arches, riveted steel beams, and polished brass fittings. Three moored hydrogen zeppelins of various sizes tethered to the terminal's mooring masts — the largest 200 metres long with "IMPERIAL AIR FLEET" painted along its flank in faded gold serif lettering. The terminal floor is wide oak planks worn smooth by decades of passengers. Copper steam pipes running along the ceiling, hissing occasionally. Brass pressure gauges with glass faces and analogue dials at regular intervals. A half-dozen cast-iron luggage trolleys loaded with steamer trunks. The station clock is a 3-metre-tall orrery mechanism with exposed gears. Through the open sides, a carpet of cumulus clouds extends to the horizon, with glimpses of a patchwork countryside through gaps far below. Late afternoon sun casting long horizontal shadows through the structure. Warm brass-and-amber colour palette.`,
-	},
-	{
-		id: "bioluminescent-bay",
-		name: "Bioluminescent Bay",
-		description:
-			"A nocturnal tropical bay where every wave and footprint in the sand glows electric blue with bioluminescent plankton.",
-		style: "Fantasy",
-		categories: ["nature", "fantasy", "exterior"],
-		model: "marble-1.1-plus",
-		prompt: `A nocturnal tropical bay on a moonless night, illuminated entirely by bioluminescent organisms. The water is shallow — waist-deep at the centre — and every disturbance triggers bursts of electric blue and cyan light. Small waves lapping at a crescent white-sand beach leave glowing foam lines. A wooden pier extends 15 metres into the bay, its submerged pilons surrounded by swirling blue light. Mangrove trees along the shoreline with glowing roots dipping into the water. The sand itself sparkles with bioluminescent algae where it's been disturbed — a trail of glowing footprints leading along the beach. A few jellyfish-like organisms pulse gently in the deeper water. The sky is clear with brilliant stars and a faint Milky Way band visible. No artificial light anywhere. The only sounds are gentle water movement and distant tropical insects. Deep blue-black sky, vibrant blue water glow, dark silhouettes of mangroves. Magical and immersive.`,
-	},
-	{
-		id: "fractal-library",
-		name: "Fractal Library",
-		description:
-			"An impossible infinite library with shelves receding into mirrored dimensions, floating staircases, and glowing manuscripts.",
-		style: "Surreal",
-		categories: ["interior", "surreal", "fantasy", "domestic"],
-		model: "marble-1.1-plus",
-		prompt: `An impossible infinite library inspired by Borges. The main chamber is vast — at least 50 metres tall — with walls entirely lined with dark wooden bookshelves stretching beyond visible resolution. Hexagonal alcoves arranged in a honeycomb pattern, each identical, each connected by short passageways and spiral staircases that seem to lead both up and down simultaneously. Multiple levels of galleries accessible by floating staircases with wrought-iron railings. A central well descends into darkness with more shelves visible fading into infinity. Scattered reading desks with green glass lamps casting warm pools of light. A massive celestial orrery suspended in the centre of the void, its brass planets slowly rotating. Glowing manuscripts floating between shelves like fireflies. Dust motes dancing in the lamp light. Rich mahogany wood, worn leather armchairs, copper lamp shades. The geometry is intentionally disorienting — corners that should meet don't. Endless perspective in all directions. Warm amber and deep brown tones, intimate pools of light against vast darkness.`,
-	},
-	{
-		id: "floating-islands",
-		name: "Floating Archipelago",
-		description:
-			"A chain of floating islands in a golden sunset sky, connected by stone arch bridges, with waterfalls falling into the clouds.",
-		style: "Fantasy",
-		categories: ["fantasy", "nature", "exterior", "landmark"],
-		model: "marble-1.1-plus",
-		prompt: `A chain of seven floating islands suspended in a golden sunset sky at varying altitudes from 50 to 200 metres above a sea of ochre-and-rose clouds. The largest central island is roughly 80 metres across, with a grassy plateau, a single gnarled ancient oak tree, and a ring of standing stones at its centre. Waterfalls cascade from two of the islands, falling 100 metres before dissipating into mist in the cloud layer. The islands are connected by elegant stone arch bridges — some spanning 30 metres — built from warm sandstone blocks with moss-filled joints. Smaller satellite islands host wind-sculpted pines, patches of wildflowers, and the ruins of what might have been a tower. The sun is low, casting long shadows and bathing everything in deep gold and warm orange light. Distant mountains visible on the horizon. The clouds below have texture and depth, forming a solid-looking floor with occasional gaps revealing an ocean far below. Peaceful, warm, vast. Ghibli-inspired colour palette.`,
-	},
-	{
-		id: "soviet-progress",
-		name: "Abandoned Soviet Research Station",
-		description:
-			"A decaying Soviet-era Arctic research station with peeling paint, frozen pipes, and the aurora borealis overhead.",
-		style: "Cinematic",
-		categories: ["exterior", "industrial", "ruins", "landmark"],
-		model: "marble-1.1-plus",
-		prompt: `An abandoned Soviet-era Arctic research station in deep winter. The main building is a prefabricated concrete-panel structure with a gently curved roof, now weathered and stained. Paint peeling in long strips from the exterior walls, revealing faded military green underneath. A collapsed radio mast leans at 45 degrees, its guy wires tangled. Snow drifts reaching halfway up the ground-floor windows, which are dark and cracked. Inside visible through broken windows: overturned wooden chairs, scattered papers frozen to the floor, a rotary telephone off the hook. A rusted Tatra 6x6 truck half-buried in snow near the entrance, its windscreen shattered. Ice formations hanging from the roofline like frozen waterfalls. The ground is hard-packed snow and gravel. The aurora borealis fills the night sky with shifting green and violet curtains of light, casting an eerie coloured glow across the snow-covered landscape. The temperature feels brutally cold — frost on every surface. Deep blue twilight, vibrant aurora, dark silhouettes of the structures. Isolation and desperation tangible.`,
-	},
-	{
-		id: "origami-nexus",
-		name: "Origami Nexus",
-		description:
-			"A surreal city of folded white paper and intricate cardboard architecture.",
-		style: "Surreal",
-		categories: ["urban", "surreal", "exterior"],
-		model: "marble-1.1-plus",
-		prompt: `A surreal city made entirely of folded white origami paper and precision-cut cardboard architecture. The buildings range from 5 to 30 metres tall, all with sharp geometric facets, clean creases, and visible fold lines like architectural blueprints brought to life. Streets are narrow canyons between towering paper facades with perfectly 90-degree corners. Delicate paper lanterns suspended on invisible threads between buildings. The ground is textured like hand-laid sheets with subtle grain and occasional paper-cut gaps revealing a void below. Some structures have intricate cut-out windows and doors, others are pure abstract geometry. The lighting is soft and diffused, as if the entire world is inside a light tent — no harsh shadows, every surface evenly illuminated. A muted palette of cream, off-white, and warm beige with occasional accents of gold foil on certain surfaces. The atmosphere is quiet and meditative. Toy-like scale that feels simultaneously miniature and monumental.`,
-	},
-	{
-		id: "mushroom-colony",
-		name: "Giant Mushroom Colony",
-		description:
-			"A misty valley floor covered in giant glowing mushrooms of every colour, with tiny dwellings built into their bases.",
-		style: "Fantasy",
-		categories: ["fantasy", "nature", "exterior", "domestic"],
-		model: "marble-1.1-plus",
-		prompt: `A misty valley floor at dusk, densely populated with giant mushrooms of astonishing variety. The largest specimens reach 8 metres tall, with caps wide enough to shelter a small house. Some are bioluminescent — pulsing with soft blue, violet, or pale green light from within their gills and stems. The mushroom varieties are diverse: tall slender ones with conical purple caps, broad flat ones with orange spotted tops, clusters of shelf fungi in pastel pinks and blues growing from a central stalk. Tiny wooden doors and circular windows built into the bases of the largest mushrooms, with warm amber lantern light visible through them. A winding path of smooth stepping stones leads through the colony, past miniature gardens and hanging moss. The ground is soft dark earth covered in a carpet of tiny glowing ferns. A permanent low mist hugs the ground, diffusing the bioluminescent glow into a soft atmospheric haze. The sky above is deep twilight transitioning to night. Glowing spore particles drift lazily through the air. Magical, warm, inviting.`,
-	},
-	{
-		id: "subterranean-express",
-		name: "Subterranean Train Station",
-		description:
-			"A grand abandoned Art Deco underground train station with marble columns, a vintage locomotive, and eerie silence.",
-		style: "Cinematic",
-		categories: ["interior", "historical", "industrial", "landmark", "ruins"],
-		model: "marble-1.1-plus",
-		prompt: `A grand abandoned Art Deco underground train station, cathedral-like in scale — the main concourse is 25 metres tall with a coffered ceiling featuring ornate geometric patterns in faded gold leaf. The walls are clad in cream and black marble panels, many now cracked or missing. A row of massive Art Deco chandeliers hang from the ceiling, most dark but three still glowing with a dim warm light. The floor is black-and-white chequerboard terrazzo, heavily worn in a path from the entrance to the platforms. A vintage steam locomotive sits at Platform 3 — dark green with brass fittings, its headlamp still glowing faintly. Advertising posters from the 1930s on the walls, faded to near-monochrome. A grand marble ticket booth dominates the centre, its brass grille closed. Empty wooden benches face the tracks. The air is still and cool with a faint smell of old dust and machine oil. No trains running, no announcements. Deep perspective down the platform receding into darkness. The lighting is dramatic — pools of warm amber from the chandeliers against deep shadow. Eerie and beautiful.`,
-	},
+  {
+    id: "gothic-cathedral",
+    name: "Gothic Cathedral Interior",
+    description:
+      "A vast medieval gothic cathedral with towering rib-vaulted ceilings, rose windows casting coloured light through dust-filled air.",
+    style: "Cinematic",
+    categories: ["interior", "sacred", "landmark", "historical"],
+    model: "marble-1.1-plus",
+    prompt: `A vast gothic cathedral interior at dusk. Towering rib-vaulted stone ceilings receding into darkness 60 metres above the nave floor. Three massive stained-glass rose windows on the east wall casting deep ruby, sapphire and amber light shafts through slowly drifting dust motes. Rows of slender clustered columns with carved foliate capitals flanking the main aisle. A carved stone altar at the eastern terminus with a single flickering votive candle. Worn flagstone floor with irregular slabs and shallow depressions worn by centuries of footsteps. Deep side chapels with pointed arched openings revealing shadowy alcoves. Flying buttresses visible through tall lancet windows on the south wall. Atmospheric haze in the upper vaults. Cool stone greys and warm amber light. Profound sense of scale and silence.`,
+  },
+  {
+    id: "neon-noir",
+    name: "Neon Noir Alley",
+    description:
+      "A rain-slicked cyberpunk alleyway at midnight with neon signs, reflective puddles, and dense urban atmosphere.",
+    style: "Cinematic",
+    categories: ["urban", "scifi", "exterior"],
+    model: "marble-1.1-plus",
+    prompt: `A claustrophobic urban alleyway at midnight during heavy rain. Walls on both sides rising 8-10 storeys, lined with rusted fire escapes, exposed ductwork, and mismatched window units — some lit with warm tungsten, others dark. Saturated cyan and magenta neon signs casting sharp coloured light onto wet pavement. Deep puddles with oil-slick rainbow sheens reflecting the neon glow. A single flickering red tube sign at the far end. Steam rising from a grate near the centre. Discarded newspapers matted against a drain grate. Narrow enough to touch both walls with outstretched arms. Dense volumetric fog illuminated by the neon. High contrast — near-black shadows in corners, saturated colour where light hits. Cinematic anamorphic lens feel, shallow depth of field towards the distant end.`,
+  },
+  {
+    id: "crystal-cavern",
+    name: "Crystal Cavern",
+    description:
+      "A vast underground chamber filled with giant translucent crystals refracting light into rainbow beams.",
+    style: "Fantasy",
+    categories: ["interior", "fantasy", "nature", "surreal"],
+    model: "marble-1.1-plus",
+    prompt: `A colossal underground cavern, 40 metres wide and 30 metres tall. The space is densely populated with giant translucent crystals growing from floor and ceiling — some as thick as tree trunks, others as delicate as fingernails. Crystals in emerald green, sapphire blue, and pale amethyst, many faceted and sharply geometric. A bioluminescent pool of electric cyan water at the cavern's centre, its surface perfectly still, reflecting the crystal forest above. Light entering from an unseen source above refracts through the crystals, casting shifting rainbow patterns across the rough stone walls and the mist rising from the pool. Delicate mineral formations hang like chandeliers from the ceiling. A narrow natural stone bridge crosses the pool at its narrowest point. The air is cool and visibly dense with a faint blue haze. Silence except for the occasional drip of mineral-rich water.`,
+  },
+  {
+    id: "brutalist-megastructure",
+    name: "Brutalist Megastructure",
+    description:
+      "Monolithic raw concrete mega-architecture in a stark desert under harsh midday sun.",
+    style: "Cinematic",
+    categories: ["exterior", "industrial", "landmark", "urban"],
+    model: "marble-1.1-plus",
+    prompt: `A monolithic brutalist megastructure complex in a barren desert landscape under harsh midday sun. Massive raw concrete geometric forms — interlocking cubes, tilted planes, and cyclopean retaining walls — arranged in an asymmetrical composition across 200 metres of flat arid terrain. The concrete is textured with visible formwork grain, water stains, and shallow surface cracking. Deep shadow recesses between the masses creating extreme contrast against sun-bleached upper surfaces. A single monumental stairway ascending 15 metres between two converging walls, leading to a dark rectangular aperture. No vegetation except sparse dry scrub at the base. The horizon is flat and featureless. Dust haze at the distant edges. The scale is deliberately disorienting — no doors, windows, or human-scale references. Temperature feels baked into the concrete.`,
+  },
+  {
+    id: "suspended-forest",
+    name: "Suspended Forest Canopy",
+    description:
+      "A walkway suspended high in a primordial forest canopy with giant trees, vines, and misty undergrowth far below.",
+    style: "Fantasy",
+    categories: ["nature", "fantasy", "exterior"],
+    model: "marble-1.1-plus",
+    prompt: `A network of weathered rope-and-plank suspension bridges strung between colossal ancient trees in a primordial forest canopy 50 metres above the ground. The trees are enormous — trunks 5 metres in diameter, their bark thick with moss, lichen, and climbing ferns. Dappled golden-green light filtering through multiple canopy layers, creating shifting light shafts and deep shadow pools on the walkway. Giant buttress roots disappearing into thick mist below. Epiphytic orchids and luminous fungi growing from the bridge supports. A secondary canopy level of ferns and saplings 10 metres above the main walkway. The ground below is completely obscured by dense blue-white mist, giving the feeling of being suspended over an ocean. Warm humid air, visible atmospheric haze in the distance. Vibrant greens, amber light, deep brown trunks. Extremely dense vegetation filling every visual gap.`,
+  },
+  {
+    id: "derelict-station",
+    name: "Derelict Space Station",
+    description:
+      "An abandoned retro-futuristic space station corridor with flickering lights, floating debris, and views of a gas giant through cracked windows.",
+    style: "Cinematic",
+    categories: ["interior", "scifi", "industrial", "ruins"],
+    model: "marble-1.1-plus",
+    prompt: `A wide corridor of an abandoned retro-futuristic space station. The architecture is 1970s analogue sci-fi — brushed aluminium wall panels with riveted seams, worn vinyl floor tiles in orange and brown geometric patterns, banks of dead cathode-ray tube monitors along one wall. Emergency strobe lights casting long pulsing shadows every 4 seconds. Zero-gravity debris floating in the still air — loose papers, a floating coffee mug, tangled cables drifting like seaweed. A large curved observation window on the starboard side, its surface crazed with impact cracks, revealing a swirling ochre-and-cream gas giant planet filling half the sky. The corridor is lit primarily by the reflected planetary light — warm amber and cream tones. A single functional fluorescent panel at the far end flickering irregularly. Dust settled on every horizontal surface. Abandoned personal effects: a jacket draped over a chair, a terminal showing static. Profound stillness.`,
+  },
+  {
+    id: "sunken-temple",
+    name: "Sunken Temple",
+    description:
+      "An overgrown Khmer-style temple being slowly consumed by jungle, with massive roots splitting stone and dappled light.",
+    style: "Cinematic",
+    categories: ["landmark", "sacred", "historical", "ruins", "nature"],
+    model: "marble-1.1-plus",
+    prompt: `An ancient Khmer-style stone temple complex in advanced stages of jungle reclamation. The central structure is a stepped pyramid with three tiers, approximately 25 metres tall, built of massive sandstone blocks now darkened by centuries of moisture and lichen. Gigantic strangler fig roots — some as thick as a human torso — snake down the stone faces, splitting masonry and cascading over carved lintels. Headless sandstone statues of guardian figures lining the approach, their surfaces eroded and covered in moss. Dappled sunlight breaking through a dense triple-canopy jungle overhead, creating shifting pools of hot white light on the dark stone. Steam rising from the sun-warmed upper stones after a morning rain. Fallen columns scattered across the courtyard, half-buried in leaf litter. The jungle presses in from all sides — lianas, broad-leafed undergrowth, and flowering vines filling every gap. Vibrant green moss contrasting with dark grey stone. Shafts of light with visible dust and moisture particles.`,
+  },
+  {
+    id: "steampunk-airport",
+    name: "Steampunk Airship Harbour",
+    description:
+      "A Victorian-era airship terminal at high altitude, with brass fittings, moored zeppelins, and a city visible through clouds far below.",
+    style: "Steampunk",
+    categories: ["exterior", "industrial", "landmark", "historical", "scifi"],
+    model: "marble-1.1-plus",
+    prompt: `A vast Victorian-era airship terminal perched at 3,000 metres altitude on a mountain peak. The terminal is an open-sided structure of wrought iron arches, riveted steel beams, and polished brass fittings. Three moored hydrogen zeppelins of various sizes tethered to the terminal's mooring masts — the largest 200 metres long with "IMPERIAL AIR FLEET" painted along its flank in faded gold serif lettering. The terminal floor is wide oak planks worn smooth by decades of passengers. Copper steam pipes running along the ceiling, hissing occasionally. Brass pressure gauges with glass faces and analogue dials at regular intervals. A half-dozen cast-iron luggage trolleys loaded with steamer trunks. The station clock is a 3-metre-tall orrery mechanism with exposed gears. Through the open sides, a carpet of cumulus clouds extends to the horizon, with glimpses of a patchwork countryside through gaps far below. Late afternoon sun casting long horizontal shadows through the structure. Warm brass-and-amber colour palette.`,
+  },
+  {
+    id: "bioluminescent-bay",
+    name: "Bioluminescent Bay",
+    description:
+      "A nocturnal tropical bay where every wave and footprint in the sand glows electric blue with bioluminescent plankton.",
+    style: "Fantasy",
+    categories: ["nature", "fantasy", "exterior"],
+    model: "marble-1.1-plus",
+    prompt: `A nocturnal tropical bay on a moonless night, illuminated entirely by bioluminescent organisms. The water is shallow — waist-deep at the centre — and every disturbance triggers bursts of electric blue and cyan light. Small waves lapping at a crescent white-sand beach leave glowing foam lines. A wooden pier extends 15 metres into the bay, its submerged pilons surrounded by swirling blue light. Mangrove trees along the shoreline with glowing roots dipping into the water. The sand itself sparkles with bioluminescent algae where it's been disturbed — a trail of glowing footprints leading along the beach. A few jellyfish-like organisms pulse gently in the deeper water. The sky is clear with brilliant stars and a faint Milky Way band visible. No artificial light anywhere. The only sounds are gentle water movement and distant tropical insects. Deep blue-black sky, vibrant blue water glow, dark silhouettes of mangroves. Magical and immersive.`,
+  },
+  {
+    id: "fractal-library",
+    name: "Fractal Library",
+    description:
+      "An impossible infinite library with shelves receding into mirrored dimensions, floating staircases, and glowing manuscripts.",
+    style: "Surreal",
+    categories: ["interior", "surreal", "fantasy", "domestic"],
+    model: "marble-1.1-plus",
+    prompt: `An impossible infinite library inspired by Borges. The main chamber is vast — at least 50 metres tall — with walls entirely lined with dark wooden bookshelves stretching beyond visible resolution. Hexagonal alcoves arranged in a honeycomb pattern, each identical, each connected by short passageways and spiral staircases that seem to lead both up and down simultaneously. Multiple levels of galleries accessible by floating staircases with wrought-iron railings. A central well descends into darkness with more shelves visible fading into infinity. Scattered reading desks with green glass lamps casting warm pools of light. A massive celestial orrery suspended in the centre of the void, its brass planets slowly rotating. Glowing manuscripts floating between shelves like fireflies. Dust motes dancing in the lamp light. Rich mahogany wood, worn leather armchairs, copper lamp shades. The geometry is intentionally disorienting — corners that should meet don't. Endless perspective in all directions. Warm amber and deep brown tones, intimate pools of light against vast darkness.`,
+  },
+  {
+    id: "floating-islands",
+    name: "Floating Archipelago",
+    description:
+      "A chain of floating islands in a golden sunset sky, connected by stone arch bridges, with waterfalls falling into the clouds.",
+    style: "Fantasy",
+    categories: ["fantasy", "nature", "exterior", "landmark"],
+    model: "marble-1.1-plus",
+    prompt: `A chain of seven floating islands suspended in a golden sunset sky at varying altitudes from 50 to 200 metres above a sea of ochre-and-rose clouds. The largest central island is roughly 80 metres across, with a grassy plateau, a single gnarled ancient oak tree, and a ring of standing stones at its centre. Waterfalls cascade from two of the islands, falling 100 metres before dissipating into mist in the cloud layer. The islands are connected by elegant stone arch bridges — some spanning 30 metres — built from warm sandstone blocks with moss-filled joints. Smaller satellite islands host wind-sculpted pines, patches of wildflowers, and the ruins of what might have been a tower. The sun is low, casting long shadows and bathing everything in deep gold and warm orange light. Distant mountains visible on the horizon. The clouds below have texture and depth, forming a solid-looking floor with occasional gaps revealing an ocean far below. Peaceful, warm, vast. Ghibli-inspired colour palette.`,
+  },
+  {
+    id: "soviet-progress",
+    name: "Abandoned Soviet Research Station",
+    description:
+      "A decaying Soviet-era Arctic research station with peeling paint, frozen pipes, and the aurora borealis overhead.",
+    style: "Cinematic",
+    categories: ["exterior", "industrial", "ruins", "landmark"],
+    model: "marble-1.1-plus",
+    prompt: `An abandoned Soviet-era Arctic research station in deep winter. The main building is a prefabricated concrete-panel structure with a gently curved roof, now weathered and stained. Paint peeling in long strips from the exterior walls, revealing faded military green underneath. A collapsed radio mast leans at 45 degrees, its guy wires tangled. Snow drifts reaching halfway up the ground-floor windows, which are dark and cracked. Inside visible through broken windows: overturned wooden chairs, scattered papers frozen to the floor, a rotary telephone off the hook. A rusted Tatra 6x6 truck half-buried in snow near the entrance, its windscreen shattered. Ice formations hanging from the roofline like frozen waterfalls. The ground is hard-packed snow and gravel. The aurora borealis fills the night sky with shifting green and violet curtains of light, casting an eerie coloured glow across the snow-covered landscape. The temperature feels brutally cold — frost on every surface. Deep blue twilight, vibrant aurora, dark silhouettes of the structures. Isolation and desperation tangible.`,
+  },
+  {
+    id: "origami-nexus",
+    name: "Origami Nexus",
+    description:
+      "A surreal city of folded white paper and intricate cardboard architecture.",
+    style: "Surreal",
+    categories: ["urban", "surreal", "exterior"],
+    model: "marble-1.1-plus",
+    prompt: `A surreal city made entirely of folded white origami paper and precision-cut cardboard architecture. The buildings range from 5 to 30 metres tall, all with sharp geometric facets, clean creases, and visible fold lines like architectural blueprints brought to life. Streets are narrow canyons between towering paper facades with perfectly 90-degree corners. Delicate paper lanterns suspended on invisible threads between buildings. The ground is textured like hand-laid sheets with subtle grain and occasional paper-cut gaps revealing a void below. Some structures have intricate cut-out windows and doors, others are pure abstract geometry. The lighting is soft and diffused, as if the entire world is inside a light tent — no harsh shadows, every surface evenly illuminated. A muted palette of cream, off-white, and warm beige with occasional accents of gold foil on certain surfaces. The atmosphere is quiet and meditative. Toy-like scale that feels simultaneously miniature and monumental.`,
+  },
+  {
+    id: "mushroom-colony",
+    name: "Giant Mushroom Colony",
+    description:
+      "A misty valley floor covered in giant glowing mushrooms of every colour, with tiny dwellings built into their bases.",
+    style: "Fantasy",
+    categories: ["fantasy", "nature", "exterior", "domestic"],
+    model: "marble-1.1-plus",
+    prompt: `A misty valley floor at dusk, densely populated with giant mushrooms of astonishing variety. The largest specimens reach 8 metres tall, with caps wide enough to shelter a small house. Some are bioluminescent — pulsing with soft blue, violet, or pale green light from within their gills and stems. The mushroom varieties are diverse: tall slender ones with conical purple caps, broad flat ones with orange spotted tops, clusters of shelf fungi in pastel pinks and blues growing from a central stalk. Tiny wooden doors and circular windows built into the bases of the largest mushrooms, with warm amber lantern light visible through them. A winding path of smooth stepping stones leads through the colony, past miniature gardens and hanging moss. The ground is soft dark earth covered in a carpet of tiny glowing ferns. A permanent low mist hugs the ground, diffusing the bioluminescent glow into a soft atmospheric haze. The sky above is deep twilight transitioning to night. Glowing spore particles drift lazily through the air. Magical, warm, inviting.`,
+  },
+  {
+    id: "subterranean-express",
+    name: "Subterranean Train Station",
+    description:
+      "A grand abandoned Art Deco underground train station with marble columns, a vintage locomotive, and eerie silence.",
+    style: "Cinematic",
+    categories: ["interior", "historical", "industrial", "landmark", "ruins"],
+    model: "marble-1.1-plus",
+    prompt: `A grand abandoned Art Deco underground train station, cathedral-like in scale — the main concourse is 25 metres tall with a coffered ceiling featuring ornate geometric patterns in faded gold leaf. The walls are clad in cream and black marble panels, many now cracked or missing. A row of massive Art Deco chandeliers hang from the ceiling, most dark but three still glowing with a dim warm light. The floor is black-and-white chequerboard terrazzo, heavily worn in a path from the entrance to the platforms. A vintage steam locomotive sits at Platform 3 — dark green with brass fittings, its headlamp still glowing faintly. Advertising posters from the 1930s on the walls, faded to near-monochrome. A grand marble ticket booth dominates the centre, its brass grille closed. Empty wooden benches face the tracks. The air is still and cool with a faint smell of old dust and machine oil. No trains running, no announcements. Deep perspective down the platform receding into darkness. The lighting is dramatic — pools of warm amber from the chandeliers against deep shadow. Eerie and beautiful.`,
+  },
 ];

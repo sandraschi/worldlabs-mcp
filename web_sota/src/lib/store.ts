@@ -20,7 +20,12 @@ export const useAppStore = create<AppState>((set) => ({
       const r = await fetch(`${API_BASE}/api/health`);
       set({ backend: { ok: r.ok } });
     } catch (e) {
-      set({ backend: { ok: false, error: e instanceof Error ? e.message : "Network error" } });
+      set({
+        backend: {
+          ok: false,
+          error: e instanceof Error ? e.message : "Network error",
+        },
+      });
     }
   },
 }));

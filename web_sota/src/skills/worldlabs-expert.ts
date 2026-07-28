@@ -39,7 +39,7 @@ Marble generates 3D scenes, NOT 2D images.
 
 ## Pricing
 - Credits are consumed per generation (marble.worldlabs.ai != platform.worldlabs.ai)
-- The \$30/month web subscription does NOT include API generations
+- The $30/month web subscription does NOT include API generations
 - Check billing at https://platform.worldlabs.ai/billing`,
 };
 
