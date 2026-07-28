@@ -361,7 +361,7 @@ def _get_vram_stats() -> dict[str, Any]:
     """Get GPU VRAM info using nvidia-smi."""
     try:
         cmd = ["nvidia-smi", "--query-gpu=memory.used,memory.total", "--format=csv,noheader,nounits"]
-        output = subprocess.check_output(cmd).decode("utf-8").strip()  # noqa: S603 — trusted hardcoded command list
+        output = subprocess.check_output(cmd).decode("utf-8").strip()
         used, total = map(int, output.split(","))
         return {"vram_used": used, "vram_total": total, "vram_percent": round((used / total) * 100, 1)}
     except Exception:
@@ -451,7 +451,7 @@ async def adb_devices() -> dict[str, Any]:
     try:
         import subprocess
 
-        result = subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=10)  # noqa: S607
+        result = subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=10)
         lines = result.stdout.strip().split("\n")[1:]  # Skip "List of devices attached"
         devices = []
         for line in lines:
@@ -1500,7 +1500,7 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
                         "mesh_url": local_mesh_url,
                         "result": data,
                     }
-    except Exception:  # noqa: S110
+    except Exception:
         pass
 
     # Fallback: direct OSC
@@ -1627,7 +1627,7 @@ async def handoff_asset(req: HandoffRequest) -> dict[str, Any]:
                         results["detail"] = "Sent to resonite-mcp"
                         results["result"] = data
                         return results
-        except Exception:  # noqa: S110
+        except Exception:
             pass
         osc_host = os.getenv("RESONITE_OSC_HOST", "127.0.0.1")
         osc_port = int(os.getenv("RESONITE_OSC_PORT", "9000"))
@@ -2124,7 +2124,7 @@ async def place_avatar_in_world(body: dict) -> dict[str, Any]:
             if export_resp.ok:
                 data = export_resp.json()
                 avatar_url = (data.get("result") or {}).get("url", "") or data.get("message", "")
-    except Exception:  # noqa: S110
+    except Exception:
         pass
 
     if not avatar_url:

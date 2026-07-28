@@ -37,10 +37,10 @@ def _find_blender() -> str | None:
     if platform.system() != "Windows":
         # On macOS/Linux, try `which blender`
         try:
-            result = subprocess.run(["which", "blender"], capture_output=True, text=True, timeout=5)  # noqa: S607
+            result = subprocess.run(["which", "blender"], capture_output=True, text=True, timeout=5)
             if result.returncode == 0 and result.stdout.strip():
                 return result.stdout.strip()
-        except Exception:  # noqa: S110
+        except Exception:
             pass
         return None
 
@@ -78,7 +78,7 @@ async def ensure_blender(host: str = "127.0.0.1", port: int = 10700) -> str | No
         return "Blender not found. Install Blender from https://blender.org"
 
     try:
-        subprocess.Popen(  # noqa: S603
+        subprocess.Popen(
             [
                 blender_path,
                 "--background",
@@ -129,7 +129,7 @@ async def ensure_resonite(host: str = "127.0.0.1", port: int = 10715, osc_port: 
     try:
         if mcp_path == "uvx":
             subprocess.Popen(
-                ["uvx", "resonite-mcp"],  # noqa: S607
+                ["uvx", "resonite-mcp"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 creationflags=subprocess.CREATE_NO_WINDOW,
@@ -137,15 +137,15 @@ async def ensure_resonite(host: str = "127.0.0.1", port: int = 10715, osc_port: 
         else:
             start_script = Path(mcp_path) / "start.bat"
             if start_script.is_file():
-                subprocess.Popen(  # noqa: S603
-                    ["cmd", "/c", str(start_script)],  # noqa: S607
+                subprocess.Popen(
+                    ["cmd", "/c", str(start_script)],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                     creationflags=subprocess.CREATE_NO_WINDOW,
                 )
             else:
-                subprocess.Popen(  # noqa: S603
-                    ["uv", "run", "--directory", mcp_path, "python", "-m", "src.resonite_mcp.server"],  # noqa: S607
+                subprocess.Popen(
+                    ["uv", "run", "--directory", mcp_path, "python", "-m", "src.resonite_mcp.server"],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                     creationflags=subprocess.CREATE_NO_WINDOW,
@@ -171,9 +171,9 @@ def _find_resonite_mcp() -> str | None:
 
     # Check if uvx can resolve it
     try:
-        r = subprocess.run(["uvx", "resonite-mcp", "--help"], capture_output=True, text=True, timeout=10)  # noqa: S607
+        r = subprocess.run(["uvx", "resonite-mcp", "--help"], capture_output=True, text=True, timeout=10)
         if r.returncode == 0:
             return "uvx"
-    except Exception:  # noqa: S110
+    except Exception:
         pass
     return None

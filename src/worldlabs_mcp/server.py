@@ -38,7 +38,7 @@ load_dotenv()
 # ---------------------------------------------------------------------------
 # Server setup
 # ---------------------------------------------------------------------------
-from . import __version__ as _pkg_version  # noqa: E402
+from . import __version__ as _pkg_version
 
 mcp = FastMCP(
     name="worldlabs-mcp",
@@ -47,7 +47,7 @@ mcp = FastMCP(
 
 # Register Prefab card tools immediately after mcp instantiation so they are
 # available in both stdio mode (main()) and any inspection/dev path.
-from .prefab_cards import register_prefab_tools as _register_prefab  # noqa: E402
+from .prefab_cards import register_prefab_tools as _register_prefab
 
 _register_prefab(mcp)
 
