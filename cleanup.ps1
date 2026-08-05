@@ -1,4 +1,4 @@
-# cleanup.ps1 — Run once to finish repo cleanup
+# cleanup.ps1 - Run once to finish repo cleanup
 # Deletes backup files and the stale web/ directory
 # Run from any directory: .\cleanup.ps1
 

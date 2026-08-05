@@ -51,7 +51,7 @@ class LogService {
           ...entry,
           id: Math.random().toString(36).substring(2, 11),
         });
-      } catch (err) {
+      } catch (_err) {
         // Ignore malformed logs
       }
     };

@@ -1,0 +1,6 @@
+{
+  "name": "worldlabs-mcp",
+  "version": "0.1.0",
+  "description": "World Labs MCP - generate, manage, and inspect generative 3D worlds (text/image/video-to-world), sparks, painting portals, and the world library",
+  "hooks": "../hooks/hooks.json"
+}

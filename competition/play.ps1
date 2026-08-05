@@ -1,4 +1,4 @@
-# Marble Adventure — player launch (public mode, no World Labs account required)
+# Marble Adventure - player launch (public mode, no World Labs account required)
 
 param(
     [string]$GodotExe = "C:\Users\sandr\.local\bin\godot.exe",
@@ -36,7 +36,7 @@ if ($AccessMode -eq "local_spark") {
     Start-Sleep -Seconds 4
 }
 
-Write-Host "[play] Marble Adventure — access mode: $AccessMode"
+Write-Host "[play] Marble Adventure - access mode: $AccessMode"
 if ($env:SPARK_BASE_URL) {
     Write-Host "[play] SPARK_BASE_URL=$($env:SPARK_BASE_URL)"
 }

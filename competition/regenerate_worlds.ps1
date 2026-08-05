@@ -8,7 +8,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Prompt bodies live in WORLD_PROMPTS.md — this script uses embedded map for automation.
+# Prompt bodies live in WORLD_PROMPTS.md - this script uses embedded map for automation.
 $Prompts = @{
     gothic_cathedral = @"
 Grand Gothic cathedral interior, soaring nave with ribbed vaults and clustered columns.
@@ -70,7 +70,7 @@ Write-Host ""
 foreach ($p in $targets) {
     $id = $p.id
     if (-not $Prompts.ContainsKey($id)) {
-        Write-Host "SKIP $id — no prompt in script map" -ForegroundColor Yellow
+        Write-Host "SKIP $id - no prompt in script map" -ForegroundColor Yellow
         continue
     }
     Write-Host "Generating $id ($($p.label))..."

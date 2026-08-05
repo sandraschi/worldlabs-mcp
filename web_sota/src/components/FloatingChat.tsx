@@ -45,7 +45,7 @@ export default function FloatingChat() {
     () => localStorage.getItem("llm_chat_model") || "",
   );
   const [models, setModels] = useState<LlmModel[]>([]);
-  const [skillName, setSkillName] = useState("");
+  const [skillName] = useState("");
   const [personality, setPersonality] = useState(
     () => localStorage.getItem("fc_personality") || "helpful",
   );
@@ -98,16 +98,6 @@ export default function FloatingChat() {
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat, open]);
-
-  useEffect(() => {
-    fetch(`${API}/skills`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (Array.isArray(d) && d.length > 0)
-          setSkillName(d[0].name || String(d[0]));
-      })
-      .catch(() => {});
-  }, []);
 
   const sendMessage = async (text: string) => {
     setChat((prev) => [...prev, { role: "user", content: text }]);

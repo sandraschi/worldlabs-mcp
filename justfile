@@ -1,7 +1,7 @@
-﻿set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
+set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
 import 'scripts/just/fleet.just'
 
-# â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Dashboard ---
 
 # Open the interactive recipe dashboard in the browser
 default:
@@ -14,7 +14,7 @@ bootstrap:
     uv run pre-commit install
     Set-Location web_sota; npm ci; if ($LASTEXITCODE -ne 0) { npm install }
     Write-Host "Pre-commit hooks installed." -ForegroundColor Green
-# â”€â”€ Server â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Server ---
 
 # Start full stack (backend + frontend webapp)
 start:
@@ -48,7 +48,7 @@ build:
 preview:
     Set-Location '{{justfile_directory()}}\web_sota'; npm run preview -- --port 10864
 
-# â”€â”€ Dependencies â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Dependencies ---
 
 # Sync Python deps from pyproject.toml (creates/updates .venv)
 sync:
@@ -78,7 +78,7 @@ update-python:
 update-npm:
     Set-Location '{{justfile_directory()}}\web_sota'; npm update
 
-# â”€â”€ Quality â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Quality ---
 
 # Run Ruff linter (Python) + Biome linter (frontend)
 lint:
@@ -91,6 +91,20 @@ lint-py:
 
 # Run Biome linter on frontend only
 lint-fe:
+    Set-Location '{{justfile_directory()}}\web_sota'; npx @biomejs/biome ci .
+
+# Format everything (Python ruff format + Biome)
+fmt:
+    Set-Location '{{justfile_directory()}}'; uv run ruff format .
+    Set-Location '{{justfile_directory()}}\web_sota'; npx @biomejs/biome format --write .
+
+# Run all verification gates (lint + types + tests) - must pass before push
+certify:
+    Set-Location '{{justfile_directory()}}'; uv run ruff check .
+    Set-Location '{{justfile_directory()}}'; uv run ruff format . --check
+    Set-Location '{{justfile_directory()}}'; uv run pyright src/
+    Set-Location '{{justfile_directory()}}'; uv run pytest tests/ -q
+    Set-Location '{{justfile_directory()}}\web_sota'; npx tsc --noEmit
     Set-Location '{{justfile_directory()}}\web_sota'; npx @biomejs/biome ci .
 
 # Auto-fix and format Python (ruff check --fix + ruff format)
@@ -115,7 +129,7 @@ typecheck:
 typecheck-fe:
     Set-Location '{{justfile_directory()}}\web_sota'; npx tsc --noEmit
 
-# â”€â”€ Testing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Testing ---
 
 # Run full test suite
 test:
@@ -141,7 +155,7 @@ test-k KEYWORD:
 test-fail-fast:
     Set-Location '{{justfile_directory()}}'; uv run pytest tests/ -v -x
 
-# â”€â”€ Security â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Security ---
 
 # Run Bandit security audit on Python source
 audit-sec:
@@ -161,7 +175,7 @@ audit-all:
     just audit-deps
     just audit-npm
 
-# â”€â”€ Packaging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Packaging ---
 
 # Build Python distribution (sdist + wheel)
 build-py:
@@ -184,7 +198,7 @@ validate: mcpb-sync
 version:
     Set-Location '{{justfile_directory()}}'; uv run python -c "from worldlabs_mcp import __version__; print(__version__)" 2>$null; if ($LASTEXITCODE -ne 0) { uv run python -c "import importlib.metadata; print(importlib.metadata.version('worldlabs-mcp'))" }
 
-# â”€â”€ Demos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Demos ---
 
 # Launch Spark 2.0 Viewer with a local Gaussian splat asset
 view:
@@ -210,7 +224,7 @@ capabilities:
 probe-llm:
     $r = Invoke-RestMethod -Uri 'http://localhost:10865/api/llm/discover' -ErrorAction SilentlyContinue; if ($r) { $r | ConvertTo-Json -Depth 4 } else { Write-Host "Backend not responding" -ForegroundColor Red }
 
-# â”€â”€ Logging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Logging ---
 
 # Tail the bridge log (src/logs/bridge.log)
 log:
@@ -232,7 +246,7 @@ log-mcp:
 log-mcp-tail:
     Get-Content "$env:APPDATA\Claude\logs\mcp-server-worldlabs-mcp.log" -Wait -Tail 50 -ErrorAction SilentlyContinue
 
-# â”€â”€ Maintenance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Maintenance ---
 
 # Remove Python build artifacts (.venv, dist, __pycache__, .egg-info)
 clean-py:
@@ -273,7 +287,7 @@ clean-all:
 backup:
     pwsh -File '{{justfile_directory()}}\scripts\backup-repo.ps1'
 
-# â”€â”€ Documentation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Documentation ---
 
 # Open API docs in browser (requires backend running)
 docs-api:
@@ -291,7 +305,7 @@ docs-gallery:
 docs-llms:
     Get-Content '{{justfile_directory()}}\llms.txt'
 
-# â”€â”€ Marble Adventure (competition game) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Marble Adventure  competition game ---
 
 # Validate Godot hub project loads
 marble-adventure-check godot='C:\Users\sandr\.local\bin\godot.exe':
@@ -329,7 +343,7 @@ marble-adventure-ship-push godot='C:\Users\sandr\.local\bin\godot.exe':
 marble-adventure-regen-worlds portal="":
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\competition\regenerate_worlds.ps1' -Portal '{{portal}}'
 
-# â”€â”€ CI Pipeline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- CI Pipeline ---
 
 # Full CI pipeline: sync, lint, typecheck, test
 ci:
@@ -348,7 +362,7 @@ industrialize:
     just test-cov
     Write-Host "" ; Write-Host "Industrialization complete." -ForegroundColor Green
 
-# â”€â”€ Tauri NSIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Tauri NSIS ---
 
 # Build the PyInstaller backend .exe and copy to Tauri resources
 build-sidecar:
@@ -364,7 +378,7 @@ build-native: build-sidecar
     npx @tauri-apps/cli build --bundles nsis
 
 # (cua-nsis-test comes from scripts/just/fleet.just)
-# â”€â”€ Playwright E2E â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# --- Playwright E2E ---
 
 # Install Playwright browsers (one-time)
 e2e-install:
@@ -374,3 +388,5 @@ e2e-install:
 e2e:
     Set-Location '{{justfile_directory()}}\web_sota'; npx playwright test
 
+
+# Bootstrap: install dev deps + pre-commit hook

@@ -60,3 +60,5 @@ web_sota/backend/prompts.json
 target/
 
 _dashboard/
+
+reports/

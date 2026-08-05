@@ -1,4 +1,4 @@
-# Marble Adventure — Windows export + optional Butler push to itch.io
+# Marble Adventure - Windows export + optional Butler push to itch.io
 # Safe defaults: hidden channel, no push unless -Push
 
 param(
@@ -74,7 +74,7 @@ Write-Host "[ship] Output:  $ExePath"
 $godotExit = $LASTEXITCODE
 
 if (-not (Test-Path $ExePath)) {
-    throw "Export failed — MarbleAdventure.exe missing. Run: cd D:\Dev\repos\godot-mcp; just install-export-templates"
+    throw "Export failed - MarbleAdventure.exe missing. Run: cd D:\Dev\repos\godot-mcp; just install-export-templates"
 }
 if ($godotExit -ne 0) {
     Write-Host "[ship] Godot exited $godotExit (warnings may be harmless if exe exists)" -ForegroundColor Yellow
@@ -90,7 +90,7 @@ if ($ExportOnly) {
 
 $butler = Find-Butler
 if (-not $butler) {
-    throw "Butler not found — install from https://itchio.itch.io/butler or itch app"
+    throw "Butler not found - install from https://itchio.itch.io/butler or itch app"
 }
 
 $ref = "$ItchTarget`:$Channel"
@@ -111,7 +111,7 @@ if (-not $Push) {
 }
 
 if (-not $env:BUTLER_API_KEY) {
-    throw "BUTLER_API_KEY not set — add to competition\.env (never commit)"
+    throw "BUTLER_API_KEY not set - add to competition\.env (never commit)"
 }
 
 Write-Host "[ship] Pushing to $ref (hidden=$hiddenFlag, version=$UserVersion)"
@@ -130,6 +130,6 @@ Write-Host ""
 Write-Host "[ship] Push OK" -ForegroundColor Green
 Write-Host "[ship] Page: $page"
 if ($hiddenFlag) {
-    Write-Host "[ship] Channel is HIDDEN — unhide in Edit game -> Uploads when ready." -ForegroundColor Cyan
+    Write-Host "[ship] Channel is HIDDEN - unhide in Edit game -> Uploads when ready." -ForegroundColor Cyan
 }
 Write-Host "[ship] Keep project in DRAFT until you publish the page." -ForegroundColor Cyan

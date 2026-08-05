@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "text",
+        "text": "## Session Context (World Labs MCP)\n\nYou have access to World Labs generative world tools: text/image/video-to-world generation, operation polling, world library, sparks, painting portals, and Plex cinema integration.\n\n**Before starting work:**\n1. Check the world library: list_worlds(limit=10)\n2. Poll recent generations: get_operation(operation_id=\"<latest>\") - confirm jobs are not stuck\n\n**At end of work, save insights:**\n- Store any generated world metadata back to the library\n- Note generation failures with their operation IDs for follow-up"
+      }]
+    }]
+  }
+}

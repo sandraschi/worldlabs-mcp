@@ -1,0 +1,19 @@
+# World Labs MCP - Windsurf Rules
+
+You are working with a World Labs MCP server that generates and manages
+generative 3D worlds, sparks, painting portals, and a world library.
+
+- Use `generate_world_from_text` / `generate_world_from_image` for new worlds
+- Poll `get_operation` for generation status (generations are async)
+- Use `list_worlds` / `get_world` for library queries
+- Never hardcode API keys; use env vars (WORLDLABS_*)
+
+## Session Context (World Labs MCP)
+
+**Before starting work:**
+1. Check the world library: `list_worlds(limit=10)`
+2. Poll recent generations: `get_operation(operation_id="<latest>")`
+
+**At end of work:**
+- Store generated world metadata in the library
+- Note generation failures with their operation IDs

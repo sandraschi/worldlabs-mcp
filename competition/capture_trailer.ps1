@@ -8,7 +8,7 @@ $MarketingDir = Join-Path $PSScriptRoot "marketing"
 New-Item -ItemType Directory -Force -Path $MarketingDir | Out-Null
 
 Write-Host ""
-Write-Host "=== Marble Adventure — trailer capture ===" -ForegroundColor Cyan
+Write-Host "=== Marble Adventure - trailer capture ===" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "1. Start OBS or ShareX screen recorder (1920x1080)"
 Write-Host "2. Run play.ps1 in public_marble mode"

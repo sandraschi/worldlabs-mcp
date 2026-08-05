@@ -33,7 +33,7 @@ foreach ($portal in $config.portals) {
             }
             Remove-Item $out -Force
         } catch {
-            Write-Host "  try: $url — $($_.Exception.Message)" -ForegroundColor DarkGray
+            Write-Host "  try: $url - $($_.Exception.Message)" -ForegroundColor DarkGray
         }
     }
 
