@@ -643,15 +643,17 @@ export function SparkViewer() {
 
       // Center the camera on the splat's real bounds and fix Z-up splats
       try {
-        const box = new THREE.Box3().setFromObject(splat);
+        let box = splat.getBoundingBox();
+        let rotated = false;
         if (!box.isEmpty()) {
           let size = box.getSize(new THREE.Vector3());
           // Z-up splats render "on their head" in the Y-up viewer: when the
           // bounds are flat on Y but tall on Z, rotate so Z becomes Y.
           if (size.y < size.z * 0.4 && size.z > size.x * 0.8) {
             splat.rotation.x = -Math.PI / 2;
-            box.setFromObject(splat);
+            box = splat.getBoundingBox();
             size = box.getSize(new THREE.Vector3());
+            rotated = true;
           }
           const center = box.getCenter(new THREE.Vector3());
           splat.position.sub(center);
@@ -667,6 +669,17 @@ export function SparkViewer() {
             pos: camera.position.clone(),
             target: controls.target.clone(),
           };
+          console.log(
+            "[SPARK-DIAG]",
+            JSON.stringify({
+              rotated,
+              size: [size.x, size.y, size.z],
+              camPos: [camera.position.x, camera.position.y, camera.position.z],
+              target: [controls.target.x, controls.target.y, controls.target.z],
+            }),
+          );
+        } else {
+          console.warn("[SPARK-DIAG] empty bounding box");
         }
       } catch (e) {
         logger.warn("Splat centering failed", { error: String(e) });
