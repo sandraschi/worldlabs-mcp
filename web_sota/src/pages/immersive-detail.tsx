@@ -5,19 +5,16 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
-  Cpu,
+  ExternalLink,
   Glasses,
-  Globe2,
   HelpCircle,
   Loader2,
-  MonitorSmartphone,
   RefreshCw,
   ShieldCheck,
   Smartphone,
   Terminal,
   Usb,
   Wifi,
-  WifiIcon,
   XCircle,
   Zap,
 } from "lucide-react";
@@ -302,9 +299,12 @@ export function ImmersiveDetail() {
               },
               {
                 id: "adb-connect",
-                cmd: `adb connect ${adbData?.devices?.[0]?.serial?.replace(/:.*$/, "") || "192.168.1.XX"}:5555`,
+                cmd: adbData?.devices?.length
+                  ? `adb connect ${adbData.devices[0].serial.replace(/:.*$/, "")}:5555`
+                  : "adb connect <headset-ip>:5555",
                 label: "Connect over WiFi",
-                desc: "Replace with your headset IP",
+                desc: "Requires a connected device — shown once detected",
+                disabled: !adbData?.devices?.length,
               },
               {
                 id: "adb-reverse",
@@ -315,7 +315,10 @@ export function ImmersiveDetail() {
             ].map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-2 p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]"
+                className={cn(
+                  "flex items-center gap-2 p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]",
+                  item.disabled && "opacity-50",
+                )}
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -332,7 +335,11 @@ export function ImmersiveDetail() {
                 </div>
                 <button
                   onClick={() => copyToClipboard(item.cmd, item.id)}
-                  className="p-2 rounded-lg bg-white/[0.05] hover:bg-cosmos-500/20 text-slate-500 hover:text-cosmos-400 transition-all shrink-0"
+                  disabled={item.disabled}
+                  title={
+                    item.disabled ? "Connect a device first" : "Copy command"
+                  }
+                  className="p-2 rounded-lg bg-white/[0.05] hover:bg-cosmos-500/20 text-slate-500 hover:text-cosmos-400 transition-all shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white/[0.05] disabled:hover:text-slate-500"
                 >
                   <ShieldCheck
                     className={cn(

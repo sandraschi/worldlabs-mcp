@@ -239,6 +239,29 @@ export interface PlexGenerateRequest {
   model?: string;
 }
 
+export interface GalleryEntry {
+  id: string;
+  display_name: string;
+  owner: string;
+  owner_id: string;
+  like_count: number;
+  created_at: number;
+  tags: string[];
+  model: string;
+  seed: number;
+  prompt: string;
+  minimap_url: string | null;
+  spz_urls: string[];
+  marble_url: string;
+}
+
+export interface GalleryBrowseResult {
+  tag: string;
+  next_page_token: string;
+  count: number;
+  entries: GalleryEntry[];
+}
+
 function urlFor(path: string): string {
   return `${API_BASE}${BASE}${path}`;
 }
@@ -456,4 +479,10 @@ export const api = {
     get<PlexVideoUrl>(`/plex/video/${ratingKey}`),
   plexGenerate: (req: PlexGenerateRequest) =>
     post<Operation>("/plex/generate", req),
+
+  // Marble Community Gallery (public worlds from marble.worldlabs.ai)
+  galleryBrowse: (tag: string, pageToken = "", pageSize = 24) =>
+    get<GalleryBrowseResult>(
+      `/gallery?tag=${encodeURIComponent(tag)}&page_size=${pageSize}&page_token=${encodeURIComponent(pageToken)}`,
+    ),
 };

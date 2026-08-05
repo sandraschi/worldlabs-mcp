@@ -1,17 +1,12 @@
 import {
   Activity,
-  ChevronRight,
   Cpu,
   Database,
-  Globe2,
-  Info,
   Layers,
   LineChart,
   Rocket,
   ShieldCheck,
-  Zap,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export function SparkDetail() {
   return (

@@ -1,6 +1,5 @@
 import {
   BookOpen,
-  Code2,
   Cpu,
   ExternalLink,
   Globe2,
@@ -34,13 +33,6 @@ const apps: AppLink[] = [
     badge: "External",
   },
   {
-    title: "Marble API Explorer",
-    desc: "Interactive REST API explorer for all Marble v1 endpoints.",
-    url: "https://docs.worldlabs.ai/api",
-    icon: Code2,
-    badge: "External",
-  },
-  {
     title: "MCP Bridge Backend",
     desc: "FastAPI bridge server powering this dashboard.",
     url: "http://localhost:10865/docs",
@@ -51,7 +43,7 @@ const apps: AppLink[] = [
   {
     title: "World Gen Dashboard",
     desc: "Jump directly to world generation.",
-    url: "/tools",
+    url: "/tools-explorer",
     icon: Wrench,
     badge: "Internal",
   },

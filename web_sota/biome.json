@@ -37,7 +37,7 @@
       },
       "correctness": {
         "useExhaustiveDependencies": "off",
-        "noUnusedVariables": "off",
+        "noUnusedVariables": "on",
         "noUnusedImports": "off",
         "noUnusedFunctionParameters": "off"
       },

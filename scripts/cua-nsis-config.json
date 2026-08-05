@@ -2,7 +2,10 @@
   "product_name": "World Labs MCP",
   "install_dir": "%LOCALAPPDATA%\\World Labs MCP",
   "operator_exe": "worldlabs-mcp-operator.exe",
-  "backend_process_names": ["worldlabs-mcp-operator", "worldlabs-mcp-backend"],
+  "backend_process_names": [
+    "worldlabs-mcp-operator",
+    "worldlabs-mcp-backend"
+  ],
   "backend_port": 10865,
   "health_path": "/health",
   "diagnostics_path": "/api/v1/diagnostics",
@@ -10,5 +13,55 @@
   "window_title_re": "World Labs MCP",
   "nsis_glob": "native/target/release/bundle/nsis/World Labs MCP_*_x64-setup.exe",
   "bridge_ok_text": "API reachable",
-  "uninstall_registry_filter": "*World Labs MCP*"
+  "uninstall_registry_filter": "*World Labs MCP*",
+  "nav_routes": [
+    [
+      "Overview",
+      "Infinite Worlds"
+    ],
+    [
+      "World Library",
+      "World Library"
+    ],
+    [
+      "Bridge Health",
+      "Bridge Health"
+    ],
+    [
+      "System Logs",
+      "Logs"
+    ],
+    [
+      "Configuration",
+      "Settings"
+    ],
+    [
+      "Painting Portals",
+      "Painting Portals"
+    ],
+    [
+      "Marble Gallery",
+      "Marble Community Gallery"
+    ],
+    [
+      "Headset Setup",
+      "Headset Setup"
+    ],
+    [
+      "Cinema Worlds",
+      "Cinema Worlds"
+    ],
+    [
+      "Spark Engine",
+      "Spark 2.0"
+    ],
+    [
+      "Chiseling",
+      "Chisel"
+    ],
+    [
+      "Reality Hub",
+      "Reality Hub"
+    ]
+  ]
 }

@@ -1,48 +1,37 @@
-import {
-  CheckCircle2,
-  ExternalLink,
-  Eye,
-  EyeOff,
-  Globe2,
-  Key,
-  Save,
-  Server,
-  Settings2,
-  Wallet,
-} from "lucide-react";
+import { ExternalLink, Globe2, Key, Settings2, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
-import { API_BASE } from "@/lib/api";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 function LLMSettings() {
-  const [providers, setProviders] = useState<
-    Record<string, { name: string }[]>
-  >({});
+  const [providers, setProviders] = useState<{
+    ollama?: { models: { name: string }[] };
+    lmstudio?: { models: { name: string }[] };
+  }>({});
   const [selectedProvider, setSelectedProvider] = useState("ollama");
   const [selectedModel, setSelectedModel] = useState("");
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
   useEffect(() => {
-    fetch(API_BASE + "/api/llm/providers")
-      .then((r) => r.json())
+    api
+      .discoverLlms()
       .then((d) => {
         setProviders(d);
         const savedP = localStorage.getItem("llm_provider") || "ollama";
         const savedM = localStorage.getItem("llm_model") || "";
         setSelectedProvider(savedP);
-        const models = d[savedP === "ollama" ? "ollama" : "lm_studio"] || [];
+        const models =
+          (savedP === "ollama" ? d.ollama?.models : d.lmstudio?.models) || [];
         setSelectedModel(
-          savedM && models.some((m: { name: string }) => m.name === savedM)
+          savedM && models.some((m) => m.name === savedM)
             ? savedM
             : models[0]?.name || "",
         );
         setStatus(models.length > 0 ? "ready" : "error");
       })
       .catch(() => {
-        setProviders({ ollama: [{ name: "llama3.2:3b" }] });
-        setSelectedModel(localStorage.getItem("llm_model") || "llama3.2:3b");
-        setStatus("ready");
+        setStatus("error");
       });
   }, []);
   const save = (p: string, m: string) => {
@@ -50,7 +39,9 @@ function LLMSettings() {
     localStorage.setItem("llm_model", m);
   };
   const models =
-    providers[selectedProvider === "ollama" ? "ollama" : "lm_studio"] || [];
+    (selectedProvider === "ollama"
+      ? providers.ollama?.models
+      : providers.lmstudio?.models) || [];
   return (
     <div className="glass-card p-5 space-y-4">
       <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
@@ -81,6 +72,7 @@ function LLMSettings() {
               setSelectedModel(e.target.value);
               save(selectedProvider, e.target.value);
             }}
+            disabled={status !== "ready"}
           >
             {models.map((m) => (
               <option key={m.name} value={m.name}>
@@ -88,6 +80,12 @@ function LLMSettings() {
               </option>
             ))}
           </select>
+          {status === "error" && (
+            <p className="text-xs text-slate-500">
+              No local LLM detected. Start Ollama or LM Studio to enable AI
+              features.
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -95,15 +93,15 @@ function LLMSettings() {
 }
 
 export function Settings() {
-  const [apiKey, setApiKey] = useState("");
-  const [showKey, setShowKey] = useState(false);
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = () => {
-    // In production this would POST to the backend
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
+  const [keyStatus, setKeyStatus] = useState<"loading" | "set" | "unset">(
+    "loading",
+  );
+  useEffect(() => {
+    api
+      .systemInfo()
+      .then((d) => setKeyStatus(d.api_key_set ? "set" : "unset"))
+      .catch(() => setKeyStatus("unset"));
+  }, []);
 
   return (
     <div className="space-y-6 page-enter max-w-2xl mx-auto">
@@ -127,37 +125,31 @@ export function Settings() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="api-key" className="section-label block">
-            Marble API Key
-          </label>
-          <div className="relative">
-            <input
-              id="api-key"
-              type={showKey ? "text" : "password"}
-              className={cn("input-glass pr-10", "font-mono")}
-              placeholder="wlt_••••••••••••••••"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              autoComplete="off"
-              spellCheck={false}
-            />
-            <button
-              onClick={() => setShowKey((p) => !p)}
-              title={showKey ? "Hide API key" : "Show API key"}
-              aria-label={showKey ? "Hide API key" : "Show API key"}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
-            >
-              {showKey ? (
-                <EyeOff className="w-4 h-4" aria-hidden="true" />
-              ) : (
-                <Eye className="w-4 h-4" aria-hidden="true" />
+          <span className="section-label block">Marble API Key</span>
+          <div className="flex items-center gap-2 text-sm">
+            <span
+              className={cn(
+                "w-2 h-2 rounded-full",
+                keyStatus === "loading"
+                  ? "bg-slate-500 animate-pulse"
+                  : keyStatus === "set"
+                    ? "bg-aurora-400"
+                    : "bg-red-400",
               )}
-            </button>
+            />
+            <span className="text-slate-300">
+              {keyStatus === "loading"
+                ? "Checking server configuration..."
+                : keyStatus === "set"
+                  ? "API key configured on the server"
+                  : "No API key configured on the server"}
+            </span>
           </div>
           <p className="text-xs text-slate-600">
-            Or set{" "}
+            Set{" "}
             <code className="font-mono text-slate-500">WORLDLABS_API_KEY</code>{" "}
-            in your environment (recommended). Get your key at{" "}
+            in your environment (recommended), then restart the server. Get your
+            key at{" "}
             <a
               href="https://platform.worldlabs.ai/api-keys"
               target="_blank"
@@ -229,68 +221,17 @@ export function Settings() {
       {/* Server Settings */}
       <div className="glass-card p-5 space-y-4">
         <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
-          <Server className="w-4 h-4 text-cosmos-400" aria-hidden="true" />
-          <h3 className="text-sm font-bold text-slate-200">Server Settings</h3>
+          <Key className="w-4 h-4 text-cosmos-400" aria-hidden="true" />
+          <h3 className="text-sm font-bold text-slate-200">
+            Server Configuration
+          </h3>
         </div>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="backend-port" className="section-label block">
-              Backend Port
-            </label>
-            <input
-              id="backend-port"
-              type="number"
-              defaultValue={10865}
-              className="input-glass font-mono w-40"
-              min={1024}
-              max={65535}
-              aria-label="Backend server port"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="base-url" className="section-label block">
-              Marble Base URL
-            </label>
-            <input
-              id="base-url"
-              type="url"
-              defaultValue="https://api.worldlabs.ai/marble/v1"
-              className="input-glass font-mono"
-              aria-label="Marble API base URL"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="poll-interval" className="section-label block">
-              Poll Interval (seconds)
-            </label>
-            <input
-              id="poll-interval"
-              type="number"
-              defaultValue={15}
-              className="input-glass font-mono w-32"
-              min={5}
-              max={120}
-              aria-label="Operation polling interval in seconds"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="timeout" className="section-label block">
-              Generation Timeout (seconds)
-            </label>
-            <input
-              id="timeout"
-              type="number"
-              defaultValue={600}
-              className="input-glass font-mono w-40"
-              min={60}
-              aria-label="Generation timeout in seconds"
-            />
-          </div>
-        </div>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          Server settings (bridge port, Marble base URL, polling and generation
+          timeouts) are configured via environment variables and{" "}
+          <code className="font-mono text-slate-400">.env</code> — restart the
+          server after changing them. See INSTALL.md for the full variable list.
+        </p>
       </div>
 
       {/* Display */}
@@ -299,52 +240,13 @@ export function Settings() {
           <Globe2 className="w-4 h-4 text-cosmos-400" aria-hidden="true" />
           <h3 className="text-sm font-bold text-slate-200">UI Preferences</h3>
         </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-sm text-slate-200">Dark Mode</div>
-            <div className="text-xs text-slate-500">
-              Always enabled for optimal viewing
-            </div>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked="true"
-            aria-label="Dark Mode (Always enabled)"
-            disabled
-            className="w-10 h-5 rounded-full bg-cosmos-600 flex items-center justify-end px-0.5 cursor-not-allowed opacity-70"
-          >
-            <div className="w-4 h-4 rounded-full bg-white shadow" />
-          </button>
-        </div>
+        <div className="text-sm text-slate-300">Dark mode (always enabled)</div>
+        <p className="text-xs text-slate-500">
+          The fleet identity — the webapp is dark by default and stays dark.
+        </p>
       </div>
 
       <LLMSettings />
-
-      {/* Save button */}
-      <button
-        onClick={handleSave}
-        className={cn(
-          "btn-glow flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all",
-          saved &&
-            "from-aurora-600 to-aurora-700 shadow-[0_0_20px_rgba(16,185,129,0.3)]",
-        )}
-      >
-        {saved ? (
-          <>
-            <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> Saved!
-          </>
-        ) : (
-          <>
-            <Save className="w-4 h-4" aria-hidden="true" /> Save Settings
-          </>
-        )}
-      </button>
-
-      <p className="text-xs text-slate-600">
-        Note: Settings that overlap with environment variables (like API key)
-        require a server restart to take effect.
-      </p>
     </div>
   );
 }

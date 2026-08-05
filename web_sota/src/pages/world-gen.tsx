@@ -816,6 +816,19 @@ export default function WorldGenPage() {
     staleTime: Number.POSITIVE_INFINITY,
   });
 
+  // Pick up a prompt seeded from the Marble Gallery ("Use prompt")
+  useEffect(() => {
+    try {
+      const seeded = sessionStorage.getItem("wl-gallery-prompt");
+      if (seeded) {
+        setPrompt(seeded);
+        sessionStorage.removeItem("wl-gallery-prompt");
+      }
+    } catch {
+      // storage unavailable - ignore
+    }
+  }, []);
+
   useEffect(() => {
     if (historyData) {
       setOperations(historyData);
@@ -1312,7 +1325,7 @@ export default function WorldGenPage() {
                     />
                   </>
                 )}
-                {mode !== "text" && (
+                {
                   <label className="flex items-center gap-2 cursor-pointer group mt-1">
                     <div
                       onClick={() => setIsPanorama(!isPanorama)}
@@ -1331,7 +1344,7 @@ export default function WorldGenPage() {
                       Source is a 360° panorama
                     </span>
                   </label>
-                )}
+                }
               </div>
             )}
 

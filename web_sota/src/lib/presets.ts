@@ -177,4 +177,105 @@ export const WORLD_PRESETS: WorldPreset[] = [
     model: "marble-1.1-plus",
     prompt: `A grand abandoned Art Deco underground train station, cathedral-like in scale — the main concourse is 25 metres tall with a coffered ceiling featuring ornate geometric patterns in faded gold leaf. The walls are clad in cream and black marble panels, many now cracked or missing. A row of massive Art Deco chandeliers hang from the ceiling, most dark but three still glowing with a dim warm light. The floor is black-and-white chequerboard terrazzo, heavily worn in a path from the entrance to the platforms. A vintage steam locomotive sits at Platform 3 — dark green with brass fittings, its headlamp still glowing faintly. Advertising posters from the 1930s on the walls, faded to near-monochrome. A grand marble ticket booth dominates the centre, its brass grille closed. Empty wooden benches face the tracks. The air is still and cool with a faint smell of old dust and machine oil. No trains running, no announcements. Deep perspective down the platform receding into darkness. The lighting is dramatic — pools of warm amber from the chandeliers against deep shadow. Eerie and beautiful.`,
   },
+  // ── Mined from the Marble community gallery (marble.worldlabs.ai) ──────────
+  {
+    id: "lisbon-tram",
+    name: "Lisbon Tram Golden Hour",
+    description:
+      "A yellow tram climbing cobbled Lisbon streets at sunset, past tiled facades and hilltop buildings. Mined from the community gallery (@arons1001).",
+    style: "Cinematic",
+    categories: ["urban", "historical", "exterior"],
+    model: "marble-1.1-plus",
+    prompt: `A vibrant city street in Lisbon at warm sunset, rendered with an animated, painterly charm. A classic yellow tram with gleaming headlights navigates a winding cobblestone street, tracks guiding it uphill. Multi-storey buildings in cheerful blue, red, and yellow flank the street, adorned with balconies, wrought-iron railings, potted plants, and traditional Portuguese azulejo tiles in intricate patterns. Cafes with awnings spill onto the pavement. Laundry hangs from one balcony. Overhead, tram power lines crisscross the sky. In the distance, hills densely packed with white and pastel buildings rise toward a bridge spanning a river under a dramatic scattered-cloud sky. Ornate ironwork street lamps begin to glow as evening approaches. Golden light rakes across the facades, long shadows stretch up the hill, and the layered buildings ascending the distance create a deep, painterly perspective.`,
+  },
+  {
+    id: "wild-west-town",
+    name: "Wild West Frontier Town",
+    description:
+      "A dusty frontier main street with saloons, a sheriff's office, and a steam locomotive. Mined from the community gallery (@williamf666).",
+    style: "Cinematic",
+    categories: ["urban", "historical", "exterior"],
+    model: "marble-1.1-plus",
+    prompt: `A bustling Wild West frontier town under a bright, clear sky. A dusty main street traversed by wagon tracks extends through the settlement, flanked by weathered wooden buildings with false fronts, covered porches, and faded signage. On the left, a grand two-storey saloon with a prominent "SALOON" sign above its balcony, its facade of weathered wood and intricate detailing. Beside it, the Sheriff's office with a star emblem and a notice board on the porch. Further down, a livery stable and general store. A single-track railroad runs along the right side, with a classic black-and-red steam locomotive sitting on the tracks. A wooden water tower painted "SILVER CANYON" stands beside the railway, and a signpost points to "SILVER CANYON," "DRY GULCH," and "RED ROCK." Cacti and sparse scrub dot the arid landscape. Adventurous, rustic, cinematic.`,
+  },
+  {
+    id: "tokyo-oden-alley",
+    name: "Tokyo Oden Alley",
+    description:
+      "A narrow lamp-lit Japanese alley with a steaming oden stall on uneven stone steps. Mined from the community gallery (@faddd).",
+    style: "Cinematic",
+    categories: ["urban", "historical", "exterior"],
+    model: "marble-1.1-plus",
+    prompt: `A narrow, bustling Japanese alleyway with an atmospheric painted quality, evoking nostalgic urban charm. Uneven stone steps wind upward into the distance, flanked by tightly packed aged wooden buildings with slatted windows, moss, grime, and intricate timber detailing. Electrical wires crisscross overhead between the structures. On the right, a small open-fronted food stall pours steam from a large pot of simmering oden, illuminated by warm glowing bulbs hanging from the awning; posters and advertisements cover its walls in colour. On the left, quieter wooden facades with window frames and utility meters, planters of small green bushes scattered along the steps. The buildings cascade up the hillside, dense and layered. The stall's inviting glow falls across the rough stone pavement. Golden light against deep wood tones, steam catching the lamplight.`,
+  },
+  {
+    id: "retro-diner",
+    name: "Retro Diner with Booths",
+    description:
+      "A bright mint-green retro diner with red booths, vintage posters, and sunny views of palms. Mined from the community gallery (@linklink).",
+    style: "Cinematic",
+    categories: ["interior", "historical", "domestic"],
+    model: "marble-1.1-plus",
+    prompt: `A retro-styled diner interior with a bright, cheerful cartoon-like aesthetic. Red-cushioned booths with clean wooden tabletops line the walls, arranged in an L-shape around the room. Walls painted in two tones of light mint green above darker green wainscoting. Large windows frame sunny suburban views with palm trees and low commercial buildings. Vintage framed posters advertise "PAULAMIE PIZZA" and "BEER & PIZZA BEST FLAVOR" on the left wall, "PHULCHIN'S PIZZA" and wooden paddles on the right. Smooth light-beige floor reflecting ambient light, recessed ceiling lights evenly illuminating the space. Metal napkin dispensers and salt-and-pepper shakers on every table. Through the windows a street sign points toward "Yotola Air Base." Cheerful, inviting, saturated.`,
+  },
+  {
+    id: "sorcerers-hallway",
+    name: "Sorcerer's Castle Hallway",
+    description:
+      "A gothic stone hallway with pointed arches, flickering lanterns, and vines reclaiming the walls. Mined from the community gallery (@cattalyst).",
+    style: "Fantasy",
+    categories: ["interior", "fantasy", "historical"],
+    model: "marble-1.1-plus",
+    prompt: `A magically lit hallway within a grand castle, rendered realistic and cinematic, exuding mystery and old-world enchantment. Rough-hewn stone blocks form tall pointed archways, creating immense height and grandeur. Dark ornate wooden doors with heavy iron hardware are set into the walls. Lanterns with flickering flames hang from the vaulted ceiling, casting dramatic shadows over stone texture and cascading vines that cling to walls and ceiling — nature reclaiming the ancient dwelling. Persian rugs in intricate red and gold spread across the flagstone floor of large, irregular grey and brown stones, some damp. Antique carved furniture, scrolls, potted plants, and artifacts suggest a lived-in scholarly atmosphere; a tall wooden cabinet with brass spigot stands against one wall. A wide arching doorway leads into shadow, and a winding stone staircase ascends into the upper levels, worn smooth by centuries. Gothic and mystical, dim warm light.`,
+  },
+  {
+    id: "temple-of-statues",
+    name: "Temple of Sacred Statues",
+    description:
+      "A vast marble temple hall with fluted columns, faded frescoes, and a multi-tiered altar. Mined from the community gallery (@SmartPadawan).",
+    style: "Cinematic",
+    categories: ["sacred", "interior", "historical", "landmark"],
+    model: "marble-1.1-plus",
+    prompt: `A solemn and grand temple interior, realistic, evoking ancient reverence and mystery. A vast echoing space with a high vaulted ceiling adorned with intricate carvings and faded frescoes of celestial scenes and mythic figures. Large worn marble tiles extend far into the distance toward an ornate altar at the heart of the hall. Massive fluted columns line both sides, supporting heavy stone arches. Recessed side chapels hold smaller altars and devotional statues, intimate spaces for reflection. Sunlight streams through tall arched windows high on the walls, casting long dramatic shadows across textured surfaces and illuminating dust motes in the air. Tapestries of faded gold and deep crimson hang between columns, depicting ancient rituals, muted by centuries. At the focal altar, a multi-tiered structure of dark polished stone bears a central deity statue flanked by smaller figures. A heavy carved wooden door in a stone archway hints at a reliquary beyond. Hushed, contemplative, sacred.`,
+  },
+  {
+    id: "tokyo-vinyl-bar",
+    name: "Tokyo Vinyl Listening Bar",
+    description:
+      "A Ghibli-style listening bar with turntables, whiskey, and vinyl shelves in amber lamplight. Mined from the community gallery (@taste).",
+    style: "Fantasy",
+    categories: ["interior", "urban", "domestic"],
+    model: "marble-1.1-plus",
+    prompt: `A cozy, intimate Tokyo vinyl listening bar rendered in a hand-painted Studio Ghibli anime style — soft warm brushwork, painterly detail, hyper-detailed yet inviting. Evening setting with dim amber lighting, reverent and intimate, music-as-religion. A long industrial wooden bar along one wall, a bartender operating a vintage turntable; behind him floor-to-ceiling dark wood shelves filled with hundreds of vinyl records. A silver vintage hi-fi rack with glowing green VU meters at counter height, backlit shelves of amber Japanese whiskey bottles, and two large vintage wooden speakers flanking the bar. Opposite, a lounge area with two leather armchairs facing a low side table with a brass desk lamp, against warm reddish-brown exposed brick decorated with framed Japanese music posters. Small round dark-wood tables on a deep red oriental rug, each with a brass lamp and a whiskey tumbler. A single large warm circular pendant lamp casts soft amber light through the cave-like room.`,
+  },
+  {
+    id: "bayou-pi-office",
+    name: "Bayou Investigator's Office",
+    description:
+      "A cluttered Southern Gothic PI office with aquarium tanks, peeling paint, and moss-draped cypress views. Mined from the community gallery (@aivideoschool).",
+    style: "Cinematic",
+    categories: ["interior", "historical", "domestic"],
+    model: "marble-1.1-plus",
+    prompt: `A realistic, cluttered bayou private investigator's office with a Southern Gothic, lived-in, mysterious atmosphere. Interior of an aging brick building: exposed brick walls, peeling paint on the wooden trim around windows and doors from humid Louisiana air. Numerous aquarium tanks scattered through the space, murky water and aquatic plants adding to the humid ambiance. Rain-streaked windows on every exterior wall frame views of cypress trees draped in Spanish moss surrounding the building. Filing cabinets and overflowing bookshelves line the walls — decades of case files and research. A worn leather armchair in a corner, faded by years of use, beside a floor lamp casting a warm localized glow. Damp earth and old paper in the air. Worn, layered, quietly cinematic.`,
+  },
+  {
+    id: "orbital-research-station",
+    name: "Orbital Research Station",
+    description:
+      "A modular space station workstation with banks of monitors, exposed piping, and circular hatches. Mined from the community gallery (@lucasb10).",
+    style: "Cinematic",
+    categories: ["scifi", "interior", "industrial"],
+    model: "marble-1.1-plus",
+    prompt: `A highly detailed, realistic futuristic space station interior focused on scientific operations. Modular wall panels with integrated systems, numerous screens displaying complex data, readouts, and vivid imagery of mountain landscapes. An ergonomic cream upholstered office chair at an L-shaped composite desk covered with monitors, keyboards, scientific instruments, a microscope, and control panels with buttons and switches. Stacked equipment modules to the left with cables neatly routed along walls and ceiling; overhead compartments and strip lighting above the workstation. To the right, a corridor of white padded walls with exposed orange piping, circular hatches and portholes, and neatly stowed sleeping bags secured to the bulkheads. Utilitarian grey flooring with visible seams and access panels. Industrious, functional, sophisticated.`,
+  },
+  {
+    id: "rustic-cabin-winter",
+    name: "Rustic Cabin Winter Retreat",
+    description:
+      "A log cabin with roaring hearth and cooking fire, snow and pines visible through the window. Mined from the community gallery (@einhorn).",
+    style: "Cinematic",
+    categories: ["interior", "nature", "domestic"],
+    model: "marble-1.1-plus",
+    prompt: `A cozy, rustic cabin interior, realistic, warm and inviting, tranquil and comforting. Rough-hewn logs form the walls and ceiling beams. A large stone fireplace with a roaring fire is the central focal point; a traditional stone cooking hearth to the left has pots and pans simmering over open flame. Wooden benches near both fires, a rugged wooden table and stools between the cooking area and the window. A small square window frames a snow-covered landscape with a body of water and pine trees — remote wilderness. The floor mixes wide wooden planks and rough stone slabs with a textured rug. Tools, utensils, and provisions hang from walls and ceiling beams; baskets of firewood by the main fireplace. Warm firelight against deep wood, snow-light through the window, steam rising from the hearth.`,
+  },
 ];

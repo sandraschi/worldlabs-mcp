@@ -1,0 +1,454 @@
+{
+  "source": "https://api.worldlabs.ai/api/v1/worlds:by-tag",
+  "tag": "curated",
+  "fetched_at": "2026-08-05T11:42:59.559001+00:00",
+  "count": 24,
+  "entries": [
+    {
+      "id": "8a62c661-aaf2-41fe-a980-f9bef671dcea",
+      "display_name": "Bustling Ancient Marketplace Street",
+      "owner": "eslamz",
+      "created_at": 1783535435,
+      "tags": [
+        "curated"
+      ],
+      "model": "marble-1.1",
+      "seed": 640547,
+      "prompt": "The scene is a lively ancient marketplace street, rendered in a realistic style, exuding an inviting and warm atmosphere under the bright sunlight. The overall tone is one of industrious activity and daily commerce, with a strong sense of a historical setting. The street is unpaved, made of packed dirt with visible tire tracks or cart ruts, indicating frequent passage. Buildings constructed from light brown adobe or mud brick line both sides of the thoroughfare, their facades adorned with various items for sale or household decorations. On the left side, a large, rounded oven with a chimney emits smoke, signifying an active bakery or pottery workshop, surrounded by shelves and tables laden with numerous terracotta pots, bowls, and large jars. Opposite, on the right side, multiple stalls with wooden tables are filled with baskets overflowing with baked goods, predominantly loaves of bread, suggesting a bustling bakery or market. Overhead, clotheslines are stretched between buildings, displaying fabrics or laundry, and awnings provide shade for some of the market stalls. Further down the street, the sun's rays pierce through the narrow opening between the buildings, casting dramatic highlights and shadows. The left side of the street features a large, tall wooden shelving unit holding various sizes of ceramic pots and dishes, positioned next to a wooden table with more pottery. The large oven stands prominently beside the table, with smaller pots placed on its flat top surface. Baskets filled with other items are positioned near the oven's base, beside more large ceramic jars. The right side of the street is lined with several wooden tables displaying woven baskets filled with bread under retractable awnings. The buildings extend into the distance, narrowing the street, creating a tunnel-like effect from the sunlight. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/8a62c661-aaf2-41fe-a980-f9bef671dcea/9f6be94c-8eda-40c8-b65b-32ecd5ac2af3_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/8a62c661-aaf2-41fe-a980-f9bef671dcea/01b7be07-d652-4b06-a396-ba4541e68eda_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/8a62c661-aaf2-41fe-a980-f9bef671dcea/065fa371-7299-45d0-b63a-9511d365c4eb_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "6425f0fd-fed4-4569-9d92-1ea90f5627d0",
+      "display_name": "Lisbon Tram through Cobbled Streets",
+      "owner": "arons1001",
+      "created_at": 1781674890,
+      "tags": [
+        "curated",
+        "exterior"
+      ],
+      "model": "marble-1.1",
+      "seed": 323582,
+      "prompt": "The scene is a vibrant city street in Lisbon, rendered with an animated, painterly style, evoking a charming and picturesque atmosphere during a warm sunset. The overall tone is inviting and nostalgic, depicting a lively urban landscape bathed in soft, golden light. A classic yellow tram, its headlights gleaming, navigates a winding cobblestone street, its tracks guiding it uphill. The street is lined with multi-story buildings, their facades painted in various cheerful colors such as blue, red, and yellow, each adorned with balconies and windows. Many buildings feature traditional Portuguese tiles, adding intricate patterns and a distinct cultural touch to the architecture. Stores and cafes occupy the ground floors, some with awnings extended over outdoor seating areas where potted plants add splashes of greenery. In the background, hills rise, densely packed with more white and pastel-colored buildings, culminating in a distant bridge that spans a river under a dramatic sky filled with scattered clouds. Street lamps with ornate ironwork are strategically placed along the thoroughfare, illuminating the path as evening approaches. Power lines for the tram crisscross overhead, adding to the urban complexity. The blue building on the left has laundry hanging from one of its balconies, while the red and yellow buildings on the right showcase wrought iron balconies with potted plants. The yellow tram proceeds up the hill, following the curvature of the cobblestone street. The numerous buildings ascend the distant hills, creating a layered effect. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/6425f0fd-fed4-4569-9d92-1ea90f5627d0/7a0f6add-3bd4-4fe4-9326-7dd29b5384a6_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/6425f0fd-fed4-4569-9d92-1ea90f5627d0/881ea259-0bb3-4dcd-883a-e4c3d39205e6_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/6425f0fd-fed4-4569-9d92-1ea90f5627d0/9b5f70c7-36d4-4161-9ceb-030c71c3def2_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "d113b1c8-728b-49a2-a88c-d4ad13a4bffb",
+      "display_name": "Cozy Sunlit Study Bedroom",
+      "owner": "ke11y",
+      "created_at": 1780597137,
+      "tags": [
+        "curated",
+        "realism",
+        "interior"
+      ],
+      "model": "marble-1.1",
+      "seed": 421221,
+      "prompt": "The scene is a cozy and personal study-bedroom, rendered in a realistic style with a warm, inviting tone. The room is bathed in soft, natural light, creating a comfortable and lived-in atmosphere. The bed, adorned with a white duvet and a green blanket, occupies the right side of the room, positioned beside a wooden bookshelf filled with various books and decorative items. A small wooden side table with shelves and a basket sits beside the bed. On the opposite side of the room, a wooden ladder-style bookshelf holds an assortment of books, plush toys, and personal mementos. A desk crafted from light wood extends across the far wall, centered beneath a window that overlooks lush greenery, suggesting a tranquil outdoor environment. A brown office chair with black wheels is placed in front of the desk, accompanied by a computer monitor, a desk lamp, and other study essentials. The walls are adorned with an eclectic collection of art, photographs, and clippings, creating a personalized gallery effect. A window-mounted air conditioner is visible above a smaller wooden shelf filled with books and various items, situated to the left of the main desk area. The floor is made of light wood, with a small, light-colored rug positioned near the bed, and a purple yoga mat partially visible in the foreground. A potted plant sits on the floor near the ladder bookshelf, adding a touch of nature to the interior. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/d113b1c8-728b-49a2-a88c-d4ad13a4bffb/f08ee74c-4303-4b95-8094-a14898a31119_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/d113b1c8-728b-49a2-a88c-d4ad13a4bffb/92a80bc6-6e71-45a8-a2be-366c4b3bb8a7_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/d113b1c8-728b-49a2-a88c-d4ad13a4bffb/a53735e4-fa06-4a80-95e0-a20c6b28c843_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "9e2ad9b2-69d1-4f7c-be57-d387f9ce34de",
+      "display_name": "Bayou Private Investigator's Office",
+      "owner": "aivideoschool",
+      "created_at": 1780593393,
+      "tags": [
+        "curated",
+        "stylized",
+        "interior"
+      ],
+      "model": "marble-1.1",
+      "seed": 510969,
+      "prompt": "The scene is a realistic depiction of a cluttered bayou private investigator's office, exuding a Southern Gothic atmosphere with a lived-in and mysterious tone. The space is filled with weathered furniture and personal items, suggesting a long history within these walls. The office is situated within an aging brick building, with brick walls defining much of the interior. Numerous aquarium tanks are scattered throughout the space, each containing murky water and aquatic plants, contributing to the humid ambiance. Peeling paint is visible on various surfaces, particularly on the wooden trim around windows and doors, showcasing the building's age and the effects of the humid Louisiana air. Rain-streaked windows are present on all exterior walls, offering glimpses of cypress trees draped with Spanish moss, which surround the building. Filing cabinets and overflowing bookshelves line the walls, indicating extensive case files and research materials. The air is thick with the scent of damp earth and old paper, a characteristic of the swampy environment. A worn, leather armchair sits in a corner, its fabric faded from years of use, adjacent to a floor lamp casting a warm, localized glow. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/9e2ad9b2-69d1-4f7c-be57-d387f9ce34de/e424ce79-064b-4ec2-87bf-33b3fd9d8836_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/9e2ad9b2-69d1-4f7c-be57-d387f9ce34de/0ffbf3ff-518f-44cb-be0b-524dca2fa3a0_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/9e2ad9b2-69d1-4f7c-be57-d387f9ce34de/bbf24f4e-9c22-43e5-8b95-a30a22a61c35_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "889a5974-c395-4a6a-a401-e2d6aec4f12b",
+      "display_name": "Futuristic Space Station Interior",
+      "owner": "lucasb10",
+      "created_at": 1779944150,
+      "tags": [
+        "curated",
+        "interior",
+        "sci-fi"
+      ],
+      "model": "marble-1.1",
+      "seed": 404383,
+      "prompt": "The scene is a futuristic space station interior, presented in a highly detailed and realistic style, evoking a sense of advanced technology and functional design. The overall tone is one of industriousness and sophisticated utility, with a focus on scientific exploration or operational control. The space station is meticulously designed with modular panels and various integrated systems, featuring numerous screens displaying complex data, readouts, and vivid imagery of mountain landscapes. A comfortable, ergonomic office chair with a ribbed backrest and armrests, upholstered in a cream-colored material, is centrally positioned at a workstation. The workstation is an L-shaped desk made of light-colored, durable composite material, covered with an array of monitors, keyboards, and scientific instruments, including a microscope and various control panels with buttons and switches. To the left of the chair, several stacked modules house additional computer equipment, with wires and cables neatly routed along the walls and ceilings. Above the workstation, overhead compartments and ventilation systems are integrated into the ceiling, along with strip lighting that illuminates the workspace. To the right, the scene transitions into a corridor or living quarters, characterized by white padded walls, exposed orange piping, and additional equipment secured to the bulkheads. This area includes circular hatches or portholes, suggesting access to other modules or views of space, and neatly stowed sleeping bags or cushions. The flooring throughout the space is a utilitarian gray with visible seams and access panels, consistent with a spacecraft environment. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/889a5974-c395-4a6a-a401-e2d6aec4f12b/7430cc49-1bfd-4d54-a1ba-d28675f64dc1_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/889a5974-c395-4a6a-a401-e2d6aec4f12b/bfed40bb-d2fa-4b5b-8d19-6a0676a23610_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/889a5974-c395-4a6a-a401-e2d6aec4f12b/ae4e053e-7734-47e6-a4d7-26209d5a65a1_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "110e1b47-2f76-40e9-b256-3e1b3464584c",
+      "display_name": "Coastal Village Mountain Paradise",
+      "owner": "mze155",
+      "created_at": 1779935438,
+      "tags": [
+        "curated",
+        "stylized",
+        "exterior"
+      ],
+      "model": "marble-1.1",
+      "seed": 774026,
+      "prompt": "The scene is a vibrant, cartoon-style coastal village nestled among majestic mountains, exuding a cheerful and idyllic atmosphere. The overall tone is one of peaceful serenity, with clear blue waters and lush greenery creating a picturesque setting. Towering, snow-capped mountains dominate the backdrop, their rugged peaks contrasting with the smooth, cascading waterfalls that tumble into a verdant forest. A winding river, fed by the waterfalls, flows through the forest and empties into the turquoise bay. Numerous small, colorful houses with red and blue roofs are clustered along the coastline, suggesting a close-knit community. Several wooden docks extend into the calm waters, where small boats are moored, hinting at a bustling, yet relaxed, maritime life. A prominent red and white lighthouse stands on a small island, guiding ships into the harbor. Sandy beaches, dotted with palm trees and sun umbrellas, invite relaxation and leisure. The sparkling sea is dotted with various boats, including a large sailing ship with billowing white sails and smaller motorboats. The landscape extends further, revealing more islands in the distance, indicating a vast and inviting seascape. The large sailing ship with white sails is positioned in the mid-ground, heading towards the open sea, while smaller motorboats are closer to the docks and beach. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/110e1b47-2f76-40e9-b256-3e1b3464584c/b691b965-efa5-4c81-a193-1200760e65f8_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/110e1b47-2f76-40e9-b256-3e1b3464584c/e1ec3ec5-9a08-48fc-ab51-8a1133d787f7_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/110e1b47-2f76-40e9-b256-3e1b3464584c/d49d54db-099e-42d2-8a0b-3ca04190be13_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "7391f97b-8290-4f71-9f17-ffbdcd3a00e5",
+      "display_name": "Vintage Music Bar Interior",
+      "owner": "ryok0321",
+      "created_at": 1779337541,
+      "tags": [
+        "curated",
+        "interior",
+        "realism"
+      ],
+      "model": "marble-1.1",
+      "seed": 664682,
+      "prompt": "The scene is a photorealistic, cinematic interior of a 1960s American neighborhood music bar, emanating a warm, lived-in atmosphere with a muted, vintage color palette. The long rectangular floor plan provides clear sightlines throughout the space. The left side of the room features a dark wooden bar counter, extending into the unseen area, equipped with vintage liquor shelves, old beer taps, and glass racks behind it, all softly illuminated by warm backlights. Numerous worn leather bar stools line the entirety of the bar counter. Along the right wall, wooden booths with aged red vinyl seats continue to stretch, creating additional seating with ample walking space between tables. In the far corner of the room, a small raised live music stage hosts a vintage microphone stand, an upright piano, a drum kit, and a guitar amplifier, all bathed under a single overhead spotlight, integrated naturally into the bar's ambiance. The entire environment is characterized by dark wood wall paneling, exposed brick sections, a low ceiling with sturdy wooden beams, and walls adorned with vintage framed photographs, faded jazz and blues posters, and old neon beer signs. A glowing Wurlitzer jukebox stands in a corner, its light adding to the warm amber practical lighting from dim pendant lamps, enhancing the subtle haze and cinematic late-night atmosphere throughout the entire establishment. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/7391f97b-8290-4f71-9f17-ffbdcd3a00e5/9c7a9e45-3558-46a1-9d4e-b6d3ab76d62b_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/7391f97b-8290-4f71-9f17-ffbdcd3a00e5/5472dabb-b6a2-4951-9e49-93411fc695a8_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/7391f97b-8290-4f71-9f17-ffbdcd3a00e5/de1fa974-99b9-4da2-95a8-a97e94f28755_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "a9e59010-c720-4099-957a-66380c1d9c9a",
+      "display_name": "Rustic Cabin Winter Retreat",
+      "owner": "einhorn",
+      "created_at": 1779083070,
+      "tags": [
+        "curated",
+        "realism",
+        "interior"
+      ],
+      "model": "marble-1.1",
+      "seed": 717214,
+      "prompt": "The scene is a cozy, rustic cabin interior, captured in a realistic style, evoking a warm and inviting atmosphere. The overall tone is tranquil and comforting, emphasizing natural materials and traditional craftsmanship. The cabin's structure is built from rough-hewn logs, forming the walls and ceiling beams, giving it a sturdy and authentic feel. A large, stone fireplace with a roaring fire provides a central focal point, emanating warmth throughout the space. To the left, a traditional cooking hearth, also constructed from stone, features pots and pans simmering over an open flame, suggesting a home-cooked meal is in preparation. Wooden benches are placed near both the cooking hearth and the main fireplace, offering seating close to the warmth. A rugged wooden table and stools are situated between the cooking area and the window, displaying various items, perhaps tools or provisions. A small, square window looks out onto a snow-covered landscape with a body of water and pine trees, hinting at a remote, wilderness setting. The floor is a mix of wide wooden planks and rough stone slabs, with a textured rug covering part of the wooden floor. Various tools, utensils, and provisions hang from the walls and ceiling beams, contributing to the cabin's lived-in appearance. Baskets filled with firewood are arranged near the main fireplace, ensuring a continuous supply for heating. The cooking hearth is built into the left wall, with its stone surface extending into a workbench. The main fireplace stands tall on the right side of the room, crafted from large stone blocks. The wooden table is positioned centrally, between the two main structures. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/a9e59010-c720-4099-957a-66380c1d9c9a/af9fbbfa-bfb8-4db1-ab1f-39b863896462_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/a9e59010-c720-4099-957a-66380c1d9c9a/221ec399-5a4b-4144-b8e4-e542a9ce95ad_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/a9e59010-c720-4099-957a-66380c1d9c9a/32d6dfbd-2009-43ad-9b73-0300fbd4b53f_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "26bc6939-b6ae-407a-b59a-51c073219325",
+      "display_name": "Ancient Temple of Sacred Statues",
+      "owner": "SmartPadawan",
+      "created_at": 1779059239,
+      "tags": [
+        "curated",
+        "interior",
+        "realism"
+      ],
+      "model": "marble-1.1",
+      "seed": 651745,
+      "prompt": "The scene is a solemn and grand temple, captured in a realistic style, evoking a sense of ancient reverence and mystery. The overall tone is hushed and contemplative, with a palpable sense of history embedded within its stone walls. The temple's interior is a vast, echoing space with a high vaulted ceiling, adorned with intricate carvings and faded frescoes depicting celestial scenes and mythic figures. The floor, composed of large, worn marble tiles, extends far into the distance, leading to an ornate altar at its heart. Massive, fluted columns line the sides of the hall, supporting the heavy stone arches that span the width of the chamber. Side chapels, each containing smaller, equally detailed altars and devotional statues, are recessed into the walls, creating intimate spaces for reflection. Sunlight, though not harsh, streams in through tall, arched windows positioned high on the walls, casting long, dramatic shadows across the textured surfaces and illuminating dust motes dancing in the air. Tapestries woven with faded gold and deep crimson threads hang between some of the columns, depicting scenes of ancient rituals and epic tales, their colors muted by centuries of time. The air carries a faint scent of old stone and lingering incense, adding to the immersive atmosphere. The main altar is a focal point, featuring a grand, multi-tiered structure carved from dark, polished stone, upon which rests a central statue of a revered deity, flanked by smaller, equally significant figures. To the right, another series of columns leads to a more enclosed section of the temple, possibly a reliquary or a sacristy, indicated by a heavy, carved wooden door set within a stone archway. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/26bc6939-b6ae-407a-b59a-51c073219325/45b7cb24-dfdc-4a52-ae26-c69c2796f6f8_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/26bc6939-b6ae-407a-b59a-51c073219325/5c19bf11-20e2-4070-b855-6be429a9f4be_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/26bc6939-b6ae-407a-b59a-51c073219325/c215a718-3bc1-4c09-a01f-187f6379ea3d_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "2becf31b-dbc1-40c2-9f45-68709acc009d",
+      "display_name": "Wild West Frontier Town",
+      "owner": "williamf666",
+      "created_at": 1778891555,
+      "tags": [
+        "curated",
+        "exterior"
+      ],
+      "model": "marble-1.1",
+      "seed": 765589,
+      "prompt": "The scene is a vibrant, cinematic depiction of a bustling Wild West frontier town under a bright, clear sky, imbued with an adventurous and rustic tone. A dusty main street, traversed by wagon tracks and footpaths, extends through the heart of the settlement. The street is flanked by numerous wooden buildings, each with distinct architectural features characteristic of the era, such as false fronts, covered porches, and signage. To the left, a grand two-story saloon building with a prominent \"SALOON\" sign above its balcony invites patrons, its facade adorned with weathered wood and intricate detailing. Adjacent to the saloon stands the Sheriff's office, identified by its star emblem and rustic sign, with a \"NOTICE\" board on its porch. Further down the street, various other establishments like a livery stable and general store are visible, each contributing to the town's lively atmosphere. A single-track railroad runs along the right side of the main street, with a classic steam locomotive, painted black with red accents, positioned on the tracks. A wooden water tower with \"SILVER CANYON\" painted on its tank stands beside the railway. A wooden signpost near the tracks points towards various destinations, including \"SILVER CANYON,\" \"DRY GULCH,\" and \"RED ROCK.\" Cacti and sparse scrub brush dot the arid landscape, completing the authentic western setting. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/2becf31b-dbc1-40c2-9f45-68709acc009d/7cfe52a2-0f30-4918-8885-141ff33f48cf_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/2becf31b-dbc1-40c2-9f45-68709acc009d/79439ccf-5029-4aed-8812-fe5d11229e88_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/2becf31b-dbc1-40c2-9f45-68709acc009d/537caa2b-87d1-4c32-9f05-e5c46c262120_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "fa470183-85e7-4a0a-8775-1c1676082f96",
+      "display_name": "Fantasy Cliffside Village Amidst Lushness",
+      "owner": "OasisTropical",
+      "created_at": 1778877359,
+      "tags": [
+        "curated",
+        "stylized"
+      ],
+      "model": "marble-1.1",
+      "seed": 336886,
+      "prompt": "The scene is a fantastical cliffside village, rendered in a painterly style with vibrant colors, evoking a sense of wonder and ancient craftsmanship. The overall tone is magical and awe-inspiring, suggesting a world where nature and intricate human dwellings coexist harmoniously. The village extends into vast caverns and along a majestic river, with houses built directly into the rock faces and along the riverbanks. Numerous bridges, some made of stone and others of suspension cables, span the river and connect different sections of the village. Waterfalls cascade into the river, creating natural beauty and providing a constant source of sound and movement. Ornate observatories with domed roofs are perched high on the cave ceilings, suggesting advanced knowledge or astrological pursuits within this hidden civilization. Lush vegetation, including large trees and tropical plants, thrives within the cavernous environment, indicating a unique ecosystem supported by the river and ambient light. Small boats with figures are present on the river, hinting at the daily life and transportation within this hidden world. The river winds through the entire scene, appearing to flow from a distant, unseen source, and disappears into another part of the cavern. The houses, crafted from wood and stone, ascend the cliff faces in a terraced fashion, each with glowing windows and warm lights. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/fa470183-85e7-4a0a-8775-1c1676082f96/151b9425-fad1-4679-bd69-73f9a4c49d97_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/fa470183-85e7-4a0a-8775-1c1676082f96/62078df7-ac59-4ff3-b565-7959470c0e74_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/fa470183-85e7-4a0a-8775-1c1676082f96/6168f6d0-f61f-4427-a72e-e12a3e9735a4_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "7f964e6d-dbdd-4cf7-a8fb-9292001f69ba",
+      "display_name": "Warm and inviting living room",
+      "owner": "Madespace",
+      "created_at": 1778877259,
+      "tags": [
+        "curated",
+        "realism",
+        "interior"
+      ],
+      "model": "marble-1.1",
+      "seed": 498098,
+      "prompt": "The scene is a warm and inviting living room, rendered in a realistic style with an emphasis on rich textures and a cozy, harmonious ambiance. The overall tone is one of comfort and sophisticated relaxation, with natural light softening the interior. The living room features a soffeted ceiling, which adds a subtle architectural detail and defines the space above. A large fireplace, constructed from light-colored stone, serves as a prominent focal point in the room, with a dark abstract painting hanging directly above its mantel. To the right of the fireplace, a plush, rust-colored sectional sofa with an L-shaped configuration provides ample seating, adorned with several decorative pillows in shades of rust, cream, and a small patterned accent pillow. In front of the sofa, a circular coffee table with a light, textured surface holds a stack of books and a decorative plant arrangement in a muted gray vase, surrounded by dried grasses and leaves. To the left of the coffee table, two armless chairs upholstered in a matching rust-colored velvet, with slender black metal legs, face the sofa, completing the conversation area. Large windows, framed by light-colored drapery, extend across the wall behind the sofa, allowing natural light to fill the room. The floor is covered with a textured rug in a neutral, earthy tone, layered over what appears to be a reddish-brown flooring material. The soffeted ceiling extends throughout the entire living area, creating a sense of continuity. The fireplace is centered on one wall, with the painting directly above it, and the sofa is positioned opposite, forming an intimate gathering space. The coffee table sits in the middle of this arrangement, with the two accent chairs facing it from the left side of the room. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/7f964e6d-dbdd-4cf7-a8fb-9292001f69ba/18f64d5d-7507-4554-ae5b-da46b30a50f3_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/7f964e6d-dbdd-4cf7-a8fb-9292001f69ba/e61317cf-e8c6-43b7-b1c7-c2f076254fb5_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/7f964e6d-dbdd-4cf7-a8fb-9292001f69ba/d297d788-7342-4627-b870-def7dc2c6803_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "6c053617-6d94-419f-81cc-c2a917510608",
+      "display_name": "Rustic Apartment Kitchen and Living",
+      "owner": "54541",
+      "created_at": 1778823464,
+      "tags": [
+        "curated",
+        "interior",
+        "realism"
+      ],
+      "model": "marble-1.1",
+      "seed": 72345,
+      "prompt": "The scene is a realistic depiction of an older, somewhat worn apartment interior, characterized by a rustic and lived-in aesthetic. The overall tone is one of comfort and homeliness, suggesting a space that has seen much use and history. The kitchen area features a tiled floor with a brown and orange geometric pattern, extending under a white washing machine to the right and a small wooden table to the left. The walls are covered in a textured, aged wallpaper with a subtle floral design, giving way to white tiles behind the stove and sink area. An open doorway leads into a connected living space, where the same patterned wallpaper continues, and a warm rug covers the floor. The living room contains a large, upholstered sofa, its fabric showing signs of wear, positioned against the back wall. A television sits on a wooden stand in the corner of the living room, across from the sofa. A window with sheer curtains provides light to the living room, with a ceiling light fixture hanging centrally, featuring two globe-shaped lamps. The kitchen counter on the right side of the frame, currently obscured, continues further along the wall, likely providing additional storage or preparation space. The kitchen table, covered with a floral tablecloth, is situated under a window, allowing natural light to enter the kitchen. A small wooden shelf holding various jars and containers is mounted on the wall above the kitchen counter. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/6c053617-6d94-419f-81cc-c2a917510608/6ecdb4bd-1a7d-4e14-b590-3df18d5ed0bf_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/6c053617-6d94-419f-81cc-c2a917510608/3684f2ca-161d-47b9-949d-ade7209cb261_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/6c053617-6d94-419f-81cc-c2a917510608/f2798360-ba24-41a9-bc0b-bb729c7b78f2_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "62440386-5bfc-4d6d-849c-a8f2e784a015",
+      "display_name": "Modern House Sunset Landscape",
+      "owner": "zamokuhled344",
+      "created_at": 1778739516,
+      "tags": [
+        "curated",
+        "realism",
+        "exterior"
+      ],
+      "model": "marble-1.1",
+      "seed": 868515,
+      "prompt": "The scene is a luxurious modern house at dusk, rendered in a realistic style, conveying a serene and opulent atmosphere. The house is illuminated from within, casting a warm glow through its numerous windows, and strategic exterior lighting highlights the architectural features and landscaping. The roof of the house extends beyond the visible portion, designed with flat, overlapping sections and an integrated solar panel system that harnesses energy from the setting sun, contributing to its modern and sustainable design. The landscaping around the house features tiered gardens with various low-maintenance plants, decorative rocks, and illuminated pathways that lead to other parts of the property, including a serene outdoor seating area with a fire pit that offers panoramic views of the distant mountains and valleys. To the left, a paved driveway curves gently upwards, leading to a spacious, multi-car garage seamlessly integrated into the home's contemporary facade, continuing to a larger parking area. On the right, the terrain slopes downwards, revealing a more extensive garden with native plant species and a discreetly placed water feature, its gentle sounds blending with the evening ambiance. The distant landscape includes rolling hills and a scattered residential area, all bathed in the warm, fading light of the sunset. The house also features a rooftop terrace, accessible via an internal staircase, providing an expansive viewpoint over the entire property and the breathtaking natural surroundings. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/62440386-5bfc-4d6d-849c-a8f2e784a015/01195739-0a3b-4fff-8b12-5f921e66f2e3_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/62440386-5bfc-4d6d-849c-a8f2e784a015/efdf4a5c-e382-42dd-a811-74449a9e193f_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/62440386-5bfc-4d6d-849c-a8f2e784a015/65f5f130-ce34-4744-b309-0ea0f6af55bf_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "22e0c335-ff6d-4f3f-809b-a615e257dd9a",
+      "display_name": "Mountain settlement under construction",
+      "owner": "ab86",
+      "created_at": 1778706582,
+      "tags": [
+        "curated",
+        "exterior",
+        "fantasy"
+      ],
+      "model": "marble-1.1",
+      "seed": 247752,
+      "prompt": "The scene is a vibrant, painterly depiction of a mountain settlement under construction, evoking a fantastical and adventurous tone. The overall atmosphere suggests a bustling, developing outpost nestled within a majestic natural landscape. Bridges, constructed from rough-hewn stone and timber scaffolding, span deep chasms, connecting various parts of the settlement across the mountainous terrain. Large, tent-like structures with red and orange striped fabrics, some appearing to be dwellings and others possibly storage or communal areas, are erected on elevated platforms and atop the completed bridge sections. These tents are reinforced with extensive wooden scaffolding, indicating ongoing expansion or repair work. Lush green hillsides, dotted with colorful wildflowers and winding dirt paths, lead up to the architectural structures. Towering, snow-capped mountains form a dramatic backdrop, stretching across the horizon, their peaks sharp and prominent under a bright, clear sky. Red banners, emblazoned with a golden symbol, flutter from wooden poles along the winding paths and near the tent structures, signifying allegiance or a celebratory mood. Barrels and various construction materials are scattered around the work sites on the bridges and pathways, suggesting active development. The rocky cliffs, which provide the foundation for the entire settlement, rise steeply, showcasing varied earthy tones of orange, brown, and grey. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/22e0c335-ff6d-4f3f-809b-a615e257dd9a/6a29cd0e-1b14-457f-81c0-13dc88d9bbaa_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/22e0c335-ff6d-4f3f-809b-a615e257dd9a/cf2cacbb-44f3-4d67-b77b-bff688506d15_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/22e0c335-ff6d-4f3f-809b-a615e257dd9a/287ee67b-bbfc-4f03-85b5-a0f36b48033a_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "a150489a-533e-4c21-918d-43d44c144eed",
+      "display_name": "Retro Diner Interior with Booths",
+      "owner": "linklink",
+      "created_at": 1778651570,
+      "tags": [
+        "curated",
+        "stylized",
+        "interior"
+      ],
+      "model": "marble-1.1",
+      "seed": 657563,
+      "prompt": "The scene is a retro-styled diner interior, rendered in a bright, cartoon-like aesthetic, exuding a cheerful and inviting tone. The interior features several red-cushioned booths with wooden tabletops, neatly arranged along the walls. The walls are painted in a two-tone scheme of light mint green above a darker green wainscoting. Large windows frame views of a sunny suburban landscape with palm trees and commercial buildings. On the left wall, two framed posters advertise \"PAULAMIE PIZZA\" and \"BEER & PIZZA BEST FLAVOR,\" while the right wall displays a \"PHULCHIN'S PIZZA\" poster and two wooden paddles. The floor is a smooth, light beige, reflecting the ambient light. Recessed ceiling lights illuminate the space evenly. In the distance, through the windows, a street sign points to \"Yotola Air Base.\" The booth seating continues around the corner, creating an L-shaped arrangement. The wooden tabletops are clean and feature metal napkin dispensers and salt and pepper shakers. The mint green walls extend fully around the diner, maintaining a consistent color scheme throughout. Additional posters with similar whimsical designs hang on the walls in areas not visible in the front view, promoting other fictional food items or local attractions. The windows wrap around the dining area, offering continuous views of the vibrant outdoor scenery with more buildings and palm trees. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/a150489a-533e-4c21-918d-43d44c144eed/e0308cd4-6a78-4623-b828-37937ab4400f_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/a150489a-533e-4c21-918d-43d44c144eed/505a3884-eed8-4edc-86b1-3817a79bf17a_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/a150489a-533e-4c21-918d-43d44c144eed/21d4a46e-6a68-493b-8096-ccb0b6aa6e38_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "19de39fb-0f3d-4899-9620-19ec3ce3e763",
+      "display_name": "Ancient Castle in Valley",
+      "owner": "TheUtahTeapot",
+      "created_at": 1778649044,
+      "tags": [
+        "curated",
+        "exterior"
+      ],
+      "model": "marble-1.1-plus",
+      "seed": 555302,
+      "prompt": "The scene is a fantastical landscape depicting an ancient castle in a valley, rendered in a painterly style with a serene and mystical tone. The valley is enclosed by towering, rugged mountains with visible rock formations, their peaks reaching towards a bright, clear sky. A stone bridge with wooden railings arches over a shallow, rocky stream that meanders through the foreground, reflecting the bright light. Lush green grass covers the ground around the stream and extends up the gentle slopes towards the castle and the surrounding mountains, interspersed with small, purple and white wildflowers. Several tall, slender pine trees stand on both sides of the stream, their needles a vibrant green. The castle itself is an old, weathered stone structure, partially covered in ivy and moss, indicating its age and abandonment. It features multiple towers and crumbling walls, with a large arched entrance visible on its main facade. The sunlight streams from the right, casting long shadows and creating a soft, misty haze in the air, particularly around the castle and within the valley. The stream originates from a source hidden deeper within the valley, flowing past the castle and under the bridge before continuing its path out of view. The castle is positioned centrally within the valley, with the mountains enclosing it from all directions, creating a secluded and grand setting. The bridge provides access to the castle grounds, connecting the viewer's side of the stream to the castle's entrance. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/19de39fb-0f3d-4899-9620-19ec3ce3e763/25f631c0-e0a6-4987-b459-7305db1f0600_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/19de39fb-0f3d-4899-9620-19ec3ce3e763/999e0b55-d4e2-46ac-859d-7f878b373891_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/19de39fb-0f3d-4899-9620-19ec3ce3e763/b37fd8e0-8e5d-46c4-b69f-cd8a069f4e38_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "537e91e3-ec96-4332-a935-b941b9df900c",
+      "display_name": "Japanese Alleyway Culinary Delights",
+      "owner": "faddd",
+      "created_at": 1778648593,
+      "tags": [
+        "curated",
+        "realism",
+        "exterior"
+      ],
+      "model": "marble-1.1-plus",
+      "seed": 993508,
+      "prompt": "The scene is a narrow, bustling Japanese alleyway, rendered in a detailed and atmospheric painting style, evoking a sense of nostalgic urban charm. The overall tone is inviting and vibrant, capturing the essence of a hidden culinary gem. The alley is paved with uneven stone steps, leading upward and winding into the distance, flanked by tightly packed wooden buildings. These structures are aged, adorned with moss and grime, and feature traditional slatted windows and intricate wooden detailing. Overhead, electrical wires crisscross between buildings, adding to the authentic, lived-in feel. On the right side of the alley, a small, open-fronted food stall emanates steam from a large pot, suggesting a simmering dish, likely oden, illuminated by warm, glowing bulbs that hang from an awning. The stall's walls are covered with various posters and advertisements, adding splashes of color and character. To the left, the wooden facades of the buildings are more subdued, with intricate window frames and utility meters visible, hinting at residential or more private spaces. Planters with small green bushes are interspersed along the steps, providing natural accents to the stone and wood surroundings. Further up the alley, the architecture continues in a similar style, with more buildings cascading up the hillside, creating a dense and layered urban landscape. The stone steps extend further up the alley, with the wooden buildings lining both sides of the path. The oden stall is positioned on the right side of the alley, its inviting glow cast upon the rough stone pavement. The electrical wires are strung across the alley, connecting to the various buildings. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/537e91e3-ec96-4332-a935-b941b9df900c/446a11ae-6644-4ed7-83fc-1e95fbde73a3_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/537e91e3-ec96-4332-a935-b941b9df900c/b425d960-95b3-437e-88c2-a604ebbbf8be_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/537e91e3-ec96-4332-a935-b941b9df900c/508e1fbd-751d-4eaa-a7bc-308567f37d8e_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "a342be72-fb42-4289-b335-71462f8445df",
+      "display_name": "Ruined Sanctuary Apocalyptic Aftermath",
+      "owner": "murak711",
+      "created_at": 1778555605,
+      "tags": [
+        "curated",
+        "fantasy"
+      ],
+      "model": "marble-1.1",
+      "seed": 948360,
+      "prompt": "The scene is a solemn and sacred ruin, captured with a realistic cinematic environment aesthetic, presenting the aftermath of an apocalyptic final battle within a forgotten advanced civilization. The overall tone is one of stark desolation and ancient grandeur, emphasizing the decay of a once-magnificent structure. The vast white-stone holy temple, now heavily damaged, features a collapsed dome that opens the upper space to the sky, allowing natural light to cast a cold, holy glow over the destruction. A giant sacred statue, with only half of its face remaining, stands as a central, monumental casualty of the conflict. The floor is covered with cracked holy engravings, intermingled with burnt ritual pages, scattered rubble, and shattered stone slabs. Broken columns and exposed mechanical neural pipelines, previously hidden beneath the sacred architecture, lie strewn across the ground. Black contamination veins crawl through the cracks in the floor and intricate patterns, adding a sinister organic element to the ruin. Ash drifts gently through the air, settling on the debris. The vertical composition of the temple emphasizes its towering scale and the extent of its destruction, with elements of an Asian aesthetic subtly integrated into the light realistic medieval fantasy design. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/a342be72-fb42-4289-b335-71462f8445df/ac4ffca9-7283-47d3-bbd5-73e2132439a6_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/a342be72-fb42-4289-b335-71462f8445df/560ec051-a4da-4007-9af0-e2906522c93c_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/a342be72-fb42-4289-b335-71462f8445df/47d4eb0e-150a-48bc-9b25-f1ac35d70d44_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "845d390d-4d86-4779-8a35-c3657a5bc8ab",
+      "display_name": "Sorcerer's Hallway Castle Interior",
+      "owner": "cattalyst",
+      "created_at": 1778449187,
+      "tags": [
+        "curated",
+        "interior"
+      ],
+      "model": "marble-1.1",
+      "seed": 281826,
+      "prompt": "The scene is a magically lit hallway within a grand castle or ancient manor, rendered in a realistic, almost cinematic style, exuding an aura of mystery and old-world enchantment. The overall tone is gothic and mystical, with dim, warm lighting that emphasizes the intricate stone architecture and overgrown greenery. The hallway is constructed from rough-hewn stone blocks, with tall, pointed archways defining its structure, creating a sense of immense height and grandeur. Dark, ornate wooden doors with heavy iron hardware are set into the stone walls, suggesting access to various rooms or chambers within the sprawling estate. Lanterns with flickering flames hang from the high, vaulted ceilings, casting dramatic shadows and highlighting the texture of the stone and the cascading vines that cling to the walls and ceiling. These vines, dense with dark green foliage, are intertwined with the architectural elements, giving the impression that nature has reclaimed parts of this ancient dwelling. Persian rugs with intricate red and gold patterns are spread across the flagstone floor, which is made of large, irregularly shaped grey and brown stones, some of which appear damp. Antique wooden furniture, including carved tables and settees, are arranged against the walls, adorned with various artifacts, scrolls, and potted plants, contributing to a lived-in, scholarly atmosphere. A large, dark wooden cabinet with multiple drawers and decorative carvings stands against one wall, featuring a brass spigot, suggesting it holds various liquids. Another smaller cabinet or side table displays glass bottles and metallic vessels. The flagstone floor is visible throughout the hallway, with some areas showing signs of moisture or age. A wide, arching stone doorway leads to a deeper, more mysterious part of the castle, dimly lit and partially obscured by shadow. To the right of this main archway, a winding stone staircase ascends into the upper levels of the castle, its steps worn smooth from centuries of use. The staircase is partially obscured by hanging vines and shadowed recesses, inviting exploration into the unseen parts of the castle. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/845d390d-4d86-4779-8a35-c3657a5bc8ab/fff11bd3-6790-4ab7-9198-ce5313ee5294_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/845d390d-4d86-4779-8a35-c3657a5bc8ab/737c142d-fdc2-40d6-863a-9c1b6a49a6b5_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/845d390d-4d86-4779-8a35-c3657a5bc8ab/bc134b72-6c99-45f7-9afa-1869cb7736ba_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "9feacfce-37fd-4c02-b154-044d78bd629c",
+      "display_name": "Elegant Grand Salon",
+      "owner": "Hstablediff",
+      "created_at": 1778448841,
+      "tags": [
+        "curated",
+        "realism",
+        "interior"
+      ],
+      "model": "marble-1.1-plus",
+      "seed": 64351,
+      "prompt": "The scene is an opulent and grand interior, rendered in a realistic style that evokes the luxurious aesthetics of a bygone era, with a serene and inviting tone. The entire space exudes classical elegance and refinement, characterized by meticulous architectural details and tasteful furnishings. The room unfolds into a sprawling salon, its walls adorned with ornate gilded moldings and delicate painted motifs that ascend towards a lofty ceiling. Large arched doorways and expansive windows dominate the perimeter, allowing abundant natural light to flood the interior and creating a luminous, airy ambiance. Plush, velvet armchairs and sofas are strategically arranged to invite conversation and relaxation, each piece featuring carved wooden frames and richly upholstered fabrics in muted gold and cream tones. Numerous side tables, crafted from dark, polished wood, are interspersed among the seating arrangements, often topped with decorative vases holding fresh floral arrangements, contributing to the room's elegant charm. Beyond the immediate visible area, a magnificent staircase with a grand balustrade winds gracefully upwards, connecting the salon to upper levels of the estate. Decorative pedestals supporting classical sculptures or elaborate urns are positioned in alcoves along the walls, further enhancing the palatial atmosphere. The flooring throughout the salon is a mosaic of polished marble tiles, laid in intricate geometric patterns, reflecting the soft light from the windows and amplifying the room's expansive feel. Additional large-scale paintings in gilded frames hang on the walls, depicting pastoral scenes or formal portraits, complementing the overall decorative scheme. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/9feacfce-37fd-4c02-b154-044d78bd629c/45f492f9-1a54-407b-a436-ebfaa10c5eab_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/9feacfce-37fd-4c02-b154-044d78bd629c/8d4a350a-3978-412f-918b-23c7e1969222_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/9feacfce-37fd-4c02-b154-044d78bd629c/8859e247-ff38-43a0-8e8b-5a7e3efd8402_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "2c91ce31-9712-4be5-adad-05487eab2c7f",
+      "display_name": "Cozy Tokyo Vinyl Bar",
+      "owner": "taste",
+      "created_at": 1778435311,
+      "tags": [
+        "curated",
+        "interior"
+      ],
+      "model": "marble-1.1",
+      "seed": 983372,
+      "prompt": "The scene is a cozy intimate Tokyo vinyl listening bar interior, presented in a hand-painted Studio Ghibli anime style, characterized by soft warm brushwork, painterly detail, and an atmospheric, hyper-detailed yet inviting quality. The overall tone is reverent and intimate, evoking a sense of music-as-religion in an evening setting with dim amber lighting. A long industrial wooden bar stretches along one wall, with a bartender operating a vintage turntable upon it; behind him, floor-to-ceiling dark wood shelves are filled with hundreds of vinyl records. A silver vintage hi-fi audio rack with glowing green VU meters is situated at counter height on the bar, complemented by backlit shelves displaying amber Japanese whiskey bottles. Two large vintage wooden hi-fi speakers flank the bar, emphasizing its central role in the auditory experience. On the opposite wall, a cozy lounge area features two leather armchairs facing each other, accompanied by a low side table adorned with a small brass desk lamp, all set against warm reddish-brown exposed brick walls decorated with framed Japanese music posters. A few small round dark-wood tables are scattered across the central floor, resting upon a deep red oriental rug; each table supports a small brass desk lamp, a whiskey tumbler containing amber liquid, and a small dark wood coaster. Polished concrete walking paths provide access between the tables. A single large warm circular pendant lamp hangs in the center of the room, casting soft amber light throughout the cave-like space. The viewer is seated at a small dark wood corner table, with its edge subtly visible in the foreground, creating an immediate sense of presence within this intimate setting. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/2c91ce31-9712-4be5-adad-05487eab2c7f/65a0580b-0d9c-4f30-93cb-87f4423ad43d_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/2c91ce31-9712-4be5-adad-05487eab2c7f/bd302112-51c5-40ae-ac87-86c4ad61d4e7_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/2c91ce31-9712-4be5-adad-05487eab2c7f/bb60b36b-17d9-470c-adca-6ef93c53a1e2_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "0158d14e-a6ba-4010-a6f9-42801fee7989",
+      "display_name": "Vibrant Sculpture Park, Manhattan Skyline",
+      "owner": "vincentl48",
+      "created_at": 1778367770,
+      "tags": [
+        "curated",
+        "exterior",
+        "realism"
+      ],
+      "model": "marble-1.1-plus",
+      "seed": 144300,
+      "prompt": "The scene is an architectural masterpiece, captured in a hyper-realistic photographic style with cinematic lighting, showcasing a vibrant and prestigious atmosphere under bright daylight. The overall tone is awe-inspiring and dynamic, highlighting the interplay of art, architecture, and nature. In the center of the vast, lush green landscape of \"The Parc\" stands a massive polyhedral museum building, aptly named the 'Iceberg', its fragmented facets composed of dichroic glass with a high-gloss iridescent finish, refracting light into stunning cyan, magenta, and acid yellow specters. The glass surfaces of the 'Iceberg' create dynamic prismatic reflections and colorful caustics on the surrounding grass, which is meticulously manicured and stretches extensively beyond the immediate view. Sinuous walking paths, paved with light-colored stone, weave through the verdant expanse, guiding visitors past a multitude of colorful monumental pop sculptures, inspired by artists like Niki de Saint Phalle and Takashi Murakami, which are scattered throughout the park. The city skyline of Manhattan, highly realistic and detailed, looms in the background, a majestic counterpoint to the vibrant artistry of the park, all set against a clear, bright blue sky. The park extends in all directions, with more sculptures and winding paths continuing into the unseen areas, inviting further exploration. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/0158d14e-a6ba-4010-a6f9-42801fee7989/e4f066b6-b808-4889-b0e6-e2f8ff700df7_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/0158d14e-a6ba-4010-a6f9-42801fee7989/803aabde-aff2-4f80-9d4c-8ab04a9bdc8a_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/0158d14e-a6ba-4010-a6f9-42801fee7989/fd866a60-3a0f-4deb-b3ba-c4aa69737980_ceramic_150k.spz"
+      ]
+    },
+    {
+      "id": "a4fc7526-fc73-439f-a5a7-344e443ada21",
+      "display_name": "Rustic Brazilian Corner Store",
+      "owner": "WalkToDigital",
+      "created_at": 1778360188,
+      "tags": [
+        "curated",
+        "realism"
+      ],
+      "model": "marble-1.1-plus",
+      "seed": 847708,
+      "prompt": "The scene is a rustic and inviting Brazilian corner store, captured in a realistic style, evoking a warm and nostalgic atmosphere. The overall tone is one of cozy simplicity and traditional charm, reminiscent of a bygone era. The floor is tiled with light-colored square tiles, worn smooth by countless footsteps, extending throughout the entire interior and out through the large open doorway. The walls are partially covered with white subway tiles, extending up to a certain height, with the upper sections painted a warm, light cream color. Wooden shelves laden with an assortment of products\u2014various beverages, canned goods, and packaged snacks\u2014line the walls, reaching almost to the ceiling. A long, blue-painted wooden counter with a glass display case showcasing baked goods forms a central feature, curving around the space. Three square wooden tables, each covered with a red and white checkered tablecloth, are scattered across the floor, accompanied by wooden chairs. A vintage-style wooden cabinet with multiple drawers and an old-fashioned scale sits against one wall, adding to the store's antique character. The entrance, a wide, arched opening with a metal roll-up door above it, reveals a sun-drenched, unpaved street outside, lined with humble, colorful buildings and lush green trees. The blue-painted wooden counter, acting as a service area, is situated to the left of the main entrance, while the wooden tables are distributed across the central floor space, creating intimate dining or resting spots. The shelves stocked with goods are positioned along the perimeter of the store, maximizing product display. ",
+      "minimap_url": "https://cdn.marble.worldlabs.ai/a4fc7526-fc73-439f-a5a7-344e443ada21/55caed8a-65de-4512-bfed-95286d1e0fdf_minimap.png",
+      "spz_urls": [
+        "https://cdn.marble.worldlabs.ai/a4fc7526-fc73-439f-a5a7-344e443ada21/99a3003b-4030-4b01-9ac5-f359a5bb48f7_dust_100k.spz",
+        "https://cdn.marble.worldlabs.ai/a4fc7526-fc73-439f-a5a7-344e443ada21/5ebb05f0-4110-457b-b008-2c58f561c39c_ceramic_150k.spz"
+      ]
+    }
+  ]
+}

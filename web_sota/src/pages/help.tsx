@@ -6,9 +6,9 @@ import {
   ChevronRight,
   Clock,
   Code2,
-  Cpu,
   Download,
   ExternalLink,
+  Glasses,
   Globe2,
   HelpCircle,
   Info,
@@ -530,10 +530,16 @@ export function Help() {
           </div>
 
           <p className="text-xs text-slate-500 border-l border-white/10 pl-3 italic">
-            The Marble gallery at worldlabs.ai/gallery shows publicly shared
-            worlds. Downloading from the gallery is an interactive browser task
-            — there is no API endpoint for it. Use the world detail page to
-            download SPZ directly once you have a world_id.
+            The Marble community gallery lives at marble.worldlabs.ai and is
+            browsable through a public API — see the{" "}
+            <a
+              href="/gallery"
+              className="text-cosmos-400 hover:text-cosmos-300"
+            >
+              Marble Gallery page
+            </a>{" "}
+            in this webapp or the gallery_explore MCP tool. To download a world
+            you generated: use get_world(world_id) and fetch its SPZ/GLB URLs.
           </p>
         </div>
       </Section>
@@ -776,15 +782,30 @@ export function Help() {
           <p>
             The{" "}
             <a
-              href="https://worldlabs.ai/gallery"
+              href="https://marble.worldlabs.ai"
               target="_blank"
               rel="noopener noreferrer"
               className="text-cosmos-400 hover:text-cosmos-300 transition-colors inline-flex items-center gap-1"
             >
-              Marble gallery <ExternalLink className="w-3 h-3" />
+              Marble community gallery <ExternalLink className="w-3 h-3" />
             </a>{" "}
-            shows publicly shared worlds. There is no API endpoint for browsing
-            or downloading from the gallery — it requires browser interaction.
+            shows publicly shared worlds. It is browsable via a public API (the
+            old worldlabs.ai/gallery route is gone). Use the{" "}
+            <a
+              href="/gallery"
+              className="text-cosmos-400 hover:text-cosmos-300 transition-colors"
+            >
+              Marble Gallery page
+            </a>{" "}
+            in this webapp, the{" "}
+            <code className="bg-white/[0.06] px-1 rounded text-[11px]">
+              gallery_explore
+            </code>{" "}
+            MCP tool, or{" "}
+            <code className="bg-white/[0.06] px-1 rounded text-[11px]">
+              scripts/gallery_scrape.py
+            </code>{" "}
+            for bulk prompt mining.
           </p>
           <p className="text-xs text-slate-500">
             To download a world you generated: use{" "}
@@ -795,7 +816,7 @@ export function Help() {
             are time-limited — download within a few hours of generation.
           </p>
           <a
-            href="https://worldlabs.ai/gallery"
+            href="https://marble.worldlabs.ai"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-xs text-cosmos-400 hover:text-cosmos-300 transition-colors"
@@ -877,8 +898,8 @@ export function Help() {
         <div className="space-y-4 text-sm text-slate-400 leading-relaxed">
           <p>
             World Labs worlds are <strong>WebXR Ready</strong>. Experience
-            generatively persistent worlds from the inside using the v0.4.0{" "}
-            <strong>WebRTX</strong> protocol—proprietary real-time cross-reality
+            generatively persistent worlds from the inside using the{" "}
+            <strong>WebRTX</strong> protocol-proprietary real-time cross-reality
             streaming for Spark 2.0.
           </p>
           <a

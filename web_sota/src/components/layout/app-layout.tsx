@@ -9,12 +9,13 @@ import {
   LayoutDashboard,
   Library,
   Menu,
+  Moon,
   Palette,
   Settings,
   Smartphone,
+  Sun,
   Terminal,
   Triangle,
-  Wand2,
   Wrench,
   Zap,
 } from "lucide-react";
@@ -23,6 +24,32 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useZoom } from "@/hooks/use-zoom";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+
+// EXPERIMENTAL light mode (invert hack). Not fleet standard — see index.css.
+// Toggling `.dark` off the root flips the invert filter; persisted so the
+// choice survives reloads. Delete this + the CSS block to revert.
+const THEME_KEY = "worldlabs-light-mode";
+
+function useExperimentalTheme() {
+  const [light, setLight] = useState(() => {
+    try {
+      return localStorage.getItem(THEME_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", !light);
+    try {
+      localStorage.setItem(THEME_KEY, light ? "1" : "0");
+    } catch {
+      // ignore storage errors
+    }
+  }, [light]);
+
+  return { light, toggle: () => setLight((v) => !v) };
+}
 
 interface SidebarContextValue {
   collapsed: boolean;
@@ -40,6 +67,7 @@ export function useSidebar() {
 
 const navItems = [
   { to: "/", label: "Overview", icon: LayoutDashboard },
+  { to: "/tools-explorer", label: "Tools", icon: Wrench },
   { to: "/library", label: "World Library", icon: Library },
   { to: "/status", label: "Bridge Health", icon: Activity },
   { to: "/logs", label: "System Logs", icon: Terminal },
@@ -48,6 +76,7 @@ const navItems = [
 
 const creativeItems = [
   { to: "/portals", label: "Painting Portals", icon: Palette },
+  { to: "/gallery", label: "Marble Gallery", icon: Globe2 },
   { to: "/onboarding", label: "Headset Setup", icon: Smartphone },
   { to: "/plex", label: "Cinema Worlds", icon: Clapperboard },
 ];
@@ -245,9 +274,10 @@ function Sidebar() {
 }
 
 function Topbar() {
-  const { setCollapse, collapsed } = useSidebar();
+  const { setCollapsed, collapsed } = useSidebar();
   const location = useLocation();
   const backend = useAppStore((s) => s.backend);
+  const { light, toggle } = useExperimentalTheme();
 
   const currentPage = [
     ...navItems,
@@ -290,6 +320,24 @@ function Topbar() {
       </div>
 
       <div className="flex-1" />
+
+      {/* Day mode toggle */}
+      <button
+        onClick={toggle}
+        title={
+          light
+            ? "Switch to dark (experimental light mode)"
+            : "Switch to light (experimental, ugly)"
+        }
+        aria-label="Toggle light mode (experimental)"
+        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all"
+      >
+        {light ? (
+          <Moon className="w-3.5 h-3.5" aria-hidden="true" />
+        ) : (
+          <Sun className="w-3.5 h-3.5" aria-hidden="true" />
+        )}
+      </button>
 
       {/* Status pill */}
       <div

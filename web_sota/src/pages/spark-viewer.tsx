@@ -1,37 +1,22 @@
 import { SparkRenderer, SparkXr, SplatMesh } from "@sparkjsdev/spark";
 import {
-  AlertCircle,
-  ArrowLeft,
   Check,
   ChevronRight,
-  Clapperboard,
   ExternalLink,
-  FileCode,
   FolderOpen,
-  FolderPlus,
   Globe2,
-  ImageIcon,
   Info,
-  Layout,
-  LayoutGrid,
   Link,
   Maximize2,
   Minimize2,
-  Monitor,
   Music,
-  Play,
-  RefreshCw,
   RotateCcw,
   Save,
-  Search,
   Settings2,
   Trash2,
-  Tv,
-  User,
   UserPlus,
   Video,
   Volume2,
-  Wand2,
   XCircle,
   Zap,
 } from "lucide-react";
@@ -170,12 +155,10 @@ export function SparkViewer() {
   // Spatial Audio Refs
   const audioCtxRef = useRef<AudioContext | null>(null);
   const pannerRef = useRef<PannerNode | null>(null);
-  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const clockRef = useRef<THREE.Clock>(new THREE.Clock());
   const worldSessionIdRef = useRef(0);
   const xrRef = useRef<SparkXr | null>(null);
   const localFrameRef = useRef<THREE.Group | null>(null);
-  const lastCameraPosRef = useRef<THREE.Vector3>(new THREE.Vector3());
 
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
     "idle",
@@ -190,16 +173,16 @@ export function SparkViewer() {
   const [toolboxPrompt, setToolboxPrompt] = useState("");
   const [toolboxAssetUrl, setToolboxAssetUrl] = useState("");
   const [isBroadcasting, setIsBroadcasting] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [worldId, setWorldId] = useState<string>("default-world");
+  const [_isDragging, setIsDragging] = useState(false);
+  const [worldId, _setWorldId] = useState<string>("default-world");
   const [worldName, setWorldName] = useState<string>("");
   const [toolboxTab, setToolboxTab] = useState<
-    "studio" | "gallery" | "import" | "plex"
+    "studio" | "gallery" | "import" | "plex" | "handoff"
   >("studio");
   const [localAssets, setLocalAssets] = useState<string[]>([]);
   const [plexResults, setPlexResults] = useState<any[]>([]);
   const [plexQuery, setPlexQuery] = useState("");
-  const [isSearchingPlex, setIsSearchingPlex] = useState(false);
+  const [_isSearchingPlex, setIsSearchingPlex] = useState(false);
   const [systemStats, setSystemStats] = useState<any>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [lastConsoleClick, setLastConsoleClick] = useState(0);
@@ -368,12 +351,14 @@ export function SparkViewer() {
     }
   }
 
-  async function broadcastEvent(type: "speech" | "audio" | "video" | "avatar") {
+  async function broadcastEvent(
+    type: "speech" | "audio" | "video" | "avatar" | "event",
+  ) {
     if (!cameraRef.current) return;
     setIsBroadcasting(true);
     try {
       const pos = cameraRef.current.position;
-      const res = await api.broadcastNarration({
+      await api.broadcastNarration({
         type,
         text: type === "speech" ? toolboxPrompt : undefined,
         url: type !== "speech" ? toolboxAssetUrl || toolboxPrompt : undefined,
@@ -395,7 +380,7 @@ export function SparkViewer() {
     if (!mountRef.current) return;
     cleanup();
     setStatus("loading");
-    setError(null);
+    setError("");
     const thisSessionId = ++worldSessionIdRef.current;
 
     try {
@@ -453,11 +438,9 @@ export function SparkViewer() {
 
       // 3. Load Splat — from cache or network (with proxy fallback)
       let splatSrc: string;
-      let fromCache = false;
       const cached = await getCachedSplat(url);
       if (cached) {
         splatSrc = URL.createObjectURL(cached.blob);
-        fromCache = true;
       } else {
         setLoadingMsg("Downloading SPZ...");
         let blob: Blob;
@@ -488,12 +471,11 @@ export function SparkViewer() {
       scene.add(splat);
 
       // 4. Render Loop
-      renderer.setAnimationLoop((time, xrFrame) => {
+      renderer.setAnimationLoop((_time, _xrFrame) => {
         if (thisSessionId !== worldSessionIdRef.current) return;
 
         try {
           const delta = clockRef.current.getDelta();
-          const localFrame = localFrameRef.current;
 
           // OrbitControls damping
           if (controlsRef.current && !renderer.xr.isPresenting) {
@@ -866,10 +848,9 @@ export function SparkViewer() {
     const entities: any[] = [];
 
     // 1. Collect Avatars
-    Object.entries(avatarsRef.current).forEach(([id, model]) => {
+    Object.entries(avatarsRef.current).forEach(([, model]) => {
       if (model.userData && model.userData.type === "avatar") {
         entities.push({
-          id,
           type: "avatar",
           url: model.userData.url,
           x: model.position.x,
@@ -882,10 +863,9 @@ export function SparkViewer() {
     });
 
     // 2. Collect Videos
-    Object.entries(videoSurfacesRef.current).forEach(([id, mesh]) => {
+    Object.entries(videoSurfacesRef.current).forEach(([, mesh]) => {
       if (mesh.userData && mesh.userData.type === "video") {
         entities.push({
-          id,
           type: "video",
           url: mesh.userData.url,
           x: mesh.position.x,
@@ -898,7 +878,7 @@ export function SparkViewer() {
     });
 
     // 3. Collect Audio
-    Object.entries(bgAudioRef.current).forEach(([id, entry]: any) => {
+    Object.entries(bgAudioRef.current).forEach(([, entry]: any) => {
       if (entry.metadata) {
         entities.push(entry.metadata);
       }
@@ -1018,7 +998,7 @@ export function SparkViewer() {
       );
       const data = await resp.json();
       setToolboxPrompt(data.url);
-      broadcastEvent("cinema");
+      broadcastEvent("event");
     } catch (err) {
       console.error("Failed to get Plex stream URL:", err);
     }
@@ -1029,7 +1009,7 @@ export function SparkViewer() {
       const resp = await fetch("http://localhost:10865/api/system/stats");
       const data = await resp.json();
       setSystemStats(data);
-    } catch (err) {
+    } catch (_err) {
       /* silent */
     }
   }
@@ -1189,7 +1169,7 @@ export function SparkViewer() {
 
     ctx.font = "italic 30px Inter";
     ctx.fillStyle = "#64748b";
-    ctx.fillText("SPARK v0.4.0 Engine • Titan Refined", 80, 920);
+    ctx.fillText("SPARK Engine", 80, 920);
   }
 
   function handleConsoleButton(uv: THREE.Vector2) {
@@ -1460,14 +1440,6 @@ export function SparkViewer() {
     document.addEventListener("fullscreenchange", onFsChange);
     return () => document.removeEventListener("fullscreenchange", onFsChange);
   }, []);
-
-  const resetView = () => {
-    if (cameraRef.current && controlsRef.current) {
-      cameraRef.current.position.set(0, 1.6, 4);
-      controlsRef.current.target.set(0, 1.6, 0);
-      controlsRef.current.update();
-    }
-  };
 
   const handleFileOpen = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

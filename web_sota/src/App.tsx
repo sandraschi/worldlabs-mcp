@@ -10,6 +10,7 @@ import { AppLayout } from "@/components/layout/app-layout";
 import { Apps } from "@/pages/apps";
 import { ChiselDetail } from "@/pages/chisel-detail";
 import { Dashboard } from "@/pages/dashboard";
+import { MarbleGallery } from "@/pages/gallery";
 import { Help } from "@/pages/help.jsx";
 import { ImmersiveDetail } from "@/pages/immersive-detail";
 import { WorldLibrary } from "@/pages/library";
@@ -22,7 +23,6 @@ import { Settings } from "@/pages/settings";
 import { SparkDetail } from "@/pages/spark-detail";
 import { SparkViewer } from "@/pages/spark-viewer";
 import { Status } from "@/pages/status";
-import { Tools } from "@/pages/tools";
 import { ToolsExplorer } from "@/pages/tools-explorer";
 import Architect from "@/pages/world-gen";
 import { WorldViewer } from "@/pages/world-viewer";
@@ -42,11 +42,15 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/status" element={<Status />} />
-              <Route path="/tools" element={<Tools />} />
+              <Route
+                path="/tools"
+                element={<Navigate to="/tools-explorer" replace />}
+              />
               <Route path="/architect" element={<Architect />} />
               <Route path="/library" element={<WorldLibrary />} />
               <Route path="/library/viewer" element={<WorldViewer />} />
               <Route path="/portals" element={<PaintingPortals />} />
+              <Route path="/gallery" element={<MarbleGallery />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/spark-viewer" element={<SparkViewer />} />
               <Route path="/spark-v2" element={<SparkDetail />} />

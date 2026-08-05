@@ -8,7 +8,6 @@ import {
   Download,
   HardDrive,
   Layers,
-  MessageSquare,
   RefreshCw,
   Send,
   Trash2,

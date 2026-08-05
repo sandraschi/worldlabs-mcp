@@ -8,6 +8,7 @@ import asyncio
 import os
 import time
 from pathlib import Path
+from typing import Annotated, Any, Literal
 
 import httpx
 from dotenv import load_dotenv
@@ -16,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastmcp import Context, FastMCP
 from fastmcp.server import create_proxy
+from pydantic import Field
 
 from .api_bridge import (
     BASE_URL,
@@ -1048,6 +1050,28 @@ _TOOL_CATALOG = [
         "notes": "Requires Ollama running on OLLAMA_URL "
         "(default: http://localhost:11434). Model must be pulled locally first.",
     },
+    {
+        "name": "gallery_explore",
+        "description": "Explore the public Marble community gallery (browse/world/prompts/search)",
+        "group": "gallery",
+        "args": {
+            "operation": "Literal['browse','world','prompts','search']",
+            "tag": "str (optional) - curated, stylized, realism, interior, hq, fantasy, sci-fi, or 'all' for search",
+            "world_id": "str (optional) - world UUID for the 'world' operation",
+            "query": "str (optional) - keyword phrase for 'search' (all tokens must match)",
+            "page_size": "int (optional) - entries / result limit (default 10, max 50)",
+            "max_pages": "int (optional) - search scan depth per tag (default 5, max 15)",
+            "page_token": "str (optional) - pagination token from a previous browse",
+        },
+        "returns": "dict with success, message, operation, and entries/world",
+        "example": 'gallery_explore(operation="search", query="cyberpunk", tag="sci-fi")',
+        "docstring": (
+            "Public worlds from marble.worldlabs.ai with original prompts, seeds, owners, "
+            "and SPZ/minimap asset URLs. browse lists by tag, world fetches one world, "
+            "prompts returns a mining list, search matches keywords across title/prompt/owner."
+        ),
+        "notes": "Prompts are the creators' originals - credit owners when reusing.",
+    },
 ]
 
 _MODELS = [
@@ -1111,9 +1135,13 @@ _WORLDLABS_CONTEXT = {
         "Your $30/month web subscription does NOT include API generations."
     ),
     "gallery": (
-        "The Marble gallery at https://worldlabs.ai/gallery shows publicly shared worlds. "
-        "Individual worlds can be downloaded from their detail page as SPZ files. "
-        "This is an interactive browser task — no API endpoint exists for gallery browse/download."
+        "The Marble community gallery at https://marble.worldlabs.ai shows publicly shared "
+        "worlds (the old worldlabs.ai/gallery route is gone). It is browsable via a public API: "
+        "POST https://api.worldlabs.ai/api/v1/worlds:by-tag (tags: curated, stylized, realism, "
+        "interior, hq, fantasy, sci-fi) and GET https://api.worldlabs.ai/api/v1/worlds/{id}. "
+        "Each entry carries the creator's original prompt, seed, and public SPZ/minimap assets. "
+        "Use the gallery_explore tool, the webapp /gallery page, or scripts/gallery_scrape.py "
+        "for bulk prompt mining. Attribution: respect creators — prompts are their originals."
     ),
     "spatial_intelligence_scene_2026": (
         "World Labs operates in the emerging Large World Model (LWM) space. "
@@ -1359,6 +1387,180 @@ async def worldlabs_help(
 
 
 # ---------------------------------------------------------------------------
+# Marble Community Gallery tools — public worlds from marble.worldlabs.ai
+# ---------------------------------------------------------------------------
+
+GALLERY_API = "https://api.worldlabs.ai/api/v1/worlds:by-tag"
+GALLERY_TAGS = ("curated", "stylized", "realism", "interior", "hq", "fantasy", "sci-fi")
+
+
+def _gallery_entry(w: dict[str, Any]) -> dict[str, Any]:
+    """Flatten one public gallery world into a compact agent-friendly shape."""
+    gi = w.get("generation_input") or {}
+    go = w.get("generation_output") or {}
+    prompt = (gi.get("prompt") or {}).get("text_prompt") or gi.get("original_text_prompt") or ""
+    return {
+        "id": w.get("id"),
+        "display_name": w.get("display_name"),
+        "owner": (w.get("application_data") or {}).get("owner_username"),
+        "like_count": (w.get("stats") or {}).get("like_count", 0),
+        "model": gi.get("model"),
+        "seed": gi.get("seed"),
+        "prompt": prompt,
+        "spz_urls": list((go.get("spz_urls") or {}).values()),
+        "minimap_url": go.get("minimap_url"),
+        "marble_url": f"https://marble.worldlabs.ai/world/{w.get('id')}",
+    }
+
+
+@mcp.tool()
+async def gallery_explore(
+    operation: Annotated[
+        Literal["browse", "world", "prompts", "search"],
+        Field(
+            description="Operation: browse lists community worlds by tag; world fetches one world's detail; prompts returns a compact prompt-mining list; search finds entries whose title/prompt/owner match all query tokens."
+        ),
+    ],
+    tag: Annotated[
+        str,
+        Field(
+            description="Gallery tab: curated, stylized, realism, interior, hq, fantasy, sci-fi — or 'all' for search. Default 'curated'."
+        ),
+    ] = "curated",
+    world_id: Annotated[
+        str,
+        Field(description="World UUID for the 'world' operation (from browse results)."),
+    ] = "",
+    query: Annotated[
+        str,
+        Field(
+            description="Keyword phrase for the 'search' operation (e.g. 'vienna', 'cyberpunk', 'tokyo vinyl'). All tokens must match; case-insensitive."
+        ),
+    ] = "",
+    page_size: Annotated[
+        int,
+        Field(description="Max entries for browse/prompts, or result limit for search (default 10, max 50)."),
+    ] = 10,
+    max_pages: Annotated[
+        int,
+        Field(description="Search scan depth per tag (default 5, max 15). Polite bound on upstream requests."),
+    ] = 5,
+    page_token: Annotated[
+        str,
+        Field(description="Pagination token from a previous browse response's next_page_token."),
+    ] = "",
+) -> dict:
+    """
+    Explore the public Marble community gallery (marble.worldlabs.ai).
+
+    [RATIONALE] The gallery is a public showcase of community-generated worlds
+    with full original prompts, seeds, and asset URLs. One portmanteau keeps
+    prompt mining, browsing, world detail lookups, and keyword search under a
+    single tool.
+
+    ## Return Format
+    {"success": bool, "message": str, "operation": str,
+     "data": {"tag", "entries": [...], "next_page_token", "count"}
+             | {"world": {...}}
+             | {"query", "searched", "matched", "entries": [...]}}
+
+    ## Examples
+    gallery_explore(operation="browse", tag="fantasy", page_size=10)
+    gallery_explore(operation="world", world_id="8a62c661-aaf2-41fe-a980-f9bef671dcea")
+    gallery_explore(operation="prompts", tag="curated", page_size=20)
+    gallery_explore(operation="search", query="vienna")
+    gallery_explore(operation="search", query="cyberpunk alley", tag="all", page_size=5)
+    """
+    try:
+        if operation == "world":
+            if not world_id:
+                return {
+                    "success": False,
+                    "message": "world_id is required for the 'world' operation.",
+                    "operation": operation,
+                }
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.get(
+                    f"https://api.worldlabs.ai/api/v1/worlds/{world_id}",
+                    headers={"Referer": "https://marble.worldlabs.ai/"},
+                )
+                resp.raise_for_status()
+                return {
+                    "success": True,
+                    "message": f"World {world_id}.",
+                    "operation": operation,
+                    "data": {"world": _gallery_entry(resp.json())},
+                }
+
+        if operation == "search":
+            if not query.strip():
+                return {
+                    "success": False,
+                    "message": "query is required for the 'search' operation.",
+                    "operation": operation,
+                }
+            from .api_bridge import search_gallery
+
+            res = await search_gallery(query, tag=tag, limit=page_size, max_pages=max_pages)
+            return {
+                "success": res["success"],
+                "message": res["message"],
+                "operation": operation,
+                "data": {
+                    "query": res["query"],
+                    "tag": res["tag"],
+                    "searched": res["searched"],
+                    "matched": res["matched"],
+                    "entries": res["entries"],
+                },
+            }
+
+        if tag not in GALLERY_TAGS:
+            return {
+                "success": False,
+                "message": f"Unknown gallery tag '{tag}'. Valid: {', '.join(GALLERY_TAGS)}.",
+                "operation": operation,
+            }
+        page_size = max(1, min(page_size, 50))
+        body: dict = {"page_size": page_size, "page_token": page_token, "tag": tag}
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(
+                GALLERY_API,
+                json=body,
+                headers={"Referer": "https://marble.worldlabs.ai/"},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+        entries = [_gallery_entry(w) for w in data.get("worlds", [])]
+        if operation == "prompts":
+            entries = [
+                {
+                    "display_name": e["display_name"],
+                    "owner": e["owner"],
+                    "seed": e["seed"],
+                    "prompt": e["prompt"],
+                    "marble_url": e["marble_url"],
+                }
+                for e in entries
+                if e["prompt"]
+            ]
+        return {
+            "success": True,
+            "message": f"{len(entries)} community worlds in tag '{tag}'.",
+            "operation": operation,
+            "data": {
+                "tag": tag,
+                "count": len(entries),
+                "entries": entries,
+                "next_page_token": data.get("next_page_token") or "",
+            },
+        }
+    except Exception as e:
+        return {"success": False, "message": f"Gallery request failed: {e}", "operation": operation}
+
+
+# ---------------------------------------------------------------------------
 # ASGI app for uvicorn (web_sota/start.ps1): worldlabs_mcp.server:app
 # REST /api/* for web_sota + Spatial Voice Agent narration stream
 # ---------------------------------------------------------------------------
@@ -1394,7 +1596,10 @@ _allowed_origins += [o.strip() for o in os.getenv("WORLDLABS_EXTRA_ORIGINS", "")
 _web_app.add_middleware(
     CORSMiddleware,
     allow_origins=sorted(set(_allowed_origins)),
-    allow_origin_regex=r"https?://tauri\.localhost(:\d+)?" if _tauri else None,
+    # Unconditional fleet regex: Tailscale (*.ts.net), LAN (192.168/10.), CGNAT (100.),
+    # localhost, 127.0.0.1, tauri origins. NEVER gate on env - broken remote access
+    # is silent until someone hits it from another device.
+    allow_origin_regex=r"https?://(?:[a-zA-Z0-9-]+\.ts\.net|.*?\.tail-[a-f0-9]+\.ts\.net|tauri\.localhost|localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|100\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?$|^tauri://localhost$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

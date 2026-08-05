@@ -532,12 +532,26 @@ async def health() -> dict:
 
 @router.get("/system")
 async def system_info() -> dict:
+    from . import __version__ as _pkg_version
+    from .server import _TOOL_CATALOG
+
     return {
         "service": "worldlabs-mcp",
-        "version": "0.4.0",
+        "name": "worldlabs-mcp",
+        "version": _pkg_version,
+        "description": "MCP gateway to World Labs Marble + Spark 2.0",
         "marble_api": BASE_URL,
+        "base_url": BASE_URL,
         "api_key_set": bool(os.environ.get("WORLDLABS_API_KEY")),
         "default_model": DEFAULT_MODEL,
+        "tools": [
+            {
+                "name": t["name"],
+                "description": t["description"],
+                "parameters": t.get("args", {}),
+            }
+            for t in _TOOL_CATALOG
+        ],
     }
 
 
@@ -2143,3 +2157,205 @@ async def place_avatar_in_world(body: dict) -> dict[str, Any]:
         resp = await client.post(f"{bridge_url}/api/narration", json=narration_payload)
         resp.raise_for_status()
         return resp.json()
+
+
+# ---------------------------------------------------------------------------
+# Marble Community Gallery — public worlds from marble.worldlabs.ai
+# ---------------------------------------------------------------------------
+
+GALLERY_API = "https://api.worldlabs.ai/api/v1/worlds:by-tag"
+GALLERY_TAGS = {"curated", "stylized", "realism", "interior", "hq", "fantasy", "sci-fi"}
+_gallery_cache: dict[str, tuple[float, dict[str, Any]]] = {}
+_GALLERY_CACHE_TTL = 60.0  # seconds - be polite to the upstream API on tab switches
+
+
+def _format_gallery_entry(w: dict[str, Any]) -> dict[str, Any]:
+    """Flatten one by-tag world into the webapp card shape."""
+    gi = w.get("generation_input") or {}
+    go = w.get("generation_output") or {}
+    prompt = (gi.get("prompt") or {}).get("text_prompt") or gi.get("original_text_prompt") or ""
+    return {
+        "id": w.get("id"),
+        "display_name": w.get("display_name"),
+        "owner": (w.get("application_data") or {}).get("owner_username"),
+        "owner_id": w.get("owner_id"),
+        "like_count": (w.get("stats") or {}).get("like_count", 0),
+        "created_at": w.get("created_at"),
+        "tags": w.get("tags") or [],
+        "model": gi.get("model"),
+        "seed": gi.get("seed"),
+        "prompt": prompt,
+        "minimap_url": go.get("minimap_url"),
+        "spz_urls": list((go.get("spz_urls") or {}).values()),
+        "marble_url": f"https://marble.worldlabs.ai/world/{w.get('id')}",
+    }
+
+
+@router.get("/gallery")
+async def gallery_browse(
+    tag: str = "curated",
+    page_size: int = 24,
+    page_token: str = "",
+) -> dict[str, Any]:
+    """Browse the public Marble community gallery (mirrors marble.worldlabs.ai tabs).
+
+    Proxies the site's own POST /api/v1/worlds:by-tag. Public entries only.
+    Results are cached in-memory for 60s to avoid hammering the upstream API.
+    """
+    if tag not in GALLERY_TAGS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown gallery tag '{tag}'. Valid: {sorted(GALLERY_TAGS)}",
+        )
+    page_size = max(1, min(page_size, 50))
+
+    cache_key = f"{tag}:{page_size}:{page_token}"
+    now = time.monotonic()
+    hit = _gallery_cache.get(cache_key)
+    if hit and now - hit[0] < _GALLERY_CACHE_TTL:
+        return hit[1]
+
+    body = {"page_size": page_size, "page_token": page_token, "tag": tag}
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.post(
+            GALLERY_API,
+            json=body,
+            headers={"Referer": "https://marble.worldlabs.ai/"},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+    entries = [e for w in data.get("worlds", []) if (e := _format_gallery_entry(w))]
+    result: dict[str, Any] = {
+        "tag": tag,
+        "next_page_token": data.get("next_page_token") or "",
+        "count": len(entries),
+        "entries": entries,
+    }
+    _gallery_cache[cache_key] = (now, result)
+    return result
+
+
+async def _gallery_fetch_pages(tag: str, page_size: int, max_pages: int) -> list[dict[str, Any]]:
+    """Fetch up to max_pages pages of one gallery tag, reusing the TTL cache."""
+    entries: list[dict[str, Any]] = []
+    token = ""
+    for _ in range(max_pages):
+        cache_key = f"{tag}:{page_size}:{token}"
+        now = time.monotonic()
+        hit = _gallery_cache.get(cache_key)
+        if hit and now - hit[0] < _GALLERY_CACHE_TTL:
+            result = hit[1]
+        else:
+            body = {"page_size": page_size, "page_token": token, "tag": tag}
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.post(
+                    GALLERY_API,
+                    json=body,
+                    headers={"Referer": "https://marble.worldlabs.ai/"},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+            result = {
+                "tag": tag,
+                "next_page_token": data.get("next_page_token") or "",
+                "count": len(data.get("worlds", [])),
+                "entries": [e for w in data.get("worlds", []) if (e := _format_gallery_entry(w))],
+            }
+            _gallery_cache[cache_key] = (now, result)
+        entries.extend(result["entries"])
+        token = result.get("next_page_token") or ""
+        if not token:
+            break
+    return entries
+
+
+def _entry_matches(e: dict[str, Any], tokens: list[str]) -> bool:
+    haystack = " ".join(
+        [
+            e.get("display_name") or "",
+            e.get("prompt") or "",
+            e.get("owner") or "",
+            " ".join(e.get("tags") or []),
+        ]
+    ).lower()
+    return all(t in haystack for t in tokens)
+
+
+async def search_gallery(
+    query: str,
+    tag: str = "curated",
+    limit: int = 10,
+    max_pages: int = 5,
+) -> dict[str, Any]:
+    """Case-insensitive keyword search over public gallery entries.
+
+    The upstream by-tag API has no text search, so this scans pages of one
+    tag (or all tags) with a bounded page budget. Every token of the query
+    must appear somewhere in title, prompt, owner, or tags.
+    """
+    query = (query or "").strip()
+    if not query:
+        return {
+            "success": False,
+            "message": "query is required",
+            "entries": [],
+            "searched": 0,
+            "matched": 0,
+            "tag": tag,
+        }
+    if tag != "all" and tag not in GALLERY_TAGS:
+        return {
+            "success": False,
+            "message": f"Unknown gallery tag '{tag}'. Valid: {sorted(GALLERY_TAGS)} or 'all'.",
+            "entries": [],
+            "searched": 0,
+            "matched": 0,
+            "tag": tag,
+        }
+    limit = max(1, min(limit, 50))
+    max_pages = max(1, min(max_pages, 15))
+    tokens = [t.lower() for t in query.split() if t]
+    tags = list(GALLERY_TAGS) if tag == "all" else [tag]
+    page_size = min(50, max(limit, 24))
+
+    matches: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    searched = 0
+    for t in tags:
+        if len(matches) >= limit:
+            break
+        for e in await _gallery_fetch_pages(t, page_size, max_pages):
+            searched += 1
+            if e["id"] in seen:
+                continue
+            seen.add(e["id"])
+            if _entry_matches(e, tokens):
+                matches.append(e)
+                if len(matches) >= limit:
+                    break
+
+    return {
+        "success": True,
+        "message": f"Found {len(matches)} match(es) for '{query}' (searched {searched} entries in {', '.join(tags)}).",
+        "query": query,
+        "tag": tag,
+        "searched": searched,
+        "matched": len(matches),
+        "entries": matches,
+    }
+
+
+@router.get("/gallery/search")
+async def gallery_search(
+    query: str,
+    tag: str = "curated",
+    limit: int = 10,
+    max_pages: int = 5,
+) -> dict[str, Any]:
+    """Search public Marble gallery entries by prompt/title/owner keyword.
+
+    Bounded server-side scan (max_pages per tag, TTL-cached). Query tokens
+    are matched case-insensitively; all tokens must appear (AND).
+    """
+    return await search_gallery(query, tag=tag, limit=limit, max_pages=max_pages)

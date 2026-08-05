@@ -51,8 +51,6 @@ async def llm_providers():
                 result[name] = []
         except Exception:
             result[name] = []
-    if not any(result.values()):
-        result["ollama"] = [{"name": "llama3.2:3b"}]
     return result
 
 

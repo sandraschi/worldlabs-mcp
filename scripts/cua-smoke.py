@@ -133,7 +133,7 @@ def _init_cua_client():
             log("pywinauto-mcp HTTP API reachable at :10789")
             _CUA_CLIENT_OK = True
             return "http"
-    except Exception:  # noqa: S110
+    except Exception:
         pass
     # Try direct import
     try:
@@ -296,7 +296,7 @@ def cua_ocr_text(window_handle: int = 0, image_path: str = "") -> str:
 
             capture = win.capture_as_image()
             return pytesseract.image_to_string(capture)
-    except Exception:  # noqa: S110
+    except Exception:
         pass
     return ""
 
@@ -311,7 +311,7 @@ def cua_click(window_handle: int, x: int, y: int):
             import pywinauto.mouse
 
             pywinauto.mouse.click(button="left", coords=(x, y))
-        except Exception:  # noqa: S110
+        except Exception:
             pass
 
 
@@ -337,7 +337,7 @@ def phase_fail(msg: str):
 
 def kill_stale():
     for name in PROCESS_NAMES:
-        subprocess.run(["taskkill", "/F", "/IM", f"{name}.exe", "/T"], capture_output=True, timeout=10)  # noqa: S603, S607
+        subprocess.run(["taskkill", "/F", "/IM", f"{name}.exe", "/T"], capture_output=True, timeout=10)
     time.sleep(1)
     log("Stale processes killed")
 
@@ -358,7 +358,7 @@ def find_installer() -> str:
 
 def silent_install(installer: str):
     log(f"Installing: {installer}")
-    r = subprocess.run([installer, "/S"], capture_output=True, timeout=120)  # noqa: S603
+    r = subprocess.run([installer, "/S"], capture_output=True, timeout=120)
     if r.returncode != 0:
         fatal(f"NSIS install exited with code {r.returncode}")
     global _INSTALLED
@@ -380,7 +380,7 @@ def launch_app():
         for k, v in env_vars.items():
             env[k] = str(v)
             log(f"  Set env {k}={v}")
-    subprocess.Popen([exe], cwd=INSTALL_DIR, env=env)  # noqa: S603
+    subprocess.Popen([exe], cwd=INSTALL_DIR, env=env)
     log(f"Launched {exe}")
     for attempt in range(MAX_RETRY):
         try:
@@ -528,7 +528,20 @@ def nav_click_through(output_dir: str):
             sidebar_step_y = int(cfg("sidebar_step_y", 55))
             click_x = wx + sidebar_click_x
             click_y = wy + sidebar_first_y + idx * sidebar_step_y
-            cua_click(win.get("handle", 0), click_x, click_y)
+            clicked = False
+            try:
+                import pywinauto
+
+                app = pywinauto.Application(backend="uia").connect(handle=win.get("handle", 0))
+                w = app.window(handle=win.get("handle", 0))
+                link = w.descendants(title=label)
+                if link:
+                    link[0].click_input()
+                    clicked = True
+            except Exception:
+                pass
+            if not clicked:
+                cua_click(win.get("handle", 0), click_x, click_y)
             time.sleep(2)
 
             # OCR after click
@@ -604,7 +617,7 @@ def uninstall():
         if _INSTALLED:
             log(f"Uninstaller not found at {uninstaller}")
         return
-    r = subprocess.run([uninstaller, "/S"], capture_output=True, timeout=60)  # noqa: S603
+    r = subprocess.run([uninstaller, "/S"], capture_output=True, timeout=60)
     log(f"Uninstaller exited with code {r.returncode}")
     time.sleep(2)
     ps_cmd = (
@@ -613,8 +626,8 @@ def uninstall():
         " -ErrorAction SilentlyContinue"
         " | Where-Object { $_.DisplayName -like '" + REGISTRY_FILTER + "' }"
     )
-    remaining = subprocess.run(  # noqa: S603
-        ["powershell", "-NoProfile", "-Command", ps_cmd],  # noqa: S607
+    remaining = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", ps_cmd],
         capture_output=True,
         text=True,
         timeout=15,

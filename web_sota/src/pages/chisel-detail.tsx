@@ -1,17 +1,4 @@
-import {
-  Activity,
-  Box,
-  ChevronRight,
-  Globe2,
-  Info,
-  PenTool,
-  Ruler,
-  Scale,
-  Shapes,
-  ShieldCheck,
-  Wand2,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Box, PenTool, Ruler, Scale, Shapes } from "lucide-react";
 
 export function ChiselDetail() {
   return (
