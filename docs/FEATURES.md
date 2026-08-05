@@ -98,6 +98,12 @@ Godot 4.4 FPS hub with **8 ring portals** (A–H) into real **Marble 1.1** Gauss
 - **DCC Export**: Blender (SPZ+GLB), Unity3D, Resonite (OSC)
 - **Narration SSE Stream** — Real-time spatial events for Spark viewer
 - **avatar-mcp Integration** — VRM avatar placement from avatar-mcp
+- **Step into worlds**: Overte export spawns a world's GLB mesh + viewer panel
+  in a domain (auto-start chain), Resonite import via resonite-mcp
+- **Hub life**: potted plants, benches, standing lamps, rotating beacon,
+  orbiting light orbs, pulsing floor rings — all animated, no shaders
+- **Webapp launcher**: Apps page Play button starts the Godot hub
+  (`/api/marble-adventure/launch`); hero prompts in WORLD_PROMPTS.md
 
 ## Under Refinement
 

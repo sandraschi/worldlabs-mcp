@@ -49,7 +49,7 @@ Title screen: **Play · Settings · Controls · Fleet Museum**
 
 ```powershell
 cd D:\Dev\repos\worldlabs-mcp
-just marble-adventure-play
+just marble-adventure-play   # or webapp Apps page Play button
 ```
 
 Local Spark + spatial welcome: `.\competition\play.ps1 -AccessMode local_spark`
@@ -72,7 +72,7 @@ See [SHIP_ITCH.md](../competition/SHIP_ITCH.md) · [WORLD_ACCESS.md](../competit
 Multiline prompts: [WORLD_PROMPTS.md](../competition/WORLD_PROMPTS.md)
 
 ```powershell
-just marble-adventure-regen-worlds portal=sea_of_fog
+just marble-adventure-regen-worlds portal=sea_of_fog  # hero prompts in WORLD_PROMPTS.md
 # update marble_id in data/portals.json → just marble-adventure-thumbs
 ```
 

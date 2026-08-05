@@ -197,6 +197,10 @@ GET  /api/plex/search            — Search Plex library
 GET  /api/plex/stream_url        — Get authenticated Plex stream URL
 GET  /api/gallery                — Browse public Marble community gallery (tag, page_size, page_token; 60s cache)
 GET  /api/gallery/search         — Keyword search over gallery entries (query, tag or 'all', limit, max_pages; bounded scan)
+GET  /api/marble-adventure/status  — Is the Marble Adventure Godot hub running?
+POST /api/marble-adventure/launch  — Launch the Godot hub windowed (ensure-before-open; env from competition/.env)
+POST /api/export/overte           — Spawn a world's GLB mesh + viewer panel in an Overte domain (auto-starts chain)
+GET  /api/export/overte/status    — Step-in chain readiness (overte-mcp, domain-server, interface)
 GET  /api/avatars/status         — Check avatar-mcp availability
 POST /api/avatars/place          — Place avatar from avatar-mcp in scene
 GET  /api/capabilities           — Runtime feature flags

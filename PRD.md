@@ -44,6 +44,8 @@ Marble API (api.worldlabs.ai) ──► worldlabs_mcp (FastMCP 3.4+)
 | Export | Blender, Unity3D, Resonite (OSC / ResoniteLink) |
 | Plex integration | Cinema Worlds: browse libraries, stream via proxy, generate worlds from video (token from plex-mcp) |
 | Community gallery | Marble Gallery page + `gallery_explore` MCP tool + `scripts/gallery_scrape.py`: browse public marble.worldlabs.ai worlds, mine prompts (10 presets mined from showpieces, credited) |
+| Step into worlds | Overte: spawn world GLB mesh + viewer panel in a domain (auto-starts overte-mcp → domain-server → Interface); Resonite: import via resonite-mcp (ResoniteLink) |
+| Marble Adventure | Godot 4.4 hub (8 portal worlds) with hub life (plants, benches, lamps, beacon, orbiting lights); launch from webapp Apps page (`POST /api/marble-adventure/launch`); hero prompts in `competition/marble-adventure/WORLD_PROMPTS.md` |
 | Web dashboard | 10864 Vite/React: dashboard, library, painting portals (14 presets), reality hub (ADB), settings, help, logs |
 | XR | Quest 3 / Pico 4 / Vive streaming, ADB wizard, port-forward guidance |
 | Competition | Marble Adventure — Godot 4.4 gallery with 8 Marble portals (itch draft) |
