@@ -517,4 +517,17 @@ export const api = {
     name?: string;
     model?: string;
   }) => post<Operation>("/paintings/generate", req),
+
+  // Credits
+  credits: () =>
+    get<{
+      status: string;
+      live_balance: number | null;
+      live_source: string;
+      billing_url: string;
+      local_generations: number;
+      local_estimated_credits: number;
+      local_by_model: Record<string, number>;
+      local_note: string;
+    }>("/credits"),
 };

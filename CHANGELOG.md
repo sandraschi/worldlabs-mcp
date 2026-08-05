@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Marble Adventure hero worlds**: authored competition/marble-adventure/WORLD_PROMPTS.md with 8 stunning Marble-optimized prompts + seeds for regeneration.
 - **Marble Adventure hub life**: potted plants (8), benches (4) + standing lamps (2) around the platform, rotating beacon light, 4 orbiting light orbs, pulsing floor rings / radial guides, lamp flicker - all animated in _process (verified headless: props build + 120 frames clean).
 - **Launch Marble Adventure from the webapp**: Apps page card with live status dot + Play button (POST /api/marble-adventure/launch, GET /api/marble-adventure/status; godot launched windowed with competition/.env env).
+- **Credits on status page**: GET /api/credits - live balance from /marble/v1/credits + local usage tally (per-model estimates from the account worlds list, history fallback); Status page shows balance + tally cards.
+- **Ctrl+Scroll zoom fixed**: use-zoom now uses the fleet standard (Tauri getCurrentWebview().setZoom + CSS zoom fallback, persisted in localStorage); was a broken transform-scale hack.
 - **gallery_explore search operation** + GET /api/gallery/search - keyword search (AND tokens, case-insensitive) over title/prompt/owner/tags with bounded per-tag page scans and TTL cache; tag='all' scans every tab.
 
 ### Added (Tauri desktop — June 2026)

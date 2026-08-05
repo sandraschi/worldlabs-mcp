@@ -913,6 +913,105 @@ async def generate_from_painting(req: PaintingGenerateRequest) -> dict[str, Any]
 
 
 # ---------------------------------------------------------------------------
+# Credits - live balance + local usage tally
+# ---------------------------------------------------------------------------
+
+
+def _world_credit_cost(w: dict[str, Any]) -> int:
+    """Estimate credits consumed by one world from its model + cube count.
+
+    marble-1.1: 1500 fixed. marble-1.1-plus: 1500 + 300 per dynamic cube
+    (dynamic_world_size carries the cube count when present).
+    """
+    gi = w.get("generation_input") or {}
+    model = gi.get("model", "")
+    if model == "marble-1.1":
+        return 1500
+    if model == "marble-1.1-plus":
+        cubes = gi.get("dynamic_world_size")
+        try:
+            cubes = int(cubes) if cubes is not None else 0
+        except (TypeError, ValueError):
+            cubes = 0
+        return 1500 + 300 * max(0, cubes)
+    return 0
+
+
+async def _local_credit_tally() -> dict[str, Any]:
+    """Tally generated worlds from the account list (bounded pages)."""
+    by_model: dict[str, int] = {}
+    total = 0
+    token = ""
+    generations = 0
+    try:
+        for _ in range(3):
+            body: dict = {"page_size": 50, "sort_by": "created_at", "status": "SUCCEEDED"}
+            if token:
+                body["page_token"] = token
+            data = await _wl_post("/worlds:list", body)
+            worlds = data.get("worlds", [])
+            if not worlds:
+                break
+            for w in worlds:
+                cost = _world_credit_cost(w)
+                if cost:
+                    model = (w.get("generation_input") or {}).get("model", "unknown")
+                    by_model[model] = by_model.get(model, 0) + 1
+                    total += cost
+                    generations += 1
+            token = data.get("next_page_token") or ""
+            if not token:
+                break
+    except Exception:
+        pass
+
+    if generations == 0:
+        # Fallback: local history count x base cost
+        try:
+            history = _load_history()
+            done = [op for op in history if op.get("done")]
+            generations = len(done)
+            total = generations * 1500
+            by_model = {"marble-1.1 (assumed)": generations}
+        except Exception:
+            pass
+
+    return {
+        "local_generations": generations,
+        "local_estimated_credits": total,
+        "local_by_model": by_model,
+        "local_note": (
+            "marble-1.1-plus may cost more than the 1500 base when dynamic "
+            "cubes are used; estimates use the reported cube counts."
+            if "marble-1.1-plus" in by_model
+            else "Estimates use 1500 credits per marble-1.1 world."
+        ),
+    }
+
+
+@router.get("/credits")
+async def credits_status() -> dict[str, Any]:
+    """Live World Labs credit balance + a running tally of credits used."""
+    live: float | None = None
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(f"{BASE_URL}/credits", headers=_headers())
+            if resp.status_code == 200:
+                live = float(resp.json().get("remaining_credits", 0.0))
+    except Exception:
+        pass
+
+    tally = await _local_credit_tally()
+    return {
+        "status": "ok",
+        "live_balance": live,
+        "live_source": "api" if live is not None else "unavailable",
+        "billing_url": "https://platform.worldlabs.ai/billing",
+        **tally,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Media asset queries
 # ---------------------------------------------------------------------------
 

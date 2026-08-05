@@ -6,7 +6,9 @@ export function useZoom() {
   const [zoomIndex, setZoomIndex] = useState(() => {
     try {
       const saved = localStorage.getItem("tauri-zoom");
-      return saved ? ZOOM_LEVELS.indexOf(parseFloat(saved)) : 1;
+      if (!saved) return 1;
+      const idx = ZOOM_LEVELS.indexOf(parseFloat(saved));
+      return idx >= 0 ? idx : 1;
     } catch {
       return 1;
     }
@@ -15,28 +17,13 @@ export function useZoom() {
   const applyZoom = useCallback(async (level: number) => {
     localStorage.setItem("tauri-zoom", String(level));
     try {
-      // Uses `(window as any)` to avoid Tauri type dependency in dev
-      const w = window as unknown as {
-        __TAURI__?: {
-          window: {
-            getCurrentWindow: () => { setZoom: (l: number) => Promise<void> };
-          };
-        };
-      };
-      if (w.__TAURI__?.window) {
-        const win = await Promise.resolve().then(() =>
-          w.__TAURI__!.window!.getCurrentWindow(),
-        );
-        await win.setZoom(level);
-      }
+      const { getCurrentWebview } = await import("@tauri-apps/api/webview");
+      await getCurrentWebview().setZoom(level);
+      return;
     } catch {
-      // Dev browser fallback: CSS scale on root
-      const root = document.documentElement;
-      root.style.transform = `scale(${level})`;
-      root.style.transformOrigin = "top left";
-      root.style.width = `${100 / level}%`;
-      root.style.height = `${100 / level}%`;
+      // dev browser - fall through to CSS zoom
     }
+    document.documentElement.style.zoom = String(level);
   }, []);
 
   useEffect(() => {
