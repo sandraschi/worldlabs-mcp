@@ -641,22 +641,32 @@ export function SparkViewer() {
 
       setStatus("ready");
 
-      // Center the camera on the splat's real bounds and fix Z-up splats
+      // Center the camera on the splat's real bounds and fix orientation.
+      // GPU SplatMesh ignores position/rotation without an explicit matrix
+      // update, so every transform change forces updateMatrixWorld.
       try {
         let box = splat.getBoundingBox();
-        let rotated = false;
+        let zRotated = false;
         if (!box.isEmpty()) {
           let size = box.getSize(new THREE.Vector3());
-          // Z-up splats render "on their head" in the Y-up viewer: when the
-          // bounds are flat on Y but tall on Z, rotate so Z becomes Y.
+          // Z-up splats: bounds flat on Y but tall on Z -> rotate so Z
+          // becomes Y.
           if (size.y < size.z * 0.4 && size.z > size.x * 0.8) {
             splat.rotation.x = -Math.PI / 2;
+            splat.updateMatrixWorld(true);
             box = splat.getBoundingBox();
             size = box.getSize(new THREE.Vector3());
-            rotated = true;
+            zRotated = true;
           }
           const center = box.getCenter(new THREE.Vector3());
           splat.position.sub(center);
+          splat.updateMatrixWorld(true);
+          if (!zRotated) {
+            // Y-up data but rendered inverted in this pipeline (observed on
+            // Marble SPZ) -> 180-degree flip around the horizontal axis.
+            splat.rotation.x = Math.PI;
+            splat.updateMatrixWorld(true);
+          }
           const dist = Math.max(size.x, size.z) * 1.15 + 1.5;
           const camY = Math.max(size.y * 0.55, 1.0);
           camera.position.set(0, camY, dist);
@@ -669,13 +679,24 @@ export function SparkViewer() {
             pos: camera.position.clone(),
             target: controls.target.clone(),
           };
+          (window as unknown as Record<string, unknown>).__sparkDebug = {
+            splat,
+            camera,
+            controls,
+            spark,
+          };
           console.log(
             "[SPARK-DIAG]",
             JSON.stringify({
-              rotated,
+              zRotated,
+              flipped: !zRotated,
               size: [size.x, size.y, size.z],
               camPos: [camera.position.x, camera.position.y, camera.position.z],
               target: [controls.target.x, controls.target.y, controls.target.z],
+              matrix: Array.from(
+                splat.matrixWorld.elements.slice(0, 4),
+                (n) => Math.round(n * 100) / 100,
+              ),
             }),
           );
         } else {
