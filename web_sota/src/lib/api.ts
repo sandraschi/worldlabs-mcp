@@ -426,6 +426,8 @@ export const api = {
     post<ExportResult>("/export/unity3d", req),
   exportToResonite: (req: ExportRequest) =>
     post<ExportResult>("/export/resonite", req),
+  exportToOverte: (req: ExportRequest) =>
+    post<ExportResult>("/export/overte", req),
 
   // Unified Handoff
   handoffAsset: (req: HandoffRequest) => post<ExportResult>("/handoff", req),

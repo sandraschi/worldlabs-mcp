@@ -1059,6 +1059,23 @@ export function SparkViewer() {
     await updateCacheSize();
   }
 
+  async function handleOverteSpawn() {
+    const key = "overte-spawn";
+    setExportState((s) => ({ ...s, [key]: "loading" }));
+    try {
+      const res = await api.exportToOverte({
+        world_id: worldId,
+        world_name: worldName || "WorldLabs_World",
+        spz_url: urlInput,
+      });
+      const ok = res.status === "ok" || res.status === "ok_simulated";
+      setExportState((s) => ({ ...s, [key]: ok ? "ok" : "error" }));
+    } catch {
+      setExportState((s) => ({ ...s, [key]: "error" }));
+    }
+    setTimeout(() => setExportState((s) => ({ ...s, [key]: "idle" })), 3500);
+  }
+
   function handleSpawnConsole(data: any) {
     if (!sceneRef.current || !consoleCanvasRef.current) return;
 
@@ -2067,6 +2084,39 @@ export function SparkViewer() {
                     </div>
                   </div>
                 ))}
+                {/* Step into Overte - spawns mesh + viewer panel in a domain */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-300">
+                      Overte (step in)
+                    </span>
+                    <span className="text-xs text-slate-300">:11110</span>
+                  </div>
+                  {(() => {
+                    const state = exportState["overte-spawn"] ?? "idle";
+                    return (
+                      <button
+                        disabled={state === "loading"}
+                        onClick={handleOverteSpawn}
+                        className={cn(
+                          "w-full px-2 py-1.5 rounded-lg text-xs font-bold border transition-all",
+                          state === "loading" &&
+                            "bg-amber-500/20 border-amber-500/30 text-amber-300",
+                          state === "ok" &&
+                            "bg-aurora-500/20 border-aurora-500/30 text-aurora-400",
+                          state === "error" &&
+                            "bg-red-500/20 border-red-500/30 text-red-400",
+                          state === "idle" &&
+                            "bg-white/[0.04] border-white/[0.08] text-slate-300 hover:bg-white/[0.08] hover:text-slate-200",
+                        )}
+                      >
+                        {state === "loading"
+                          ? "Spawning..."
+                          : "Spawn world in domain"}
+                      </button>
+                    );
+                  })()}
+                </div>
               </div>
             )}
           </div>

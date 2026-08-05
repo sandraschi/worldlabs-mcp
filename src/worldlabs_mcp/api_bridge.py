@@ -1496,7 +1496,7 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
             health = await client.get(f"http://127.0.0.1:{resonite_mcp_port}/health")
             if health.ok:
                 import_resp = await client.post(
-                    f"http://127.0.0.1:{resonite_mcp_port}/api/v1/import/worldlabs",
+                    f"http://127.0.0.1:{resonite_mcp_port}/api/resonite/integrations/worldlabs",
                     json={
                         "splat_url": local_splat_url,
                         "mesh_url": local_mesh_url,
@@ -1550,6 +1550,133 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
         }
     except Exception as e:
         return {"status": "error", "world_id": world_id, "detail": str(e)}
+
+
+# ---------------------------------------------------------------------------
+# Overte export - step INTO a Marble world inside an Overte domain
+# ---------------------------------------------------------------------------
+
+
+@router.post("/export/overte")
+async def export_to_overte(req: ExportRequest) -> dict[str, Any]:
+    """Spawn a Marble world inside an Overte domain so you can walk through it.
+
+    Two entities are spawned via the overte-mcp bridge (port 11110,
+    /api/overte/spawn - the same endpoint overte-mcp's own tool uses):
+
+    1. **Model entity** - the world's collision mesh GLB (proxied through
+       /api/handoff so Overte can fetch it) placed at the origin. Your
+       avatar walks through the world's actual geometry.
+    2. **Web entity panel** - a floating 4x2.5m screen at [-0, 1.8, -3]
+       showing the full-quality splat world on marble.worldlabs.ai.
+
+    Requires: overte-mcp running (`uv run overte-mcp`), an Overte domain
+    server (default :40100), and `scripts/overte-mcp-bridge.js` connected
+    inside an Overte Interface client. Results are passed through - overte-mcp
+    labels responses `source: simulated` when the bridge is not connected.
+    """
+    overte_port = int(os.getenv("OVERTE_MCP_PORT", "11110"))
+    bridge_url = os.getenv("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
+    world_id = req.world_id or ""
+    world_name = req.world_name or "WorldLabs_World"
+    local_mesh_url = f"{bridge_url}/api/handoff?url={req.mesh_url}" if req.mesh_url else ""
+    marble_world_url = f"https://marble.worldlabs.ai/world/{world_id}" if world_id else ""
+
+    # If no mesh URL was supplied, fetch the world's mesh asset from the Marble API
+    if not req.mesh_url and world_id:
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                wresp = await client.get(
+                    f"https://api.worldlabs.ai/api/v1/worlds/{world_id}",
+                    headers={"Referer": "https://marble.worldlabs.ai/"},
+                )
+                if wresp.ok:
+                    wdata = wresp.json()
+                    go = wdata.get("generation_output") or {}
+                    mesh_url = go.get("full_res_mesh_url") or go.get("hq_mesh_url") or go.get("collider_mesh_url") or ""
+                    if mesh_url:
+                        local_mesh_url = f"{bridge_url}/api/handoff?url={mesh_url}"
+        except Exception:
+            pass
+
+    try:
+        async with httpx.AsyncClient(timeout=6) as client:
+            health = await client.get(f"http://127.0.0.1:{overte_port}/health")
+            if health.status_code != 200:
+                return {
+                    "status": "error",
+                    "target": "overte",
+                    "message": (
+                        f"overte-mcp not reachable on port {overte_port} "
+                        f"(health {health.status_code}). Start it with 'uv run overte-mcp', "
+                        "launch the Overte domain-server (:40100), and connect an Interface "
+                        "client with scripts/overte-mcp-bridge.js."
+                    ),
+                }
+    except Exception as e:
+        return {
+            "status": "error",
+            "target": "overte",
+            "message": f"overte-mcp not reachable on port {overte_port}: {e}. Start it with 'uv run overte-mcp'.",
+        }
+
+    results: list[dict[str, Any]] = []
+
+    async def _spawn(name: str, etype: str, position: list[float], scale: list[float], url: str) -> dict[str, Any]:
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(
+                f"http://127.0.0.1:{overte_port}/api/overte/spawn",
+                json={
+                    "name": name,
+                    "type": etype,
+                    "position": position,
+                    "scale": scale,
+                    "model_url": url,
+                    "script_url": None,
+                    "permanent": True,
+                },
+            )
+        body: Any = resp.text
+        try:
+            body = resp.json()
+        except Exception:
+            pass
+        return {"entity": etype.lower(), "http": resp.status_code, "body": body}
+
+    if local_mesh_url:
+        results.append(
+            await _spawn(f"MarbleWorld-{world_name}", "Model", [0.0, 0.0, 0.0], [1.0, 1.0, 1.0], local_mesh_url)
+        )
+    if marble_world_url:
+        results.append(
+            await _spawn(f"MarbleViewer-{world_name}", "Web", [0.0, 1.8, -3.0], [4.0, 2.5, 0.1], marble_world_url)
+        )
+
+    failed = [r for r in results if r["http"] >= 400]
+    simulated = [r for r in results if isinstance(r["body"], dict) and r["body"].get("source") == "simulated"]
+
+    if failed:
+        status = "error"
+        message = f"{len(failed)} entity spawn(s) failed - check overte-mcp logs."
+    elif simulated:
+        status = "ok_simulated"
+        message = (
+            "Entities reported as simulated - connect scripts/overte-mcp-bridge.js "
+            "inside an Overte Interface client for a live spawn."
+        )
+    else:
+        status = "ok"
+        message = f"Spawned {len(results)} entity/entities in Overte."
+
+    return {
+        "status": status,
+        "message": message,
+        "target": "overte",
+        "world_id": world_id,
+        "mesh_url": local_mesh_url,
+        "marble_url": marble_world_url,
+        "results": results,
+    }
 
 
 # SSRF guard for the handoff proxy: only fetch from known asset hosts.

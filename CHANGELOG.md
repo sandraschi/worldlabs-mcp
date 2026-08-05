@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Temple of Sacred Statues, Tokyo Vinyl Bar, Bayou PI Office, Orbital Research Station,
   Rustic Cabin Winter) - each credited to its original creator.
 - **scripts/gallery_scrape.py** - polite bounded scraper for the same public API.
+- **Step into Marble worlds**: fixed resonite-mcp import endpoint mismatch (now calls the real /api/resonite/integrations/worldlabs); new POST /api/export/overte spawns the world's GLB mesh + viewer panel in an Overte domain via the overte-mcp bridge (auto-fetches mesh from the Marble API when not supplied); spark-viewer gained a 'Spawn world in domain' button.
+- **Marble Adventure hero worlds**: authored competition/marble-adventure/WORLD_PROMPTS.md with 8 stunning Marble-optimized prompts + seeds for regeneration.
 - **gallery_explore search operation** + GET /api/gallery/search - keyword search (AND tokens, case-insensitive) over title/prompt/owner/tags with bounded per-tag page scans and TTL cache; tag='all' scans every tab.
 
 ### Added (Tauri desktop — June 2026)
