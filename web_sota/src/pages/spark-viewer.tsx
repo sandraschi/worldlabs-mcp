@@ -661,12 +661,6 @@ export function SparkViewer() {
           const center = box.getCenter(new THREE.Vector3());
           splat.position.sub(center);
           splat.updateMatrixWorld(true);
-          if (!zRotated) {
-            // Y-up data but rendered inverted in this pipeline (observed on
-            // Marble SPZ) -> 180-degree flip around the horizontal axis.
-            splat.rotation.x = Math.PI;
-            splat.updateMatrixWorld(true);
-          }
           const dist = Math.max(size.x, size.z) * 1.15 + 1.5;
           const camY = Math.max(size.y * 0.55, 1.0);
           camera.position.set(0, camY, dist);
@@ -689,14 +683,9 @@ export function SparkViewer() {
             "[SPARK-DIAG]",
             JSON.stringify({
               zRotated,
-              flipped: !zRotated,
               size: [size.x, size.y, size.z],
               camPos: [camera.position.x, camera.position.y, camera.position.z],
               target: [controls.target.x, controls.target.y, controls.target.z],
-              matrix: Array.from(
-                splat.matrixWorld.elements.slice(0, 4),
-                (n) => Math.round(n * 100) / 100,
-              ),
             }),
           );
         } else {

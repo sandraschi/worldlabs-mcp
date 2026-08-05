@@ -31,14 +31,12 @@ export function Dashboard() {
     <div data-testid="dashboard" className="space-y-8 pb-10 relative isolate">
       {/* SOTA Background Aesthetics - Refined for content area only */}
       <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-cyan-900/10 blur-[150px] rounded-full" />
-        <div className="absolute bottom-[0%] right-[-10%] w-[45%] h-[45%] bg-blue-900/10 blur-[180px] rounded-full" />
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-cyan-900/[0.04] blur-[150px] rounded-full" />
       </div>
 
       {/* Hero Section */}
       <section className="relative overflow-hidden rounded-2xl bg-black/40 border border-slate-800 shadow-lg group backdrop-blur-md">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 via-transparent to-blue-600/20 opacity-50 group-hover:opacity-100 transition-opacity" />
-        <div className="absolute -top-16 -right-16 w-64 h-64 bg-cyan-500/10 blur-[100px] rounded-full animate-pulse" />
 
         <div className="relative px-6 py-8 md:px-8 md:py-10 max-w-3xl">
           <div className="flex flex-wrap items-center gap-3 mb-4">
