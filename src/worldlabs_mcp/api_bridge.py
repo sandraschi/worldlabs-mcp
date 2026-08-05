@@ -887,13 +887,25 @@ class PaintingGenerateRequest(BaseModel):
 
 @router.post("/paintings/generate")
 async def generate_from_painting(req: PaintingGenerateRequest) -> dict[str, Any]:
-    """Generate a 3D world from a painting in the local collection."""
+    """Generate a 3D world from a painting in the local collection.
+
+    The prompt ALWAYS names the painting and its artist (artist = folder,
+    title = filename): `Painting: {title} by {artist}. {user prompt}`.
+    Note: Marble recaptions prompts server-side and may filter or rewrite
+    certain names (modern artists with active estates, e.g. H.R. Giger).
+    API rejections pass through with their detail intact.
+    """
     img = _resolve_painting(req.path)
+    artist = img.parent.name
+    title = img.stem
+    composed = f"Painting: {title} by {artist}."
+    if req.prompt:
+        composed += f" {req.prompt}"
     data = await _generate_from_upload_bytes(
         img.name,
         img.read_bytes(),
-        prompt=req.prompt,
-        name=req.name or img.stem,
+        prompt=composed,
+        name=req.name or title,
         model=req.model,
         is_panorama=req.is_panorama,
     )

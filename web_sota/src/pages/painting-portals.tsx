@@ -39,7 +39,7 @@ export function PaintingPortals() {
       setOpId(null);
       return api.generateImage(
         painting.imageUrl,
-        painting.caption,
+        `${painting.title} by ${painting.artist} (${painting.year}). ${painting.caption}`,
         painting.title,
         "marble-1.1",
         false,

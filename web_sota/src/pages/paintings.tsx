@@ -111,7 +111,7 @@ export function LocalPaintings() {
 
   const pick = useCallback((f: PaintingFile) => {
     setSelected(f);
-    setPrompt("");
+    setPrompt(`Painting: ${f.name} by ${f.path.split("/")[0]}.`);
     setOpId(null);
     setOpStatus(null);
     setWorldUrl(null);
@@ -233,10 +233,16 @@ export function LocalPaintings() {
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Optional text prompt to guide the world (style, atmosphere, scene focus)..."
+              placeholder="Painting name and artist are always included. Add style, atmosphere, scene focus..."
               rows={3}
               className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-aurora-500/50"
             />
+            <p className="text-[10px] text-slate-600">
+              The painting title and artist are always sent. Marble recaptions
+              prompts server-side and may filter some names (e.g. artists with
+              active estates like H.R. Giger) — rejections surface the API's
+              message.
+            </p>
 
             <div className="flex items-center gap-2">
               <button
