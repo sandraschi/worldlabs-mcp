@@ -34,19 +34,18 @@ export function Dashboard() {
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-cyan-900/[0.04] blur-[150px] rounded-full" />
       </div>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-2xl bg-black/40 border border-slate-800 shadow-lg group backdrop-blur-md">
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 via-transparent to-blue-600/20 opacity-50 group-hover:opacity-100 transition-opacity" />
-
-        <div className="relative px-6 py-8 md:px-8 md:py-10 max-w-3xl">
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 via-transparent to-blue-600/10" />
+        <div className="relative py-10">
           <div className="flex flex-wrap items-center gap-3 mb-4">
-            <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold text-cyan-400 border border-cyan-500/20 backdrop-blur-md uppercase tracking-wide">
+            <span className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold text-cyan-400 border border-cyan-500/20 uppercase tracking-wide">
               <Zap className="h-3 w-3 fill-cyan-400" />
-              World Labs · Marble · Chisel
-            </div>
-            <div
+              Marble · Spark 2.0 · Chisel
+            </span>
+            <span
               data-testid="backend-dot"
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold backdrop-blur-md border ${
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold border ${
                 backend.ok === null
                   ? "bg-gray-500/10 text-gray-400 border-gray-500/20"
                   : backend.ok
@@ -69,9 +68,9 @@ export function Dashboard() {
                 : backend.ok
                   ? "Connected"
                   : "Offline"}
-            </div>
+            </span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-4 leading-tight">
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-4 leading-tight max-w-3xl">
             Generate{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-500">
               Infinite Worlds
