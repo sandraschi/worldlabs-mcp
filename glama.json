@@ -6,7 +6,7 @@
   "type": "mcp_server",
   "status": "beta",
   "framework": "FastMCP 3.4+",
-  "tools": 20,
+  "tools": 21,
   "transport": ["stdio"],
   "keywords": [
     "worldlabs",
@@ -128,7 +128,10 @@
     "media_asset_inventory": {
       "enabled": true,
       "description": "GET /api/media-assets/{id} endpoint for querying uploaded media asset metadata"
+    },
+    "community_gallery": {
+      "enabled": true,
+      "description": "gallery_explore MCP tool + /api/gallery browse & keyword search over public marble.worldlabs.ai worlds (prompts, seeds, SPZ assets); 10 presets mined from showpieces"
     }
   }
 }
-

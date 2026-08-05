@@ -1,7 +1,7 @@
 # worldlabs-mcp — Full LLM Integration Manifest
 
 > MCP server wrapping the World Labs Marble API for 3D world generation and the Spark 2.0 spatial viewer.
-> Version: 0.4.0 | License: MIT | Author: Sandra Schipal
+> Version: 0.5.0 | License: MIT | Author: Sandra Schipal
 
 ## What this server does
 
@@ -93,6 +93,20 @@ Requires Ollama running at OLLAMA_URL (default: http://localhost:11434).
 Structured API reference at three detail levels: "quick", "standard", "verbose".
 topic filters by group: generate, upload, poll, world, spatial, meta.
 
+### Community Gallery Tools
+
+**gallery_explore(operation, tag="curated", world_id="", query="", page_size=10, max_pages=5, page_token="")**
+Portmanteau for the public Marble community gallery (marble.worldlabs.ai):
+- browse  — list public worlds by tag (curated, stylized, realism, interior, hq, fantasy, sci-fi);
+  entries carry the creator's original prompt, seed, owner, like count, SPZ/minimap asset URLs,
+  and a marble.worldlabs.ai/world/{id} link. Paginated via next_page_token.
+- world   — full detail for one world by UUID.
+- prompts — compact prompt-mining list (title, owner, seed, prompt, url) for a tag.
+- search  — keyword search across title/prompt/owner/tags; all query tokens must match
+  (case-insensitive AND). Tag 'all' scans every tab. Bounded by max_pages per tag (polite).
+  Example: gallery_explore(operation="search", query="cyberpunk", tag="sci-fi").
+Attribution: prompts are the creators' originals — credit owners when reusing.
+
 ## Typical Workflow
 
 1. `generate_world_from_text(text_prompt="...")` → returns {operation_id, name, done: false}
@@ -181,6 +195,8 @@ POST /api/scenes/bake            — Save/overwrite a scene manifest
 DELETE /api/scenes/{id}          — Delete scene manifest
 GET  /api/plex/search            — Search Plex library
 GET  /api/plex/stream_url        — Get authenticated Plex stream URL
+GET  /api/gallery                — Browse public Marble community gallery (tag, page_size, page_token; 60s cache)
+GET  /api/gallery/search         — Keyword search over gallery entries (query, tag or 'all', limit, max_pages; bounded scan)
 GET  /api/avatars/status         — Check avatar-mcp availability
 POST /api/avatars/place          — Place avatar from avatar-mcp in scene
 GET  /api/capabilities           — Runtime feature flags

@@ -20,4 +20,4 @@
 
 - [Marble API Docs](https://docs.worldlabs.ai/api)
 - [Platform Dashboard](https://platform.worldlabs.ai)
-- [Gallery](https://worldlabs.ai/gallery)
+- [Gallery](https://marble.worldlabs.ai)

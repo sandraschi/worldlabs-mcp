@@ -7,7 +7,7 @@
 ## Table of Contents
 
 - 🚀 **[Setup & Quick Start](docs/SETUP.md)** — install, API key, launch
-- 💎 **[Features & Tools](docs/FEATURES.md)** — 20 MCP tools, generation modes, spatial voice agent, export pipelines
+- 💎 **[Features & Tools](docs/FEATURES.md)** — 21 MCP tools, generation modes, spatial voice agent, export pipelines, Marble Community Gallery (browse/search public worlds + prompt mining)
 - 🏆 **[Marble Adventure](docs/COMPETITION.md)** — Godot 4.4 agent-built gallery; 5+3 Marble portals; [itch draft](https://sandraschi.itch.io/marble-adventure) · [MCD](https://github.com/sandraschi/mcp-central-docs/blob/main/docs/games/MARBLE_ADVENTURE.md)
 - 🏗️ **[Architecture](docs/ARCHITECTURE.md)** — system design, ports, data flow
 - 🎯 **[Prompt Engineering Guide](docs/PROMPT_GUIDE.md)** — artist styles, landmarks, materials, categories
@@ -27,6 +27,16 @@ just serve
 ```
 
 Opens the web dashboard at `http://localhost:10864`. Get your API key at [platform.worldlabs.ai/api-keys](https://platform.worldlabs.ai/api-keys).
+
+## Ports
+
+| Port | Service |
+|------|---------|
+| 10864 | Frontend (Vite webapp — dashboard, library, Marble Gallery, Reality Hub) |
+| 10865 | Backend bridge (FastAPI REST `/api/*` + MCP HTTP + SSE narration) |
+| 32400 | Plex server (optional; Cinema Worlds — `PLEX_TOKEN` in `.env`) |
+
+Stack: FastMCP 3.4+ (Python) · FastAPI · Vite + React + Tailwind · Tauri 2.0 NSIS native build (`native/`).
 
 ---
 

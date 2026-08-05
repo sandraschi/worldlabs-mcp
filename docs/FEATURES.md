@@ -8,7 +8,7 @@
 | **Spark 2.0** | Gaussian splat renderer — hierarchical LoD, virtual GPU paging, 100M+ primitives, WebXR |
 | **Chisel** | Geometry distillation — extracts watertight collision meshes (GLB) from radiance fields |
 
-## 20 MCP Tools
+## 21 MCP Tools
 
 ### World Generation (6)
 
@@ -66,6 +66,17 @@ All accept `seed` (deterministic), `tags`, and `disable_recaption`.
 | Tool | Description |
 |------|-------------|
 | `refine_with_local_llm` | Expand a short prompt via Ollama/LM Studio |
+
+### Community Gallery (1)
+
+| Tool | Description |
+|------|-------------|
+| `gallery_explore` | Portmanteau: `browse` (tag tabs), `world` (detail), `prompts` (mining list), `search` (keyword AND across title/prompt/owner/tags) |
+
+Public worlds from marble.worldlabs.ai — each entry carries the creator's original
+prompt, seed, owner, and SPZ/minimap asset URLs. Webapp page `/gallery`, bridge
+`GET /api/gallery` + `GET /api/gallery/search`, bulk script `scripts/gallery_scrape.py`.
+Prompts are the creators' originals — credit owners when reusing.
 
 ## Shipping
 
