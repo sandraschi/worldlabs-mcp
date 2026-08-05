@@ -1847,11 +1847,12 @@ export function SparkViewer() {
         </div>
       </div>
 
-      {/* Render Canvas */}
+      {/* Render Canvas - fixed 16:9 viewport (720p style) */}
       <div
         className={cn(
-          "relative flex-1 min-h-0 rounded-xl overflow-hidden border border-white/[0.06] bg-black transition-all duration-300 shadow-2xl group cursor-crosshair",
-          isFullscreen && "fixed inset-0 z-50 m-0 rounded-none border-0",
+          "relative mx-auto w-full max-w-5xl aspect-video rounded-xl overflow-hidden border border-white/[0.06] bg-black transition-all duration-300 shadow-2xl group cursor-crosshair",
+          isFullscreen &&
+            "fixed inset-0 z-50 m-0 rounded-none border-0 aspect-auto max-w-none",
         )}
         onDragOver={(e) => {
           e.preventDefault();
