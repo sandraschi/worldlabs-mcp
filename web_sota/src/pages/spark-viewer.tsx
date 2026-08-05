@@ -641,12 +641,32 @@ export function SparkViewer() {
 
       setStatus("ready");
 
-      // Spawn AT the scene: the splat's authored origin is the scene anchor.
-      // Bounding boxes are skewed by outlier splats (distant ground mist can
-      // read as a huge floor), so we do not derive the camera from them.
-      camera.position.set(0, 1.6, 4);
-      camera.lookAt(0, 1.6, 0);
-      controls.target.set(0, 1.6, 0);
+      // Spawn at the visual centroid of the splats (mean of splat positions -
+      // robust against outlier splats that skew the bounding box), eye height
+      // above it, a few units forward.
+      let cx = 0,
+        cy = 0,
+        cz = 0,
+        n = 0;
+      try {
+        splat.forEachSplat((_index, center) => {
+          cx += center.x;
+          cy += center.y;
+          cz += center.z;
+          n++;
+        });
+        if (n > 0) {
+          cx /= n;
+          cy /= n;
+          cz /= n;
+        }
+      } catch {
+        // fall back to origin
+      }
+      const eyeY = cy + 1.6;
+      camera.position.set(cx, eyeY, cz + 3);
+      camera.lookAt(cx, eyeY - 0.5, cz);
+      controls.target.set(cx, eyeY - 0.5, cz);
       controls.minDistance = 0.5;
       controls.maxDistance = 50;
       controls.update();
@@ -660,21 +680,18 @@ export function SparkViewer() {
         controls,
         spark,
       };
-      try {
-        const box = splat.getBoundingBox();
-        if (!box.isEmpty()) {
-          const size = box.getSize(new THREE.Vector3());
-          console.log(
-            "[SPARK-DIAG]",
-            JSON.stringify({
-              size: [size.x, size.y, size.z],
-              camPos: [camera.position.x, camera.position.y, camera.position.z],
-            }),
-          );
-        }
-      } catch {
-        // non-fatal
-      }
+      console.log(
+        "[SPARK-DIAG]",
+        JSON.stringify({
+          centroid: [
+            Math.round(cx * 100) / 100,
+            Math.round(cy * 100) / 100,
+            Math.round(cz * 100) / 100,
+          ],
+          splatCount: n,
+          camPos: [camera.position.x, camera.position.y, camera.position.z],
+        }),
+      );
 
       // 5. Initialize Geofencing for the demo asset
       if (loadedName.includes("Tropical Luxury Residence")) {
