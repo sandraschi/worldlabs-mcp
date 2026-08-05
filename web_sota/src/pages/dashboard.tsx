@@ -1,6 +1,7 @@
-import { Activity, Box, Globe, Wand2, Zap } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { Activity, Box, Globe, Wand2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 
 function useHealthPoll() {
@@ -26,6 +27,30 @@ function useHealthPoll() {
 export function Dashboard() {
   useHealthPoll();
   const backend = useAppStore((s) => s.backend);
+  const [toolCount, setToolCount] = useState<number | null>(null);
+  const [credits, setCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [sys, cred] = await Promise.all([
+          api.systemInfo().catch(() => null),
+          api.credits().catch(() => null),
+        ]);
+        if (cancelled) return;
+        if (sys && typeof sys.tools?.length === "number")
+          setToolCount(sys.tools.length);
+        if (cred && typeof cred.live_balance === "number")
+          setCredits(cred.live_balance);
+      } catch {
+        // non-fatal - dashboard still renders
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div data-testid="dashboard" className="space-y-8 pb-10 relative isolate">
@@ -37,12 +62,8 @@ export function Dashboard() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 via-transparent to-blue-600/10" />
-        <div className="relative py-10">
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <span className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold text-cyan-400 border border-cyan-500/20 uppercase tracking-wide">
-              <Zap className="h-3 w-3 fill-cyan-400" />
-              Marble · Spark 2.0 · Chisel
-            </span>
+        <div className="relative py-8">
+          <div className="flex items-center gap-2 mb-3">
             <span
               data-testid="backend-dot"
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold border ${
@@ -70,69 +91,28 @@ export function Dashboard() {
                   : "Offline"}
             </span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-4 leading-tight max-w-3xl">
-            Generate{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-500">
-              Infinite Worlds
-            </span>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-3">
+            World Labs MCP
           </h1>
-          <div className="space-y-3 mb-6 max-w-2xl text-sm md:text-base leading-relaxed">
-            <p className="text-slate-300">
-              Your fleet control plane for{" "}
-              <a
-                href="https://worldlabs.ai"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-cyan-400 hover:text-cyan-300 underline-offset-2 hover:underline"
-              >
-                worldlabs.ai
-              </a>
-              . <span className="text-slate-400">Use </span>
-              <span className="font-semibold text-white">Marble</span>
-              <span className="text-slate-400">
-                {" "}
-                to reconstruct radiance-field worlds from prompts, reference
-                images, and video — then stream them in Spark 2.0 or open them
-                on{" "}
-              </span>
-              <a
-                href="https://marble.worldlabs.ai"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-cyan-400 hover:text-cyan-300 underline-offset-2 hover:underline"
-              >
-                marble.worldlabs.ai
-              </a>
-              <span className="text-slate-400">.</span>
-            </p>
-            <p className="text-slate-400">
-              <span className="font-semibold text-white">Chisel</span> distills
-              watertight collision geometry from those splats for engines and VR
-              — export GLB/OBJ to Blender, Unity, and Resonite, or run the same
-              jobs from MCP tools and this dashboard (
-              <Link
-                to="/chisel"
-                className="text-void-400 hover:text-void-300 underline-offset-2 hover:underline"
-              >
-                Chisel pipeline
-              </Link>
-              , Architect, Library).
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
+          <p className="text-slate-400 max-w-2xl text-sm md:text-base leading-relaxed">
+            Generate 3D worlds from text, images, or video — then view them in
+            the Spark viewer, browse the community gallery, or launch the Marble
+            Adventure hub.
+          </p>
+          <div className="flex flex-wrap gap-3 mt-6">
             <Link
               to="/architect"
-              className="flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-black hover:bg-cyan-50 transition-colors shadow-md shadow-cyan-500/10 no-underline"
+              className="flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-black hover:bg-cyan-50 transition-colors no-underline"
             >
               <Wand2 className="h-4 w-4" />
-              Launch Architect
+              Generate a world
             </Link>
             <Link
               to="/library"
-              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition-colors backdrop-blur-md no-underline"
+              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition-colors no-underline"
             >
               <Globe className="h-4 w-4" />
-              Browse Library
+              Browse library
             </Link>
           </div>
         </div>
@@ -174,12 +154,16 @@ export function Dashboard() {
             Tools
           </div>
           <div className="text-sm font-medium text-white">
-            {backend.ok ? "12+ MCP tools" : backend.ok === null ? "..." : "--"}
+            {toolCount !== null
+              ? `${toolCount} MCP tools`
+              : backend.ok === null
+                ? "..."
+                : "--"}
           </div>
         </div>
         <div
           data-testid="kpi-marble"
-          className="rounded-xl border border-slate-800 bg-slate-900/30 p-4 backdrop-blur-sm"
+          className="rounded-xl border border-slate-800 bg-slate-900/30 p-4"
         >
           <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
             Marble API
@@ -194,92 +178,71 @@ export function Dashboard() {
           </div>
         </div>
         <div
-          data-testid="kpi-spark"
-          className="rounded-xl border border-slate-800 bg-slate-900/30 p-4 backdrop-blur-sm"
+          data-testid="kpi-credits"
+          className="rounded-xl border border-slate-800 bg-slate-900/30 p-4"
         >
           <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
-            Spark Engine
+            Credits left
           </div>
-          <div className="flex items-center gap-2">
-            <span
-              className={`w-2 h-2 rounded-full ${backend.ok ? "bg-aurora-400" : "bg-gray-500"}`}
-            />
-            <span className="text-sm font-medium text-white">
-              {backend.ok ? "Available" : "N/A"}
-            </span>
+          <div className="text-sm font-medium text-white">
+            {credits !== null
+              ? credits.toLocaleString()
+              : backend.ok
+                ? "loading..."
+                : "—"}
           </div>
         </div>
       </div>
 
-      {/* Feature Grid */}
-      <div className="grid gap-6 md:grid-cols-4">
+      {/* Quick actions */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Link
-          to="/chisel"
-          className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-void-500/50 transition-all group no-underline text-left"
+          to="/architect"
+          className="rounded-xl border border-slate-800 bg-slate-900/30 p-5 hover:border-cyan-500/40 hover:bg-slate-900/50 transition-all group no-underline text-left"
         >
-          <Box className="h-12 w-12 text-void-400 mb-6 group-hover:scale-110 transition-transform" />
-          <h3 className="text-xl font-bold text-white mb-3 tracking-tight">
-            Geometry Proxy
+          <Wand2 className="h-6 w-6 text-cyan-400 mb-3" />
+          <h3 className="text-sm font-bold text-white mb-1">
+            Generate a world
           </h3>
-          <p className="text-slate-400 leading-snug">
-            Auto-generate optimized collision meshes for game engines via{" "}
-            <strong>Chisel</strong>.
+          <p className="text-xs text-slate-500 leading-relaxed">
+            From text, an image, or video.
           </p>
         </Link>
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-blue-500/50 transition-all group">
-          <Sparkles className="h-12 w-12 text-blue-400 mb-6 group-hover:scale-110 transition-transform" />
-          <h3 className="text-xl font-bold text-white mb-3 tracking-tight">
-            Multimodal Orchestration
-          </h3>
-          <p className="text-slate-400 leading-snug">
-            Trigger spatial audio, video textures, and avatars via SSE.
-          </p>
-        </div>
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-indigo-500/50 transition-all group">
-          <Activity className="h-12 w-12 text-indigo-400 mb-6 group-hover:scale-110 transition-transform" />
-          <h3 className="text-xl font-bold text-white mb-3 tracking-tight">
-            Sovereign Intelligence
-          </h3>
-          <p className="text-slate-400 leading-snug">
-            Optimize world prompts with local LLMs (Ollama/LM Studio).
-          </p>
-        </div>
         <Link
-          to="/spark-v2"
-          className="rounded-3xl border border-slate-800 bg-slate-900/30 p-8 backdrop-blur-sm hover:border-cosmos-500/50 transition-all group no-underline text-left"
+          to="/library"
+          className="rounded-xl border border-slate-800 bg-slate-900/30 p-5 hover:border-cyan-500/40 hover:bg-slate-900/50 transition-all group no-underline text-left"
         >
-          <Zap className="h-12 w-12 text-cosmos-400 mb-6 group-hover:scale-110 transition-transform" />
-          <h3 className="text-xl font-bold text-white mb-3 tracking-tight">
-            Spark 2.0 Engine
+          <Box className="h-6 w-6 text-void-400 mb-3" />
+          <h3 className="text-sm font-bold text-white mb-1">World library</h3>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Browse and open your generated worlds.
+          </p>
+        </Link>
+        <Link
+          to="/gallery"
+          className="rounded-xl border border-slate-800 bg-slate-900/30 p-5 hover:border-cyan-500/40 hover:bg-slate-900/50 transition-all group no-underline text-left"
+        >
+          <Globe className="h-6 w-6 text-aurora-400 mb-3" />
+          <h3 className="text-sm font-bold text-white mb-1">
+            Community gallery
           </h3>
-          <p className="text-slate-400 leading-snug">
-            LoD Gaussian Splatting with 100M+ point budget and `.RAD` streaming.
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Browse and search public Marble worlds.
+          </p>
+        </Link>
+        <Link
+          to="/apps"
+          className="rounded-xl border border-slate-800 bg-slate-900/30 p-5 hover:border-cyan-500/40 hover:bg-slate-900/50 transition-all group no-underline text-left"
+        >
+          <Activity className="h-6 w-6 text-indigo-400 mb-3" />
+          <h3 className="text-sm font-bold text-white mb-1">
+            Marble Adventure
+          </h3>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Launch the game hub, or open the apps list.
           </p>
         </Link>
       </div>
     </div>
-  );
-}
-
-function Sparkles(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-      <path d="M5 3v4" />
-      <path d="M19 17v4" />
-      <path d="M3 5h4" />
-      <path d="M17 19h4" />
-    </svg>
   );
 }

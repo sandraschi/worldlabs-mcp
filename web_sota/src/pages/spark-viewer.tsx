@@ -641,31 +641,20 @@ export function SparkViewer() {
 
       setStatus("ready");
 
-      // Center the camera on the splat's real bounds and fix orientation.
-      // GPU SplatMesh ignores position/rotation without an explicit matrix
-      // update, so every transform change forces updateMatrixWorld.
+      // Frame the camera on the splat's real bounds. The splat itself is left
+      // untouched - GPU SplatMesh ignores position/rotation changes in the
+      // SparkRenderer pipeline, so mutating it only breaks the render.
       try {
-        let box = splat.getBoundingBox();
-        let zRotated = false;
+        const box = splat.getBoundingBox();
         if (!box.isEmpty()) {
-          let size = box.getSize(new THREE.Vector3());
-          // Z-up splats: bounds flat on Y but tall on Z -> rotate so Z
-          // becomes Y.
-          if (size.y < size.z * 0.4 && size.z > size.x * 0.8) {
-            splat.rotation.x = -Math.PI / 2;
-            splat.updateMatrixWorld(true);
-            box = splat.getBoundingBox();
-            size = box.getSize(new THREE.Vector3());
-            zRotated = true;
-          }
+          const size = box.getSize(new THREE.Vector3());
           const center = box.getCenter(new THREE.Vector3());
-          splat.position.sub(center);
-          splat.updateMatrixWorld(true);
           const dist = Math.max(size.x, size.z) * 1.15 + 1.5;
-          const camY = Math.max(size.y * 0.55, 1.0);
-          camera.position.set(0, camY, dist);
-          camera.lookAt(0, camY * 0.9, 0);
-          controls.target.set(0, camY * 0.9, 0);
+          const camY = center.y + Math.max(size.y * 0.55, 1.0);
+          const targetY = center.y + Math.max(size.y * 0.45, 0.5);
+          camera.position.set(center.x, camY, center.z + dist);
+          camera.lookAt(center.x, targetY, center.z);
+          controls.target.set(center.x, targetY, center.z);
           controls.minDistance = Math.max(0.5, size.y * 0.15);
           controls.maxDistance = Math.max(30, Math.max(size.x, size.z) * 4);
           controls.update();
@@ -682,8 +671,8 @@ export function SparkViewer() {
           console.log(
             "[SPARK-DIAG]",
             JSON.stringify({
-              zRotated,
               size: [size.x, size.y, size.z],
+              center: [center.x, center.y, center.z],
               camPos: [camera.position.x, camera.position.y, camera.position.z],
               target: [controls.target.x, controls.target.y, controls.target.z],
             }),
@@ -692,7 +681,7 @@ export function SparkViewer() {
           console.warn("[SPARK-DIAG] empty bounding box");
         }
       } catch (e) {
-        logger.warn("Splat centering failed", { error: String(e) });
+        logger.warn("Splat framing failed", { error: String(e) });
       }
 
       // 5. Initialize Geofencing for the demo asset
