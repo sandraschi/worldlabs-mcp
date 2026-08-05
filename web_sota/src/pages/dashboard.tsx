@@ -62,7 +62,7 @@ export function Dashboard() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 via-transparent to-blue-600/10" />
-        <div className="relative py-8">
+        <div className="relative pt-1 pb-8">
           <div className="flex items-center gap-2 mb-3">
             <span
               data-testid="backend-dot"
