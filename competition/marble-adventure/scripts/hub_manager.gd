@@ -13,6 +13,13 @@ var portal_configs: Array[Dictionary] = []
 var _orb_mesh: MeshInstance3D = null
 var _orb_particles: GPUParticles3D = null
 var _portal_nodes: Dictionary = {}
+var _floor_ring_mats: Array = []
+var _guide_mats: Array = []
+var _lamp_lights: Array = []
+var _beacon: OmniLight3D = null
+var _beacon_orb: MeshInstance3D = null
+var _orbit_orbs: Array = []
+var _blink_time := 0.0
 
 
 func _ready() -> void:
@@ -24,6 +31,9 @@ func _ready() -> void:
 	_build_kiosks()
 	_build_architect_tokens()
 	_build_atmosphere()
+	_build_plants()
+	_build_furniture()
+	_build_blinkenlights()
 	_build_starfield()
 	_setup_hub_audio()
 
@@ -88,6 +98,7 @@ func _build_floor() -> void:
 		ring_mat.emission_energy_multiplier = 1.2 + ring_idx * 0.4
 		ring_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		ring.set_surface_override_material(0, ring_mat)
+		_floor_ring_mats.append(ring_mat)
 		add_child(ring)
 
 
@@ -216,6 +227,7 @@ func _add_radial_guide(portal_pos: Vector3, color: Color) -> void:
 	mat.emission_energy_multiplier = 1.2
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	guide.set_surface_override_material(0, mat)
+	_guide_mats.append(mat)
 	add_child(guide)
 
 
@@ -642,3 +654,249 @@ func _on_access_ready() -> void:
 			if cfg.get("id", "") == portal_id:
 				node.view_url = cfg.get("view_url", node.view_url)
 				break
+
+
+# ---------------------------------------------------------------------------
+# Hub life: plants, furniture, blinkenlights
+# ---------------------------------------------------------------------------
+
+func _process(delta: float) -> void:
+	_blink_time += delta
+	var t := _blink_time
+	# Floor rings pulse in slow waves
+	for i in _floor_ring_mats.size():
+		var m: StandardMaterial3D = _floor_ring_mats[i]
+		m.emission_energy_multiplier = 1.2 + i * 0.4 + sin(t * 1.6 + i * 1.1) * 0.5
+	# Radial guides breathe
+	for i in _guide_mats.size():
+		var m: StandardMaterial3D = _guide_mats[i]
+		m.emission_energy_multiplier = 1.2 + sin(t * 2.2 + i * 0.8) * 0.55
+	# Standing lamps flicker softly
+	for i in _lamp_lights.size():
+		(_lamp_lights[i] as OmniLight3D).light_energy = 1.5 + sin(t * 3.1 + i * 2.0) * 0.4
+	# Rotating beacon sweeps the platform rim
+	if _beacon:
+		var a := t * 0.55
+		var p := Vector3(cos(a) * 5.8, 2.35, sin(a) * 5.8)
+		_beacon.position = p
+		if _beacon_orb:
+			_beacon_orb.position = p
+	# Light orbs orbit the centerpiece, bobbing
+	for o in _orbit_orbs:
+		var a: float = t * float(o.speed) + float(o.phase)
+		var px := Vector3(cos(a) * float(o.radius), float(o.y) + sin(t * 0.9 + float(o.phase)) * 0.25, sin(a) * float(o.radius))
+		o.mesh.position = px
+		o.mat.emission_energy_multiplier = float(o.base) + sin(t * 2.5 + float(o.phase)) * float(o.pulse)
+
+
+func _make_potted_plant(index: int) -> Node3D:
+	var root := Node3D.new()
+	root.name = "Plant_%02d" % index
+	var pot := MeshInstance3D.new()
+	var pcyl := CylinderMesh.new()
+	pcyl.top_radius = 0.28
+	pcyl.bottom_radius = 0.2
+	pcyl.height = 0.5
+	pot.mesh = pcyl
+	pot.position = Vector3(0, 0.25, 0)
+	var pmat := StandardMaterial3D.new()
+	pmat.albedo_color = Color(0.13, 0.11, 0.09)
+	pmat.metallic = 0.55
+	pmat.roughness = 0.4
+	pot.set_surface_override_material(0, pmat)
+	root.add_child(pot)
+	var greens := [Color(0.12, 0.55, 0.3), Color(0.1, 0.7, 0.42), Color(0.22, 0.82, 0.52)]
+	for f in 3:
+		var leaf := MeshInstance3D.new()
+		var sph := SphereMesh.new()
+		var r := 0.34 - f * 0.08
+		sph.radius = r
+		sph.height = r * 2.0
+		leaf.mesh = sph
+		leaf.position = Vector3(0, 0.62 + f * 0.3, 0)
+		var lmat := StandardMaterial3D.new()
+		lmat.albedo_color = greens[f]
+		lmat.emission_enabled = true
+		lmat.emission = greens[f] * 0.3
+		lmat.emission_energy_multiplier = 0.5
+		lmat.roughness = 0.9
+		leaf.set_surface_override_material(0, lmat)
+		root.add_child(leaf)
+	var body := StaticBody3D.new()
+	var col := CollisionShape3D.new()
+	var cs := CylinderShape3D.new()
+	cs.radius = 0.28
+	cs.height = 0.55
+	col.shape = cs
+	col.position = Vector3(0, 0.28, 0)
+	body.add_child(col)
+	root.add_child(body)
+	return root
+
+
+func _build_plants() -> void:
+	var parent := Node3D.new()
+	parent.name = "Plants"
+	add_child(parent)
+	# 8 potted plants in the annulus between centerpiece and portal ring,
+	# offset half a portal step so they sit between the radial guides
+	for i in 8:
+		var angle := TAU * i / 8.0 + TAU / 16.0 - PI * 0.5
+		var plant := _make_potted_plant(i)
+		plant.position = Vector3(cos(angle) * 6.6, 0, sin(angle) * 6.6)
+		parent.add_child(plant)
+
+
+func _make_bench(index: int) -> Node3D:
+	var root := Node3D.new()
+	root.name = "Bench_%02d" % index
+	var wood := StandardMaterial3D.new()
+	wood.albedo_color = Color(0.24, 0.17, 0.1)
+	wood.metallic = 0.35
+	wood.roughness = 0.7
+	var metal := StandardMaterial3D.new()
+	metal.albedo_color = Color(0.3, 0.32, 0.38)
+	metal.metallic = 0.85
+	metal.roughness = 0.3
+	var seat := MeshInstance3D.new()
+	var sbox := BoxMesh.new()
+	sbox.size = Vector3(1.5, 0.1, 0.5)
+	seat.mesh = sbox
+	seat.position = Vector3(0, 0.42, 0)
+	seat.set_surface_override_material(0, wood)
+	root.add_child(seat)
+	var back := MeshInstance3D.new()
+	var bbox := BoxMesh.new()
+	bbox.size = Vector3(1.5, 0.6, 0.07)
+	back.mesh = bbox
+	back.position = Vector3(0, 0.72, -0.24)
+	back.rotation_degrees = Vector3(-6, 0, 0)
+	back.set_surface_override_material(0, wood)
+	root.add_child(back)
+	for leg_idx in 4:
+		var leg := MeshInstance3D.new()
+		var lbox := BoxMesh.new()
+		lbox.size = Vector3(0.07, 0.4, 0.07)
+		leg.mesh = lbox
+		var lx := 0.62 if leg_idx % 2 == 0 else -0.62
+		var lz := 0.18 if leg_idx < 2 else -0.18
+		leg.position = Vector3(lx, 0.2, lz)
+		leg.set_surface_override_material(0, metal)
+		root.add_child(leg)
+	var body := StaticBody3D.new()
+	var col := CollisionShape3D.new()
+	var cs := BoxShape3D.new()
+	cs.size = Vector3(1.5, 0.9, 0.55)
+	col.shape = cs
+	col.position = Vector3(0, 0.45, 0)
+	body.add_child(col)
+	root.add_child(body)
+	return root
+
+
+func _make_standing_lamp(index: int) -> Node3D:
+	var root := Node3D.new()
+	root.name = "Lamp_%02d" % index
+	var pole := MeshInstance3D.new()
+	var pcyl := CylinderMesh.new()
+	pcyl.top_radius = 0.035
+	pcyl.bottom_radius = 0.05
+	pcyl.height = 2.1
+	pole.mesh = pcyl
+	pole.position = Vector3(0, 1.05, 0)
+	var pmat := StandardMaterial3D.new()
+	pmat.albedo_color = Color(0.1, 0.12, 0.16)
+	pmat.metallic = 0.9
+	pole.set_surface_override_material(0, pmat)
+	root.add_child(pole)
+	var arm := MeshInstance3D.new()
+	var abox := BoxMesh.new()
+	abox.size = Vector3(0.55, 0.04, 0.04)
+	arm.mesh = abox
+	arm.position = Vector3(0.27, 2.05, 0)
+	arm.set_surface_override_material(0, pmat)
+	root.add_child(arm)
+	var bulb := MeshInstance3D.new()
+	var sph := SphereMesh.new()
+	sph.radius = 0.09
+	sph.height = 0.18
+	bulb.mesh = sph
+	bulb.position = Vector3(0.55, 2.05, 0)
+	var bmat := StandardMaterial3D.new()
+	bmat.albedo_color = Color(1.0, 0.9, 0.6)
+	bmat.emission_enabled = true
+	bmat.emission = Color(1.0, 0.85, 0.5)
+	bmat.emission_energy_multiplier = 5.0
+	bulb.set_surface_override_material(0, bmat)
+	root.add_child(bulb)
+	var light := OmniLight3D.new()
+	light.light_energy = 1.5
+	light.light_color = Color(1.0, 0.85, 0.55)
+	light.omni_range = 7.0
+	light.position = Vector3(0.55, 2.05, 0)
+	root.add_child(light)
+	_lamp_lights.append(light)
+	return root
+
+
+func _build_furniture() -> void:
+	var parent := Node3D.new()
+	parent.name = "Furniture"
+	add_child(parent)
+	for i in 4:
+		var angle := TAU * i / 4.0 + TAU / 8.0 - PI * 0.5
+		var bench := _make_bench(i)
+		bench.position = Vector3(cos(angle) * 7.7, 0, sin(angle) * 7.7)
+		bench.rotation_degrees = Vector3(0, rad_to_deg(angle) + 90.0, 0)
+		parent.add_child(bench)
+	for i in 2:
+		var angle := TAU * i / 2.0 + TAU / 4.0 - PI * 0.5
+		var lamp := _make_standing_lamp(i)
+		lamp.position = Vector3(cos(angle) * 8.4, 0, sin(angle) * 8.4)
+		lamp.rotation_degrees = Vector3(0, rad_to_deg(angle) + 180.0, 0)
+		parent.add_child(lamp)
+
+
+func _build_blinkenlights() -> void:
+	# Rotating beacon sweeping the platform rim
+	var beacon := OmniLight3D.new()
+	beacon.name = "Beacon"
+	beacon.light_energy = 2.6
+	beacon.light_color = Color(0.6, 0.8, 1.0)
+	beacon.omni_range = 9.0
+	add_child(beacon)
+	_beacon = beacon
+	var orb := MeshInstance3D.new()
+	var sph := SphereMesh.new()
+	sph.radius = 0.16
+	sph.height = 0.32
+	orb.mesh = sph
+	var bmat := StandardMaterial3D.new()
+	bmat.albedo_color = Color(0.7, 0.9, 1.0)
+	bmat.emission_enabled = true
+	bmat.emission = Color(0.5, 0.8, 1.0)
+	bmat.emission_energy_multiplier = 6.0
+	orb.set_surface_override_material(0, bmat)
+	add_child(orb)
+	_beacon_orb = orb
+	# Four light orbs orbiting the centerpiece, alternating cool/warm
+	for i in 4:
+		var o := MeshInstance3D.new()
+		var s2 := SphereMesh.new()
+		var rr := 0.14 + (i % 2) * 0.06
+		s2.radius = rr
+		s2.height = rr * 2.0
+		o.mesh = s2
+		var om := StandardMaterial3D.new()
+		om.emission_enabled = true
+		om.emission = Color(0.4 + i * 0.12, 0.72, 1.0) if i % 2 == 0 else Color(1.0, 0.55 + i * 0.08, 0.32)
+		om.albedo_color = om.emission
+		om.emission_energy_multiplier = 3.0
+		o.set_surface_override_material(0, om)
+		add_child(o)
+		_orbit_orbs.append({
+			"mesh": o, "mat": om,
+			"radius": 3.1 + i * 0.7, "speed": 0.5 + i * 0.22,
+			"phase": TAU * i / 4.0, "y": 1.4 + (i % 2) * 1.1,
+			"base": 3.0, "pulse": 1.2,
+		})
