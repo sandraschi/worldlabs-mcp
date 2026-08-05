@@ -641,45 +641,39 @@ export function SparkViewer() {
 
       setStatus("ready");
 
-      // Start INSIDE the world: eye height above the splat's floor, centered,
-      // looking ahead. The splat itself is left untouched.
+      // Spawn AT the scene: the splat's authored origin is the scene anchor.
+      // Bounding boxes are skewed by outlier splats (distant ground mist can
+      // read as a huge floor), so we do not derive the camera from them.
+      camera.position.set(0, 1.6, 4);
+      camera.lookAt(0, 1.6, 0);
+      controls.target.set(0, 1.6, 0);
+      controls.minDistance = 0.5;
+      controls.maxDistance = 50;
+      controls.update();
+      homePoseRef.current = {
+        pos: camera.position.clone(),
+        target: controls.target.clone(),
+      };
+      (window as unknown as Record<string, unknown>).__sparkDebug = {
+        splat,
+        camera,
+        controls,
+        spark,
+      };
       try {
         const box = splat.getBoundingBox();
         if (!box.isEmpty()) {
           const size = box.getSize(new THREE.Vector3());
-          const min = box.min;
-          const center = box.getCenter(new THREE.Vector3());
-          const eyeY = min.y + 1.6;
-          camera.position.set(center.x, eyeY, center.z + 2);
-          camera.lookAt(center.x, eyeY + 0.3, center.z + 6);
-          controls.target.set(center.x, eyeY + 0.3, center.z + 6);
-          controls.minDistance = 0.5;
-          controls.maxDistance = Math.max(50, Math.max(size.x, size.z) * 2);
-          controls.update();
-          homePoseRef.current = {
-            pos: camera.position.clone(),
-            target: controls.target.clone(),
-          };
-          (window as unknown as Record<string, unknown>).__sparkDebug = {
-            splat,
-            camera,
-            controls,
-            spark,
-          };
           console.log(
             "[SPARK-DIAG]",
             JSON.stringify({
               size: [size.x, size.y, size.z],
-              min: [min.x, min.y, min.z],
               camPos: [camera.position.x, camera.position.y, camera.position.z],
-              target: [controls.target.x, controls.target.y, controls.target.z],
             }),
           );
-        } else {
-          console.warn("[SPARK-DIAG] empty bounding box");
         }
-      } catch (e) {
-        logger.warn("Splat framing failed", { error: String(e) });
+      } catch {
+        // non-fatal
       }
 
       // 5. Initialize Geofencing for the demo asset
