@@ -641,22 +641,20 @@ export function SparkViewer() {
 
       setStatus("ready");
 
-      // Frame the camera on the splat's real bounds. The splat itself is left
-      // untouched - GPU SplatMesh ignores position/rotation changes in the
-      // SparkRenderer pipeline, so mutating it only breaks the render.
+      // Start INSIDE the world: eye height above the splat's floor, centered,
+      // looking ahead. The splat itself is left untouched.
       try {
         const box = splat.getBoundingBox();
         if (!box.isEmpty()) {
           const size = box.getSize(new THREE.Vector3());
+          const min = box.min;
           const center = box.getCenter(new THREE.Vector3());
-          const dist = Math.max(size.x, size.z) * 1.15 + 1.5;
-          const camY = center.y + Math.max(size.y * 0.55, 1.0);
-          const targetY = center.y + Math.max(size.y * 0.45, 0.5);
-          camera.position.set(center.x, camY, center.z + dist);
-          camera.lookAt(center.x, targetY, center.z);
-          controls.target.set(center.x, targetY, center.z);
-          controls.minDistance = Math.max(0.5, size.y * 0.15);
-          controls.maxDistance = Math.max(30, Math.max(size.x, size.z) * 4);
+          const eyeY = min.y + 1.6;
+          camera.position.set(center.x, eyeY, center.z + 2);
+          camera.lookAt(center.x, eyeY + 0.3, center.z + 6);
+          controls.target.set(center.x, eyeY + 0.3, center.z + 6);
+          controls.minDistance = 0.5;
+          controls.maxDistance = Math.max(50, Math.max(size.x, size.z) * 2);
           controls.update();
           homePoseRef.current = {
             pos: camera.position.clone(),
@@ -672,7 +670,7 @@ export function SparkViewer() {
             "[SPARK-DIAG]",
             JSON.stringify({
               size: [size.x, size.y, size.z],
-              center: [center.x, center.y, center.z],
+              min: [min.x, min.y, min.z],
               camPos: [camera.position.x, camera.position.y, camera.position.z],
               target: [controls.target.x, controls.target.y, controls.target.z],
             }),
