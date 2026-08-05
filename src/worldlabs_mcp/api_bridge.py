@@ -1553,6 +1553,102 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Marble Adventure - launch the Godot hub from the webapp (ensure-before-open)
+# ---------------------------------------------------------------------------
+
+MARBLE_ADVENTURE_PROJECT = str(Path(__file__).resolve().parent.parent.parent / "competition" / "marble-adventure")
+MARBLE_ADVENTURE_ENV_FILE = str(Path(__file__).resolve().parent.parent.parent / "competition" / ".env")
+
+
+def _game_is_running() -> bool:
+    try:
+        for proc in psutil.process_iter(["name", "cmdline"]):
+            name = (proc.info.get("name") or "").lower()
+            cmd = " ".join(proc.info.get("cmdline") or [])
+            if "godot" in name and "marble-adventure" in cmd:
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def _load_game_env() -> dict[str, str]:
+    env = dict(os.environ)
+    env.setdefault("MARBLE_ACCESS_MODE", "public_marble")
+    env.setdefault("SPARK_BASE_URL", "http://127.0.0.1:10864")
+    try:
+        for line in Path(MARBLE_ADVENTURE_ENV_FILE).read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            env.setdefault(key.strip(), value.strip().strip('"'))
+    except OSError:
+        pass
+    return env
+
+
+@router.get("/marble-adventure/status")
+async def marble_adventure_status() -> dict[str, Any]:
+    """Is the Marble Adventure hub currently running?"""
+    running = _game_is_running()
+    return {
+        "status": "running" if running else "stopped",
+        "running": running,
+        "project": MARBLE_ADVENTURE_PROJECT,
+    }
+
+
+@router.post("/marble-adventure/launch")
+async def marble_adventure_launch() -> dict[str, Any]:
+    """Launch the Marble Adventure Godot hub (ensure-before-open).
+
+    Starts `godot --path <project>` windowed, with env from competition/.env
+    (MARBLE_ACCESS_MODE / SPARK_BASE_URL). Returns the honest running state.
+    """
+    if _game_is_running():
+        return {
+            "status": "ok",
+            "running": True,
+            "message": "Marble Adventure is already running.",
+        }
+
+    godot = os.environ.get("GODOT_EXE", r"C:\Users\sandr\.local\bin\godot.exe")
+    if not Path(godot).is_file():
+        return {
+            "status": "error",
+            "running": False,
+            "message": f"Godot not found at {godot}. Set GODOT_EXE or install Godot.",
+        }
+
+    try:
+        subprocess.Popen(
+            [godot, "--path", MARBLE_ADVENTURE_PROJECT],
+            env=_load_game_env(),
+            cwd=MARBLE_ADVENTURE_PROJECT,
+        )
+        for _ in range(20):
+            if _game_is_running():
+                return {
+                    "status": "ok",
+                    "running": True,
+                    "message": "Marble Adventure launched.",
+                }
+            time.sleep(0.5)
+        return {
+            "status": "ok",
+            "running": False,
+            "message": "Launch command sent - the window is opening (Godot startup can take a few seconds).",
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "running": False,
+            "message": f"Failed to launch Marble Adventure: {e}",
+        }
+
+
+# ---------------------------------------------------------------------------
 # Overte export - step INTO a Marble world inside an Overte domain
 # ---------------------------------------------------------------------------
 

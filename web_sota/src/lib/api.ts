@@ -487,4 +487,15 @@ export const api = {
     get<GalleryBrowseResult>(
       `/gallery?tag=${encodeURIComponent(tag)}&page_size=${pageSize}&page_token=${encodeURIComponent(pageToken)}`,
     ),
+
+  // Marble Adventure (Godot hub)
+  marbleAdventureStatus: () =>
+    get<{ status: string; running: boolean; project?: string }>(
+      "/marble-adventure/status",
+    ),
+  marbleAdventureLaunch: () =>
+    post<{ status: string; running: boolean; message: string }>(
+      "/marble-adventure/launch",
+      {},
+    ),
 };

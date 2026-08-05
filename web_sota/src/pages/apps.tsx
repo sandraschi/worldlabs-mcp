@@ -2,11 +2,16 @@ import {
   BookOpen,
   Cpu,
   ExternalLink,
+  Gamepad2,
   Globe2,
   Grid3x3,
+  Loader2,
+  Play,
   Server,
   Wrench,
 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { api } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 
 interface AppLink {
@@ -123,6 +128,38 @@ function AppCard({ app }: { app: AppLink }) {
 }
 
 export function Apps() {
+  const [gameRunning, setGameRunning] = useState<boolean | null>(null);
+  const [launching, setLaunching] = useState(false);
+  const [launchMsg, setLaunchMsg] = useState("");
+
+  const refreshGame = useCallback(async () => {
+    try {
+      const r = await api.marbleAdventureStatus();
+      setGameRunning(r.running);
+    } catch {
+      setGameRunning(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshGame();
+    const iv = setInterval(refreshGame, 10_000);
+    return () => clearInterval(iv);
+  }, [refreshGame]);
+
+  const launchGame = async () => {
+    setLaunching(true);
+    setLaunchMsg("");
+    try {
+      const r = await api.marbleAdventureLaunch();
+      setGameRunning(r.running);
+      setLaunchMsg(r.message);
+    } catch {
+      setLaunchMsg("Launch failed - is the bridge running?");
+    }
+    setLaunching(false);
+  };
+
   return (
     <div className="space-y-6 page-enter max-w-3xl mx-auto">
       <div>
@@ -130,6 +167,69 @@ export function Apps() {
         <p className="text-sm text-slate-500 mt-0.5">
           Fleet navigation — World Labs ecosystem and local services
         </p>
+      </div>
+
+      {/* Marble Adventure launcher */}
+      <div
+        className="glass-card p-5 flex items-center gap-4"
+        data-testid="marble-adventure"
+      >
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/30 to-aurora-600/30 border border-purple-500/20 flex items-center justify-center flex-shrink-0">
+          <Gamepad2 className="w-5 h-5 text-purple-400" aria-hidden="true" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-slate-200">
+              Marble Adventure
+            </span>
+            <span
+              className={`w-2 h-2 rounded-full ${
+                gameRunning === null
+                  ? "bg-slate-500 animate-pulse"
+                  : gameRunning
+                    ? "bg-aurora-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]"
+                    : "bg-slate-600"
+              }`}
+              data-testid="marble-adventure-status"
+            />
+            <span className="text-[10px] uppercase font-mono text-slate-500">
+              {gameRunning === null
+                ? "checking"
+                : gameRunning
+                  ? "running"
+                  : "stopped"}
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+            Godot hub with 8 portal worlds. Portal worlds open in this webapp's
+            Spark viewer.
+          </p>
+          {launchMsg && (
+            <p
+              className="text-[10px] text-slate-500 mt-1"
+              data-testid="marble-adventure-message"
+            >
+              {launchMsg}
+            </p>
+          )}
+        </div>
+        <button
+          onClick={launchGame}
+          disabled={launching || gameRunning === true}
+          data-testid="marble-adventure-play"
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 ${
+            gameRunning
+              ? "bg-aurora-500/15 text-aurora-400 cursor-default"
+              : "bg-purple-500/15 text-purple-300 hover:bg-purple-500/25 border border-purple-500/20 disabled:opacity-50"
+          }`}
+        >
+          {launching ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Play className="w-3.5 h-3.5" />
+          )}
+          {gameRunning ? "Running" : launching ? "Starting..." : "Play"}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
