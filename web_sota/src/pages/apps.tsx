@@ -7,6 +7,7 @@ import {
   Server,
   Wrench,
 } from "lucide-react";
+import { useAppStore } from "@/lib/store";
 
 interface AppLink {
   title: string;
@@ -57,15 +58,21 @@ const apps: AppLink[] = [
 ];
 
 function AppCard({ app }: { app: AppLink }) {
+  const backend = useAppStore((s) => s.backend);
   const isExternal = app.badge === "External" || app.badge === "Local";
-  const Tag = isExternal ? "a" : "a";
+  const localDown = app.badge === "Local" && backend.ok === false;
+  const Tag = localDown ? "div" : "a";
   const Icon = app.icon;
 
   return (
     <Tag
-      href={app.url}
-      {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      className="glass-card-hover p-5 flex gap-4 group"
+      href={localDown ? undefined : app.url}
+      {...(isExternal && !localDown
+        ? { target: "_blank", rel: "noopener noreferrer" }
+        : {})}
+      className={`glass-card-hover p-5 flex gap-4 group ${
+        localDown ? "opacity-50 pointer-events-none" : ""
+      }`}
     >
       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cosmos-600/30 to-void-600/30 border border-cosmos-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
         <Icon className="w-5 h-5 text-cosmos-400" aria-hidden="true" />
@@ -103,6 +110,11 @@ function AppCard({ app }: { app: AppLink }) {
         {app.port && (
           <div className="text-[10px] font-mono text-slate-600 mt-1">
             localhost{app.port}
+          </div>
+        )}
+        {localDown && (
+          <div className="text-[10px] text-red-400/80 mt-1">
+            Backend offline — start the bridge first
           </div>
         )}
       </div>

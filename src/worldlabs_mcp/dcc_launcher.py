@@ -177,3 +177,52 @@ def _find_resonite_mcp() -> str | None:
     except Exception:
         pass
     return None
+
+
+def _find_overte_mcp() -> str | None:
+    """Return path to the overte-mcp repo, or None."""
+    candidates = [
+        os.environ.get("OVERTE_MCP_PATH", ""),
+        str(Path.home() / "Dev" / "repos" / "overte-mcp"),
+        r"D:\Dev\repos\overte-mcp",
+        r"D:\Dev\Repos\overte-mcp",
+    ]
+    for c in candidates:
+        if c and Path(c).is_dir():
+            return c
+    return None
+
+
+async def ensure_overte_mcp(host: str = "127.0.0.1", port: int = 11110) -> str | None:
+    """Ensure overte-mcp is reachable. If not, autostart it from the repo.
+
+    Returns a status message, or None if already reachable.
+    """
+    if await _wait_for_port(host, port, timeout=2):
+        return None  # already running
+
+    mcp_path = _find_overte_mcp()
+    if not mcp_path:
+        return "overte-mcp not found. Clone it to D:\\Dev\\repos\\overte-mcp or set OVERTE_MCP_PATH."
+
+    try:
+        start_script = Path(mcp_path) / "start.bat"
+        if start_script.is_file():
+            subprocess.Popen(
+                ["cmd", "/c", str(start_script)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+        else:
+            subprocess.Popen(
+                ["uv", "run", "--directory", mcp_path, "overte-mcp"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+        if await _wait_for_port(host, port, timeout=30):
+            return f"overte-mcp launched on :{port}."
+        return f"overte-mcp launch attempted but not detected on :{port}."
+    except Exception as e:
+        return f"Failed to launch overte-mcp: {e}"

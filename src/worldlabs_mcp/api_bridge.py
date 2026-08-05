@@ -1556,6 +1556,139 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
 # Overte export - step INTO a Marble world inside an Overte domain
 # ---------------------------------------------------------------------------
 
+OVERTE_DOMAIN_PORT = 40100
+
+
+async def _overte_bringup(overte_port: int) -> dict[str, Any]:
+    """Automation chain: overte-mcp -> domain-server -> Interface.
+
+    Returns {"overte_mcp_up": bool, "overte_mcp_detail": str, "steps": [...]}.
+    Each step: {"step": str, "status": "ok"|"skipped"|"failed", "detail": str}.
+    """
+    from .dcc_launcher import ensure_overte_mcp
+
+    steps: list[dict[str, Any]] = []
+
+    # 1. overte-mcp server
+    msg = await ensure_overte_mcp(port=overte_port)
+    if msg is None:
+        steps.append({"step": "overte-mcp", "status": "ok", "detail": f"running on :{overte_port}"})
+    else:
+        steps.append(
+            {
+                "step": "overte-mcp",
+                "status": "failed" if "not" in msg and "launched" not in msg else "ok",
+                "detail": msg,
+            }
+        )
+        if not await _wait_port(overte_port, timeout=3):
+            return {
+                "overte_mcp_up": False,
+                "overte_mcp_detail": msg,
+                "steps": steps,
+            }
+
+    # 2. Overte domain-server
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            detect = await client.get(f"http://127.0.0.1:{overte_port}/api/overte/app/detect")
+            detect_data = detect.json() if detect.ok else {}
+            running = detect_data.get("running", {}) or {}
+            if running.get("domain-server"):
+                steps.append({"step": "domain-server", "status": "ok", "detail": "running"})
+            else:
+                start_resp = await client.post(
+                    f"http://127.0.0.1:{overte_port}/api/overte/app/start",
+                    json={"target": "domain-server"},
+                )
+                if start_resp.ok and await _wait_port(OVERTE_DOMAIN_PORT, timeout=20):
+                    steps.append({"step": "domain-server", "status": "ok", "detail": "launched (port 40100)"})
+                else:
+                    steps.append(
+                        {
+                            "step": "domain-server",
+                            "status": "failed",
+                            "detail": (
+                                start_resp.json()
+                                if start_resp.headers.get("content-type", "").startswith("application/json")
+                                else start_resp.text
+                            )[:300]
+                            if not start_resp.ok
+                            else "launched but :40100 not answering - install Overte from overte.org",
+                        }
+                    )
+    except Exception as e:
+        steps.append({"step": "domain-server", "status": "failed", "detail": str(e)})
+
+    # 3. Overte Interface (viewer + bridge host)
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            detect = await client.get(f"http://127.0.0.1:{overte_port}/api/overte/app/detect")
+            detect_data = detect.json() if detect.ok else {}
+            running = detect_data.get("running", {}) or {}
+            if running.get("interface"):
+                steps.append({"step": "interface", "status": "ok", "detail": "running"})
+            else:
+                start_resp = await client.post(
+                    f"http://127.0.0.1:{overte_port}/api/overte/app/start",
+                    json={"target": "interface"},
+                )
+                if start_resp.ok:
+                    steps.append(
+                        {
+                            "step": "interface",
+                            "status": "ok",
+                            "detail": "launched. One-time manual step: in Interface open Developer > Script Manager > Load Script > From Disk and select overte-mcp-bridge.js for live spawn.",
+                        }
+                    )
+                else:
+                    steps.append(
+                        {
+                            "step": "interface",
+                            "status": "failed",
+                            "detail": (
+                                start_resp.json()
+                                if start_resp.headers.get("content-type", "").startswith("application/json")
+                                else start_resp.text
+                            )[:300],
+                        }
+                    )
+    except Exception as e:
+        steps.append({"step": "interface", "status": "failed", "detail": str(e)})
+
+    return {"overte_mcp_up": True, "overte_mcp_detail": "ok", "steps": steps}
+
+
+async def _wait_port(port: int, timeout: float = 20.0) -> bool:
+    import asyncio
+    import socket
+
+    deadline = asyncio.get_event_loop().time() + timeout
+    while asyncio.get_event_loop().time() < deadline:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(1)
+            s.connect(("127.0.0.1", port))
+            s.close()
+            return True
+        except OSError:
+            await asyncio.sleep(0.5)
+    return False
+
+
+@router.get("/export/overte/status")
+async def overte_status() -> dict[str, Any]:
+    """Readiness report for the step-IN chain (overte-mcp, domain, interface)."""
+    overte_port = int(os.getenv("OVERTE_MCP_PORT", "11110"))
+    steps = await _overte_bringup(overte_port)
+    ready = all(s["status"] == "ok" for s in steps.get("steps", []))
+    return {
+        "status": "ready" if ready else "attention",
+        "target": "overte",
+        "steps": steps.get("steps", []),
+        "detail": steps.get("overte_mcp_detail"),
+    }
+
 
 @router.post("/export/overte")
 async def export_to_overte(req: ExportRequest) -> dict[str, Any]:
@@ -1582,6 +1715,16 @@ async def export_to_overte(req: ExportRequest) -> dict[str, Any]:
     local_mesh_url = f"{bridge_url}/api/handoff?url={req.mesh_url}" if req.mesh_url else ""
     marble_world_url = f"https://marble.worldlabs.ai/world/{world_id}" if world_id else ""
 
+    # ---- Automation chain: overte-mcp -> domain-server -> interface -> spawn
+    steps = await _overte_bringup(overte_port)
+    if steps.get("overte_mcp_up") is not True:
+        return {
+            "status": "error",
+            "target": "overte",
+            "message": steps.get("overte_mcp_detail", "overte-mcp unavailable."),
+            "steps": steps.get("steps", []),
+        }
+
     # If no mesh URL was supplied, fetch the world's mesh asset from the Marble API
     if not req.mesh_url and world_id:
         try:
@@ -1598,27 +1741,6 @@ async def export_to_overte(req: ExportRequest) -> dict[str, Any]:
                         local_mesh_url = f"{bridge_url}/api/handoff?url={mesh_url}"
         except Exception:
             pass
-
-    try:
-        async with httpx.AsyncClient(timeout=6) as client:
-            health = await client.get(f"http://127.0.0.1:{overte_port}/health")
-            if health.status_code != 200:
-                return {
-                    "status": "error",
-                    "target": "overte",
-                    "message": (
-                        f"overte-mcp not reachable on port {overte_port} "
-                        f"(health {health.status_code}). Start it with 'uv run overte-mcp', "
-                        "launch the Overte domain-server (:40100), and connect an Interface "
-                        "client with scripts/overte-mcp-bridge.js."
-                    ),
-                }
-    except Exception as e:
-        return {
-            "status": "error",
-            "target": "overte",
-            "message": f"overte-mcp not reachable on port {overte_port}: {e}. Start it with 'uv run overte-mcp'.",
-        }
 
     results: list[dict[str, Any]] = []
 
