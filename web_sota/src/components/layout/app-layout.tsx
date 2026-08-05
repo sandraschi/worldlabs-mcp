@@ -6,6 +6,7 @@ import {
   Clapperboard,
   Glasses,
   Globe2,
+  Images,
   LayoutDashboard,
   Library,
   Menu,
@@ -76,6 +77,7 @@ const navItems = [
 
 const creativeItems = [
   { to: "/portals", label: "Painting Portals", icon: Palette },
+  { to: "/paintings", label: "Local Paintings", icon: Images },
   { to: "/gallery", label: "Marble Gallery", icon: Globe2 },
   { to: "/onboarding", label: "Headset Setup", icon: Smartphone },
   { to: "/plex", label: "Cinema Worlds", icon: Clapperboard },

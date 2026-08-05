@@ -5,6 +5,7 @@ import {
   ExternalLink,
   FolderOpen,
   Globe2,
+  Home,
   Info,
   Link,
   Maximize2,
@@ -20,7 +21,7 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -158,6 +159,10 @@ export function SparkViewer() {
   const clockRef = useRef<THREE.Clock>(new THREE.Clock());
   const worldSessionIdRef = useRef(0);
   const xrRef = useRef<SparkXr | null>(null);
+  const homePoseRef = useRef<{
+    pos: THREE.Vector3;
+    target: THREE.Vector3;
+  } | null>(null);
   const localFrameRef = useRef<THREE.Group | null>(null);
 
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
@@ -635,6 +640,37 @@ export function SparkViewer() {
       }
 
       setStatus("ready");
+
+      // Center the camera on the splat's real bounds and fix Z-up splats
+      try {
+        const box = new THREE.Box3().setFromObject(splat);
+        if (!box.isEmpty()) {
+          let size = box.getSize(new THREE.Vector3());
+          // Z-up splats render "on their head" in the Y-up viewer: when the
+          // bounds are flat on Y but tall on Z, rotate so Z becomes Y.
+          if (size.y < size.z * 0.4 && size.z > size.x * 0.8) {
+            splat.rotation.x = -Math.PI / 2;
+            box.setFromObject(splat);
+            size = box.getSize(new THREE.Vector3());
+          }
+          const center = box.getCenter(new THREE.Vector3());
+          splat.position.sub(center);
+          const dist = Math.max(size.x, size.z) * 1.15 + 1.5;
+          const camY = Math.max(size.y * 0.55, 1.0);
+          camera.position.set(0, camY, dist);
+          camera.lookAt(0, camY * 0.9, 0);
+          controls.target.set(0, camY * 0.9, 0);
+          controls.minDistance = Math.max(0.5, size.y * 0.15);
+          controls.maxDistance = Math.max(30, Math.max(size.x, size.z) * 4);
+          controls.update();
+          homePoseRef.current = {
+            pos: camera.position.clone(),
+            target: controls.target.clone(),
+          };
+        }
+      } catch (e) {
+        logger.warn("Splat centering failed", { error: String(e) });
+      }
 
       // 5. Initialize Geofencing for the demo asset
       if (loadedName.includes("Tropical Luxury Residence")) {
@@ -1427,15 +1463,28 @@ export function SparkViewer() {
   }, []);
 
   const toggleFullscreen = () => {
-    if (!mountRef.current) return;
     if (!document.fullscreenElement) {
-      mountRef.current.requestFullscreen().catch((err) => {
-        logger.error("Error attempting to enable fullscreen", { error: err });
+      document.documentElement.requestFullscreen().catch((err) => {
+        logger.error("Error attempting to enable fullscreen", {
+          error: err,
+        });
       });
     } else {
       document.exitFullscreen();
     }
   };
+
+  const resetView = useCallback(() => {
+    if (!cameraRef.current || !controlsRef.current) return;
+    if (homePoseRef.current) {
+      cameraRef.current.position.copy(homePoseRef.current.pos);
+      controlsRef.current.target.copy(homePoseRef.current.target);
+    } else {
+      cameraRef.current.position.set(0, 1.6, 4);
+      controlsRef.current.target.set(0, 1.6, 0);
+    }
+    controlsRef.current.update();
+  }, []);
 
   // Track browser fullscreen state and resize renderer
   useEffect(() => {
@@ -1725,11 +1774,22 @@ export function SparkViewer() {
           </div>
         )}
 
+        {/* Home / reset view */}
+        <button
+          onClick={resetView}
+          className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-300 hover:text-white transition-all"
+          title="Reset view (home)"
+          data-testid="spark-home"
+        >
+          <Home className="w-3.5 h-3.5" />
+        </button>
+
         {/* Fullscreen toggle */}
         <button
           onClick={toggleFullscreen}
           className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-300 hover:text-white transition-all"
-          title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+          title={isFullscreen ? "Exit fullscreen (Esc)" : "Fullscreen"}
+          data-testid="spark-fullscreen"
         >
           {isFullscreen ? (
             <Minimize2 className="w-3.5 h-3.5" />

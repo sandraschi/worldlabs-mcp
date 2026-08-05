@@ -18,6 +18,7 @@ import { LocalLlm } from "@/pages/local-llm";
 import LogsPage from "@/pages/logs";
 import { Onboarding } from "@/pages/onboarding";
 import { PaintingPortals } from "@/pages/painting-portals";
+import { LocalPaintings } from "@/pages/paintings";
 import PlexCinema from "@/pages/plex-cinema";
 import { Settings } from "@/pages/settings";
 import { SparkDetail } from "@/pages/spark-detail";
@@ -50,6 +51,7 @@ function App() {
               <Route path="/library" element={<WorldLibrary />} />
               <Route path="/library/viewer" element={<WorldViewer />} />
               <Route path="/portals" element={<PaintingPortals />} />
+              <Route path="/paintings" element={<LocalPaintings />} />
               <Route path="/gallery" element={<MarbleGallery />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/spark-viewer" element={<SparkViewer />} />

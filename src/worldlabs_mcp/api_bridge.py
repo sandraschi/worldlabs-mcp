@@ -719,24 +719,16 @@ async def generate_from_video(req: VideoGenRequest) -> dict[str, Any]:
     return data
 
 
-@router.post("/generate/upload")
-async def generate_from_upload(
-    file: UploadFile = File(...),
+async def _generate_from_upload_bytes(
+    filename: str,
+    file_bytes: bytes,
     prompt: str = "",
     name: str = "",
     model: str = DEFAULT_MODEL,
     is_panorama: bool = False,
 ) -> dict[str, Any]:
-    """Upload a local image or video file and generate a 3D world from it.
-
-    Accepts multipart form-data with the file, optional text prompt, name,
-    model, and is_panorama (for images). Handles the full prepare_upload →
-    PUT to GCS → generate flow server-side.
-    """
-    if not file.filename:
-        raise HTTPException(status_code=400, detail="No file provided")
-
-    ext = (file.filename.rsplit(".", 1)[-1] if "." in file.filename else "").lower()
+    """Shared core of the local-file generation flow (multipart or disk path)."""
+    ext = (filename.rsplit(".", 1)[-1] if "." in filename else "").lower()
     image_exts = {"jpg", "jpeg", "png", "webp"}
     video_exts = {"mp4", "mov", "mkv", "avi", "webm"}
 
@@ -750,7 +742,6 @@ async def generate_from_upload(
             detail=f"Unsupported file extension '{ext}'. Supported: {image_exts | video_exts}",
         )
 
-    file_bytes = await file.read()
     file_size = len(file_bytes)
     if file_size > 100 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File exceeds 100MB limit")
@@ -761,7 +752,7 @@ async def generate_from_upload(
             prepare_resp = await client.post(
                 f"{BASE_URL}/media-assets:prepare_upload",
                 headers=_headers(),
-                json={"file_name": file.filename, "kind": kind, "extension": ext},
+                json={"file_name": filename, "kind": kind, "extension": ext},
             )
             prepare_resp.raise_for_status()
             prepare_data = prepare_resp.json()
@@ -799,6 +790,113 @@ async def generate_from_upload(
     payload = {"display_name": name, "model": model, "world_prompt": world_prompt}
     data = await _wl_post("/worlds:generate", payload)
     _save_operation(data)
+    return data
+
+
+@router.post("/generate/upload")
+async def generate_from_upload(
+    file: UploadFile = File(...),
+    prompt: str = "",
+    name: str = "",
+    model: str = DEFAULT_MODEL,
+    is_panorama: bool = False,
+) -> dict[str, Any]:
+    """Upload a local image or video file and generate a 3D world from it.
+
+    Accepts multipart form-data with the file, optional text prompt, name,
+    model, and is_panorama (for images). Handles the full prepare_upload →
+    PUT to GCS → generate flow server-side.
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+
+    file_bytes = await file.read()
+    return await _generate_from_upload_bytes(
+        file.filename or "upload",
+        file_bytes,
+        prompt=prompt,
+        name=name,
+        model=model,
+        is_panorama=is_panorama,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Local Paintings collection - surface E:\Multimedia Files\Paintings
+# ---------------------------------------------------------------------------
+
+_IMAGE_EXTS = {"jpg", "jpeg", "png", "webp", "bmp", "gif"}
+
+
+def _paintings_root() -> Path:
+    return Path(os.environ.get("PAINTINGS_DIR", r"E:\Multimedia Files\Paintings"))
+
+
+def _resolve_painting(path_str: str) -> Path:
+    root = _paintings_root().resolve()
+    abs_path = (root / path_str).resolve()
+    if not str(abs_path).startswith(str(root)):
+        raise HTTPException(status_code=400, detail="Path escapes paintings root")
+    if not abs_path.is_file():
+        raise HTTPException(status_code=404, detail="Painting not found")
+    return abs_path
+
+
+@router.get("/paintings")
+async def list_paintings() -> dict[str, Any]:
+    """List the local painting collection grouped by artist folder."""
+    root = _paintings_root()
+    if not root.is_dir():
+        return {"status": "error", "message": f"Paintings dir not found: {root}", "artists": []}
+
+    artists: list[dict[str, Any]] = []
+    for artist_dir in sorted(p for p in root.iterdir() if p.is_dir()):
+        files: list[dict[str, Any]] = []
+        for img in sorted(p for p in artist_dir.iterdir() if p.is_file()):
+            ext = img.suffix.lower().lstrip(".")
+            if ext in _IMAGE_EXTS:
+                rel = str(img.relative_to(root)).replace("\\", "/")
+                files.append(
+                    {
+                        "name": img.stem,
+                        "filename": img.name,
+                        "path": rel,
+                        "url": f"/api/paintings/file?path={rel}",
+                    }
+                )
+        if files:
+            artists.append({"artist": artist_dir.name, "count": len(files), "files": files})
+
+    return {"status": "ok", "root": str(root), "artist_count": len(artists), "artists": artists}
+
+
+@router.get("/paintings/file")
+async def serve_painting(path: str) -> FileResponse:
+    """Serve a painting image file (traversal-guarded)."""
+    img = _resolve_painting(path)
+    return FileResponse(img)
+
+
+class PaintingGenerateRequest(BaseModel):
+    path: str
+    prompt: str = ""
+    name: str = ""
+    model: str = DEFAULT_MODEL
+    is_panorama: bool = False
+
+
+@router.post("/paintings/generate")
+async def generate_from_painting(req: PaintingGenerateRequest) -> dict[str, Any]:
+    """Generate a 3D world from a painting in the local collection."""
+    img = _resolve_painting(req.path)
+    data = await _generate_from_upload_bytes(
+        img.name,
+        img.read_bytes(),
+        prompt=req.prompt,
+        name=req.name or img.stem,
+        model=req.model,
+        is_panorama=req.is_panorama,
+    )
     return data
 
 

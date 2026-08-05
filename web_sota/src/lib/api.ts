@@ -498,4 +498,23 @@ export const api = {
       "/marble-adventure/launch",
       {},
     ),
+
+  // Local Paintings collection
+  paintingsList: () =>
+    get<{
+      status: string;
+      root?: string;
+      artist_count?: number;
+      artists: {
+        artist: string;
+        count: number;
+        files: { name: string; filename: string; path: string; url: string }[];
+      }[];
+    }>("/paintings"),
+  paintingGenerate: (req: {
+    path: string;
+    prompt?: string;
+    name?: string;
+    model?: string;
+  }) => post<Operation>("/paintings/generate", req),
 };
