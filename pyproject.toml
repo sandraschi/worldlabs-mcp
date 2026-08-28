@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "worldlabs-mcp"
 version = "0.5.0"
-description = "MCP server wrapping the World Labs Marble API for 3D world generation and the Spark 2.0 spatial viewer"
+description = "Generate navigable 3D worlds from text, images, and video via the World Labs Marble API"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -96,6 +96,7 @@ dev = [
     "mypy>=1.0",
     "pyright>=1.1.390",
     "pyinstaller>=6.21.0",
+    "pywin32>=311",
 ]
 
 
