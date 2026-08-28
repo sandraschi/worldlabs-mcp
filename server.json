@@ -1,0 +1,20 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.sandraschi/worldlabs-mcp",
+  "description": "MCP server wrapping the World Labs Marble API for 3D world generation and the Spark 2.0 spatial v...",
+  "version": "0.5.0",
+  "repository": {
+    "url": "https://github.com/sandraschi/worldlabs-mcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/sandraschi/worldlabs-mcp/releases/download/v0.5.0/worldlabs-mcp-v0.5.0.mcpb",
+      "fileSha256": "ca3881eff1b42f68a16a3b8c8e3dd206a1077e32769a2a7b1697f00b2fc7ab2a",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
