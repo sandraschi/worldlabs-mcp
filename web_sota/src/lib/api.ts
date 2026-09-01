@@ -362,6 +362,7 @@ export function streamOperation(
 export const api = {
   health: () => get<HealthResponse>("/health"),
   systemInfo: () => get<SystemInfo>("/system"),
+  getStatus: () => get<SystemInfo>("/system"),
 
   // Operations
   getOperation: (id: string) => get<Operation>(`/operations/${id}`),

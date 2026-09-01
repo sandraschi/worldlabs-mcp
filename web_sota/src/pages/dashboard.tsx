@@ -1,8 +1,10 @@
-import { Activity, Box, Globe, Wand2 } from "lucide-react";
+import { Activity, Box, Globe, Wand2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
+
+const ONBOARDING_DISMISS_KEY = "worldlabs-onboarding-dismissed";
 
 function useHealthPoll() {
   const checkHealth = useAppStore((s) => s.checkHealth);
@@ -29,20 +31,45 @@ export function Dashboard() {
   const backend = useAppStore((s) => s.backend);
   const [toolCount, setToolCount] = useState<number | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
+  const [apiKeySet, setApiKeySet] = useState<boolean | null>(null);
+  const [dismissed, setDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(ONBOARDING_DISMISS_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  const dismissReminder = () => {
+    try {
+      localStorage.setItem(ONBOARDING_DISMISS_KEY, "1");
+    } catch {
+      // ignore storage errors
+    }
+    setDismissed(true);
+  };
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [sys, cred] = await Promise.all([
+        const [sys, cred, status] = await Promise.all([
           api.systemInfo().catch(() => null),
           api.credits().catch(() => null),
+          api.getStatus().catch(() => null) as Promise<{
+            api_key_set?: boolean;
+          } | null>,
         ]);
         if (cancelled) return;
         if (sys && typeof sys.tools?.length === "number")
           setToolCount(sys.tools.length);
         if (cred && typeof cred.live_balance === "number")
           setCredits(cred.live_balance);
+        if (status && typeof status.api_key_set === "boolean")
+          setApiKeySet(status.api_key_set);
+        // Fallback: infer from credits - if we got a balance, key is set
+        else if (cred && typeof cred.live_balance === "number")
+          setApiKeySet(true);
       } catch {
         // non-fatal - dashboard still renders
       }
@@ -51,6 +78,13 @@ export function Dashboard() {
       cancelled = true;
     };
   }, []);
+
+  // Reminder visibility: show only when not configured and not dismissed
+  // If apiKeySet is unknown, show reminder when backend is connected (conservative)
+  const showReminder =
+    !dismissed &&
+    backend.ok &&
+    (apiKeySet === false || (apiKeySet === null && credits === null));
 
   return (
     <div data-testid="dashboard" className="space-y-8 pb-10 relative isolate">
@@ -115,22 +149,43 @@ export function Dashboard() {
               Browse library
             </Link>
           </div>
-          {/* Onboarding CTA - big red under-hero per ONBOARDING_STANDARD.md */}
-          <Link
-            to="/onboarding"
-            data-testid="onboarding-cue"
-            className="mt-6 flex items-center justify-between gap-4 rounded-xl bg-red-600 hover:bg-red-500 border border-red-500 px-5 py-3 text-white no-underline transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              <span className="text-sm font-bold">
-                Set up your World Labs API key to start generating
+          {/* Onboarding CTA - big red under-hero per ONBOARDING_STANDARD.md - conditional until onboarded */}
+          {showReminder && (
+            <div
+              data-testid="onboarding-cue"
+              className="mt-6 flex items-center justify-between gap-4 rounded-xl bg-red-600 border border-red-500 px-5 py-3 text-white"
+            >
+              <Link
+                to="/onboarding"
+                className="flex items-center gap-3 flex-1 no-underline text-white"
+              >
+                <span className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
+                <span className="text-sm font-bold">
+                  Set up your World Labs API key to start generating
+                </span>
+                <span className="text-xs font-semibold bg-white text-red-600 rounded-full px-3 py-1 ml-2">
+                  Onboarding
+                </span>
+              </Link>
+              <button
+                type="button"
+                onClick={dismissReminder}
+                aria-label="Dismiss reminder"
+                data-testid="onboarding-dismiss"
+                className="ml-2 p-1.5 rounded-full hover:bg-red-700 text-white/80 hover:text-white transition flex-shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          {apiKeySet === true && (
+            <div className="mt-6 flex items-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-5 py-3 text-emerald-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="text-sm font-medium">
+                API key configured — ready to generate worlds
               </span>
             </div>
-            <span className="text-xs font-semibold bg-white text-red-600 rounded-full px-3 py-1">
-              Onboarding
-            </span>
-          </Link>
+          )}
         </div>
       </section>
 
