@@ -133,10 +133,7 @@ export function ChatPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [...messages, userMsg].map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
+          messages: [...messages, userMsg] as Message[],
           system: sysPrompt || undefined,
           model: llmModel || undefined,
         }),
@@ -150,7 +147,9 @@ export function ChatPage() {
       const reply =
         data.content || data.message || data.reply || JSON.stringify(data);
       setMessages((m) =>
-        [...m, { role: "assistant", content: reply }].slice(-MAX_MESSAGES),
+        [...m, { role: "assistant" as const, content: reply }].slice(
+          -MAX_MESSAGES,
+        ),
       );
     } catch (e) {
       const err = e instanceof Error ? e.message : String(e);
@@ -158,7 +157,7 @@ export function ChatPage() {
         [
           ...m,
           {
-            role: "assistant",
+            role: "assistant" as const,
             content: `Error: ${err}. Is a local LLM running? Check /local-llm.`,
           },
         ].slice(-MAX_MESSAGES),
