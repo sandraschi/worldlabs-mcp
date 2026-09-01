@@ -36,6 +36,10 @@ Add to \claude_desktop_config.json\:
 - **generate_from_image**: generate_from_image
 - **generate_from_video**: generate_from_video
 - **generate_from_upload**: generate_from_upload
+- **list_paintings**: list_paintings
+- **serve_painting**: serve_painting
+- **generate_from_painting**: generate_from_painting
+- **credits_status**: credits_status
 - **get_media_asset**: get_media_asset
 - **get_operation**: get_operation
 - **stream_operation**: stream_operation
@@ -50,18 +54,33 @@ Add to \claude_desktop_config.json\:
 - **delete_prompt**: delete_prompt
 - **discover_llms**: discover_llms
 - **refine_prompt**: refine_prompt
+- **list_llm_providers**: list_llm_providers
+- **llm_chat**: llm_chat
 - **export_to_blender**: export_to_blender
 - **export_to_unity3d**: export_to_unity3d
 - **export_to_resonite**: export_to_resonite
+- **marble_adventure_status**: marble_adventure_status
+- **marble_adventure_launch**: marble_adventure_launch
+- **overte_status**: overte_status
+- **export_to_overte**: export_to_overte
 - **proxy_splat_asset**: proxy_splat_asset
 - **handoff_asset**: handoff_asset
 - **list_scenes**: list_scenes
 - **bake_scene**: bake_scene
 - **delete_scene**: delete_scene
-- **search_plex**: search_plex
+- **plex_status**: plex_status
+- **list_plex_libraries**: list_plex_libraries
+- **browse_plex_library**: browse_plex_library
+- **get_plex_item**: get_plex_item
+- **get_plex_episodes**: get_plex_episodes
+- **get_plex_video_url**: get_plex_video_url
+- **proxy_plex_video**: proxy_plex_video
+- **generate_world_from_plex**: generate_world_from_plex
 - **get_plex_stream_url**: get_plex_stream_url
 - **avatar_mcp_status**: avatar_mcp_status
 - **place_avatar_in_world**: place_avatar_in_world
+- **gallery_browse**: gallery_browse
+- **gallery_search**: gallery_search
 - **show_worlds_card**: show_worlds_card
 - **show_world_card**: show_world_card
 - **generate_world_from_text**: generate_world_from_text
@@ -79,6 +98,11 @@ Add to \claude_desktop_config.json\:
 - **broadcast_spatial_notification**: broadcast_spatial_notification
 - **refine_with_local_llm**: refine_with_local_llm
 - **worldlabs_help**: worldlabs_help
+- **gallery_explore**: gallery_explore
+- **_get_api_key_browse**: _get_api_key(browse)
+- **_get_api_key_world**: _get_api_key(world)
+- **_get_api_key_prompts**: _get_api_key(prompts)
+- **_get_api_key_search**: _get_api_key(search)
 
 ## Requirements
 

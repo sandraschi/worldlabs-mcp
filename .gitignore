@@ -56,10 +56,14 @@ web_sota/backend/prompts.json
 
 # fileops backup files
 *.bak
+*.bak.*
 # Rust / Zed IDE — rust-analyzer may create target/ at repo root
 target/
+native/target/
+native/gen/
+mcpb/src/
 
 _dashboard/
 
 reports/
-data/*.db
+data/

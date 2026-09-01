@@ -65,7 +65,7 @@ DEFAULT_OLLAMA_MODEL = os.getenv("DEFAULT_OLLAMA_MODEL", "llama3.2:3b")
 
 
 # ---------------------------------------------------------------------------
-# Data directory — writable, survives git operations, per-OS
+# Data directory - writable, survives git operations, per-OS
 # ---------------------------------------------------------------------------
 
 if platform.system() == "Windows":
@@ -261,7 +261,7 @@ async def _poll_operation_with_retry(
     operation_id: str,
     max_retries: int = 3,
 ) -> dict[str, Any]:
-    """Poll an operation with exponential backoff — prevents transient errors from killing long jobs."""
+    """Poll an operation with exponential backoff - prevents transient errors from killing long jobs."""
     last_exc: Exception | None = None
     for attempt in range(max_retries):
         try:
@@ -361,7 +361,7 @@ def _get_vram_stats() -> dict[str, Any]:
     """Get GPU VRAM info using nvidia-smi."""
     try:
         cmd = ["nvidia-smi", "--query-gpu=memory.used,memory.total", "--format=csv,noheader,nounits"]
-        output = subprocess.check_output(cmd).decode("utf-8").strip()  # noqa: S603 — trusted hardcoded command list
+        output = subprocess.check_output(cmd).decode("utf-8").strip()
         used, total = map(int, output.split(","))
         return {"vram_used": used, "vram_total": total, "vram_percent": round((used / total) * 100, 1)}
     except Exception:
@@ -395,7 +395,7 @@ async def get_system_stats() -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Narration stream — Spatial Voice Agent
+# Narration stream - Spatial Voice Agent
 # ---------------------------------------------------------------------------
 
 _narration_clients: list[asyncio.Queue] = []
@@ -451,7 +451,7 @@ async def adb_devices() -> dict[str, Any]:
     try:
         import subprocess
 
-        result = subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=10)  # noqa: S607
+        result = subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=10)
         lines = result.stdout.strip().split("\n")[1:]  # Skip "List of devices attached"
         devices = []
         for line in lines:
@@ -532,12 +532,26 @@ async def health() -> dict:
 
 @router.get("/system")
 async def system_info() -> dict:
+    from . import __version__ as _pkg_version
+    from .server import _TOOL_CATALOG
+
     return {
         "service": "worldlabs-mcp",
-        "version": "0.4.0",
+        "name": "worldlabs-mcp",
+        "version": _pkg_version,
+        "description": "MCP gateway to World Labs Marble + Spark 2.0",
         "marble_api": BASE_URL,
+        "base_url": BASE_URL,
         "api_key_set": bool(os.environ.get("WORLDLABS_API_KEY")),
         "default_model": DEFAULT_MODEL,
+        "tools": [
+            {
+                "name": t["name"],
+                "description": t["description"],
+                "parameters": t.get("args", {}),
+            }
+            for t in _TOOL_CATALOG
+        ],
     }
 
 
@@ -646,7 +660,7 @@ async def get_default_agent() -> FileResponse:
 
 
 # ---------------------------------------------------------------------------
-# Marble generation — fire-and-forget (returns operation immediately)
+# Marble generation - fire-and-forget (returns operation immediately)
 # ---------------------------------------------------------------------------
 
 
@@ -705,24 +719,16 @@ async def generate_from_video(req: VideoGenRequest) -> dict[str, Any]:
     return data
 
 
-@router.post("/generate/upload")
-async def generate_from_upload(
-    file: UploadFile = File(...),
+async def _generate_from_upload_bytes(
+    filename: str,
+    file_bytes: bytes,
     prompt: str = "",
     name: str = "",
     model: str = DEFAULT_MODEL,
     is_panorama: bool = False,
 ) -> dict[str, Any]:
-    """Upload a local image or video file and generate a 3D world from it.
-
-    Accepts multipart form-data with the file, optional text prompt, name,
-    model, and is_panorama (for images). Handles the full prepare_upload →
-    PUT to GCS → generate flow server-side.
-    """
-    if not file.filename:
-        raise HTTPException(status_code=400, detail="No file provided")
-
-    ext = (file.filename.rsplit(".", 1)[-1] if "." in file.filename else "").lower()
+    """Shared core of the local-file generation flow (multipart or disk path)."""
+    ext = (filename.rsplit(".", 1)[-1] if "." in filename else "").lower()
     image_exts = {"jpg", "jpeg", "png", "webp"}
     video_exts = {"mp4", "mov", "mkv", "avi", "webm"}
 
@@ -736,7 +742,6 @@ async def generate_from_upload(
             detail=f"Unsupported file extension '{ext}'. Supported: {image_exts | video_exts}",
         )
 
-    file_bytes = await file.read()
     file_size = len(file_bytes)
     if file_size > 100 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File exceeds 100MB limit")
@@ -747,7 +752,7 @@ async def generate_from_upload(
             prepare_resp = await client.post(
                 f"{BASE_URL}/media-assets:prepare_upload",
                 headers=_headers(),
-                json={"file_name": file.filename, "kind": kind, "extension": ext},
+                json={"file_name": filename, "kind": kind, "extension": ext},
             )
             prepare_resp.raise_for_status()
             prepare_data = prepare_resp.json()
@@ -786,6 +791,224 @@ async def generate_from_upload(
     data = await _wl_post("/worlds:generate", payload)
     _save_operation(data)
     return data
+
+
+@router.post("/generate/upload")
+async def generate_from_upload(
+    file: UploadFile = File(...),
+    prompt: str = "",
+    name: str = "",
+    model: str = DEFAULT_MODEL,
+    is_panorama: bool = False,
+) -> dict[str, Any]:
+    """Upload a local image or video file and generate a 3D world from it.
+
+    Accepts multipart form-data with the file, optional text prompt, name,
+    model, and is_panorama (for images). Handles the full prepare_upload →
+    PUT to GCS → generate flow server-side.
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+
+    file_bytes = await file.read()
+    return await _generate_from_upload_bytes(
+        file.filename or "upload",
+        file_bytes,
+        prompt=prompt,
+        name=name,
+        model=model,
+        is_panorama=is_panorama,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Local Paintings collection - surface E:\Multimedia Files\Paintings
+# ---------------------------------------------------------------------------
+
+_IMAGE_EXTS = {"jpg", "jpeg", "png", "webp", "bmp", "gif"}
+
+
+def _paintings_root() -> Path:
+    return Path(os.environ.get("PAINTINGS_DIR", r"E:\Multimedia Files\Paintings"))
+
+
+def _resolve_painting(path_str: str) -> Path:
+    root = _paintings_root().resolve()
+    abs_path = (root / path_str).resolve()
+    if not str(abs_path).startswith(str(root)):
+        raise HTTPException(status_code=400, detail="Path escapes paintings root")
+    if not abs_path.is_file():
+        raise HTTPException(status_code=404, detail="Painting not found")
+    return abs_path
+
+
+@router.get("/paintings")
+async def list_paintings() -> dict[str, Any]:
+    """List the local painting collection grouped by artist folder."""
+    root = _paintings_root()
+    if not root.is_dir():
+        return {"status": "error", "message": f"Paintings dir not found: {root}", "artists": []}
+
+    artists: list[dict[str, Any]] = []
+    for artist_dir in sorted(p for p in root.iterdir() if p.is_dir()):
+        files: list[dict[str, Any]] = []
+        for img in sorted(p for p in artist_dir.iterdir() if p.is_file()):
+            ext = img.suffix.lower().lstrip(".")
+            if ext in _IMAGE_EXTS:
+                rel = str(img.relative_to(root)).replace("\\", "/")
+                files.append(
+                    {
+                        "name": img.stem,
+                        "filename": img.name,
+                        "path": rel,
+                        "url": f"/api/paintings/file?path={rel}",
+                    }
+                )
+        if files:
+            artists.append({"artist": artist_dir.name, "count": len(files), "files": files})
+
+    return {"status": "ok", "root": str(root), "artist_count": len(artists), "artists": artists}
+
+
+@router.get("/paintings/file")
+async def serve_painting(path: str) -> FileResponse:
+    """Serve a painting image file (traversal-guarded)."""
+    img = _resolve_painting(path)
+    return FileResponse(img)
+
+
+class PaintingGenerateRequest(BaseModel):
+    path: str
+    prompt: str = ""
+    name: str = ""
+    model: str = DEFAULT_MODEL
+    is_panorama: bool = False
+
+
+@router.post("/paintings/generate")
+async def generate_from_painting(req: PaintingGenerateRequest) -> dict[str, Any]:
+    """Generate a 3D world from a painting in the local collection.
+
+    The prompt ALWAYS names the painting and its artist (artist = folder,
+    title = filename): `Painting: {title} by {artist}. {user prompt}`.
+    Note: Marble recaptions prompts server-side and may filter or rewrite
+    certain names (modern artists with active estates, e.g. H.R. Giger).
+    API rejections pass through with their detail intact.
+    """
+    img = _resolve_painting(req.path)
+    artist = img.parent.name
+    title = img.stem
+    composed = f"Painting: {title} by {artist}."
+    if req.prompt:
+        composed += f" {req.prompt}"
+    data = await _generate_from_upload_bytes(
+        img.name,
+        img.read_bytes(),
+        prompt=composed,
+        name=req.name or title,
+        model=req.model,
+        is_panorama=req.is_panorama,
+    )
+    return data
+
+
+# ---------------------------------------------------------------------------
+# Credits - live balance + local usage tally
+# ---------------------------------------------------------------------------
+
+
+def _world_credit_cost(w: dict[str, Any]) -> int:
+    """Estimate credits consumed by one world from its model + cube count.
+
+    marble-1.1: 1500 fixed. marble-1.1-plus: 1500 + 300 per dynamic cube
+    (dynamic_world_size carries the cube count when present).
+    """
+    gi = w.get("generation_input") or {}
+    model = gi.get("model", "")
+    if model == "marble-1.1":
+        return 1500
+    if model == "marble-1.1-plus":
+        cubes = gi.get("dynamic_world_size")
+        try:
+            cubes = int(cubes) if cubes is not None else 0
+        except (TypeError, ValueError):
+            cubes = 0
+        return 1500 + 300 * max(0, cubes)
+    return 0
+
+
+async def _local_credit_tally() -> dict[str, Any]:
+    """Tally generated worlds from the account list (bounded pages)."""
+    by_model: dict[str, int] = {}
+    total = 0
+    token = ""
+    generations = 0
+    try:
+        for _ in range(3):
+            body: dict = {"page_size": 50, "sort_by": "created_at", "status": "SUCCEEDED"}
+            if token:
+                body["page_token"] = token
+            data = await _wl_post("/worlds:list", body)
+            worlds = data.get("worlds", [])
+            if not worlds:
+                break
+            for w in worlds:
+                cost = _world_credit_cost(w)
+                if cost:
+                    model = (w.get("generation_input") or {}).get("model", "unknown")
+                    by_model[model] = by_model.get(model, 0) + 1
+                    total += cost
+                    generations += 1
+            token = data.get("next_page_token") or ""
+            if not token:
+                break
+    except Exception:
+        pass
+
+    if generations == 0:
+        # Fallback: local history count x base cost
+        try:
+            history = _load_history()
+            done = [op for op in history if op.get("done")]
+            generations = len(done)
+            total = generations * 1500
+            by_model = {"marble-1.1 (assumed)": generations}
+        except Exception:
+            pass
+
+    return {
+        "local_generations": generations,
+        "local_estimated_credits": total,
+        "local_by_model": by_model,
+        "local_note": (
+            "marble-1.1-plus may cost more than the 1500 base when dynamic "
+            "cubes are used; estimates use the reported cube counts."
+            if "marble-1.1-plus" in by_model
+            else "Estimates use 1500 credits per marble-1.1 world."
+        ),
+    }
+
+
+@router.get("/credits")
+async def credits_status() -> dict[str, Any]:
+    """Live World Labs credit balance + a running tally of credits used."""
+    live: float | None = None
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(f"{BASE_URL}/credits", headers=_headers())
+            if resp.status_code == 200:
+                live = float(resp.json().get("remaining_credits", 0.0))
+    except Exception:
+        pass
+
+    tally = await _local_credit_tally()
+    return {
+        "status": "ok",
+        "live_balance": live,
+        "live_source": "api" if live is not None else "unavailable",
+        "billing_url": "https://platform.worldlabs.ai/billing",
+        **tally,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -920,7 +1143,7 @@ async def delete_world(world_id: str) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Download proxy — streams Marble's signed URLs with a sensible filename
+# Download proxy - streams Marble's signed URLs with a sensible filename
 # ---------------------------------------------------------------------------
 
 _ASSET_FILENAMES: dict[str, tuple[str, str]] = {
@@ -1038,22 +1261,22 @@ WORLDLABS_EXPERT_SKILL = """You are a World Labs Marble expert. You help users g
 explorable 3D worlds using the Marble API.
 
 ## Models
-- **marble-1.1** — Default, 1500 credits, 1-3 min. Good fidelity, fixed cost.
-- **marble-1.1-plus** — Auto-expanding, 1500 + 300/dynamic cube (max 5).
+- **marble-1.1** - Default, 1500 credits, 1-3 min. Good fidelity, fixed cost.
+- **marble-1.1-plus** - Auto-expanding, 1500 + 300/dynamic cube (max 5).
   Variable time. Best for outdoor scenes, large interiors.
 
 ## Key Tools
-- `generate_world_from_text(prompt)` — 3D world from text
-- `generate_world_from_image(url)` — 3D world from photograph
-- `upload_and_generate(file_path, kind)` — Local file upload + generation
-- `get_operation(id)` / `wait_for_world(id)` — Poll generation status
-- `get_world(id)` — Download asset URLs (splat, mesh, panorama)
-- `list_worlds()` — Browse generated worlds
+- `generate_world_from_text(prompt)` - 3D world from text
+- `generate_world_from_image(url)` - 3D world from photograph
+- `upload_and_generate(file_path, kind)` - Local file upload + generation
+- `get_operation(id)` / `wait_for_world(id)` - Poll generation status
+- `get_world(id)` - Download asset URLs (splat, mesh, panorama)
+- `list_worlds()` - Browse generated worlds
 
 ## Output Formats
-- SPZ (100k/500k/full_res) — Gaussian splat for Blender/Unity/VR
-- GLB — Collision mesh for physics simulation
-- Panorama — 360-degree JPEG
+- SPZ (100k/500k/full_res) - Gaussian splat for Blender/Unity/VR
+- GLB - Collision mesh for physics simulation
+- Panorama - 360-degree JPEG
 - Thumbnail + AI caption
 
 ## Prompt Engineering
@@ -1328,7 +1551,7 @@ async def llm_chat(req: ChatRequest) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# DCC handoff — Blender / Unity3D / Resonite
+# DCC handoff - Blender / Unity3D / Resonite
 # ---------------------------------------------------------------------------
 
 
@@ -1455,11 +1678,11 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
 
     This endpoint tries two paths in order:
 
-    1. **resonite-mcp** (port 10715) — if resonite-mcp is running, calls its
+    1. **resonite-mcp** (port 10715) - if resonite-mcp is running, calls its
        `/api/v1/import/worldlabs` endpoint with the splat URL. resonite-mcp
        handles ResoniteLink import, inventory upload, and OSC.
 
-    2. **Direct OSC** — fallback if resonite-mcp is not available. Sends OSC
+    2. **Direct OSC** - fallback if resonite-mcp is not available. Sends OSC
        packet to Resonite at port 9000 with the proxied URLs.
     """
     osc_host = os.getenv("RESONITE_OSC_HOST", "127.0.0.1")
@@ -1482,7 +1705,7 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
             health = await client.get(f"http://127.0.0.1:{resonite_mcp_port}/health")
             if health.ok:
                 import_resp = await client.post(
-                    f"http://127.0.0.1:{resonite_mcp_port}/api/v1/import/worldlabs",
+                    f"http://127.0.0.1:{resonite_mcp_port}/api/resonite/integrations/worldlabs",
                     json={
                         "splat_url": local_splat_url,
                         "mesh_url": local_mesh_url,
@@ -1500,7 +1723,7 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
                         "mesh_url": local_mesh_url,
                         "result": data,
                     }
-    except Exception:  # noqa: S110
+    except Exception:
         pass
 
     # Fallback: direct OSC
@@ -1538,6 +1761,351 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
         return {"status": "error", "world_id": world_id, "detail": str(e)}
 
 
+# ---------------------------------------------------------------------------
+# Marble Adventure - launch the Godot hub from the webapp (ensure-before-open)
+# ---------------------------------------------------------------------------
+
+MARBLE_ADVENTURE_PROJECT = str(Path(__file__).resolve().parent.parent.parent / "competition" / "marble-adventure")
+MARBLE_ADVENTURE_ENV_FILE = str(Path(__file__).resolve().parent.parent.parent / "competition" / ".env")
+
+
+def _game_is_running() -> bool:
+    try:
+        for proc in psutil.process_iter(["name", "cmdline"]):
+            name = (proc.info.get("name") or "").lower()
+            cmd = " ".join(proc.info.get("cmdline") or [])
+            if "godot" in name and "marble-adventure" in cmd:
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def _load_game_env() -> dict[str, str]:
+    env = dict(os.environ)
+    env.setdefault("MARBLE_ACCESS_MODE", "public_marble")
+    env.setdefault("SPARK_BASE_URL", "http://127.0.0.1:10864")
+    try:
+        for line in Path(MARBLE_ADVENTURE_ENV_FILE).read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            env.setdefault(key.strip(), value.strip().strip('"'))
+    except OSError:
+        pass
+    return env
+
+
+@router.get("/marble-adventure/status")
+async def marble_adventure_status() -> dict[str, Any]:
+    """Is the Marble Adventure hub currently running?"""
+    running = _game_is_running()
+    return {
+        "status": "running" if running else "stopped",
+        "running": running,
+        "project": MARBLE_ADVENTURE_PROJECT,
+    }
+
+
+@router.post("/marble-adventure/launch")
+async def marble_adventure_launch() -> dict[str, Any]:
+    """Launch the Marble Adventure Godot hub (ensure-before-open).
+
+    Starts `godot --path <project>` windowed, with env from competition/.env
+    (MARBLE_ACCESS_MODE / SPARK_BASE_URL). Returns the honest running state.
+    """
+    if _game_is_running():
+        return {
+            "status": "ok",
+            "running": True,
+            "message": "Marble Adventure is already running.",
+        }
+
+    godot = os.environ.get("GODOT_EXE", r"C:\Users\sandr\.local\bin\godot.exe")
+    if not Path(godot).is_file():
+        return {
+            "status": "error",
+            "running": False,
+            "message": f"Godot not found at {godot}. Set GODOT_EXE or install Godot.",
+        }
+
+    try:
+        subprocess.Popen(
+            [godot, "--path", MARBLE_ADVENTURE_PROJECT],
+            env=_load_game_env(),
+            cwd=MARBLE_ADVENTURE_PROJECT,
+        )
+        for _ in range(20):
+            if _game_is_running():
+                return {
+                    "status": "ok",
+                    "running": True,
+                    "message": "Marble Adventure launched.",
+                }
+            time.sleep(0.5)
+        return {
+            "status": "ok",
+            "running": False,
+            "message": "Launch command sent - the window is opening (Godot startup can take a few seconds).",
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "running": False,
+            "message": f"Failed to launch Marble Adventure: {e}",
+        }
+
+
+# ---------------------------------------------------------------------------
+# Overte export - step INTO a Marble world inside an Overte domain
+# ---------------------------------------------------------------------------
+
+OVERTE_DOMAIN_PORT = 40100
+
+
+async def _overte_bringup(overte_port: int) -> dict[str, Any]:
+    """Automation chain: overte-mcp -> domain-server -> Interface.
+
+    Returns {"overte_mcp_up": bool, "overte_mcp_detail": str, "steps": [...]}.
+    Each step: {"step": str, "status": "ok"|"skipped"|"failed", "detail": str}.
+    """
+    from .dcc_launcher import ensure_overte_mcp
+
+    steps: list[dict[str, Any]] = []
+
+    # 1. overte-mcp server
+    msg = await ensure_overte_mcp(port=overte_port)
+    if msg is None:
+        steps.append({"step": "overte-mcp", "status": "ok", "detail": f"running on :{overte_port}"})
+    else:
+        steps.append(
+            {
+                "step": "overte-mcp",
+                "status": "failed" if "not" in msg and "launched" not in msg else "ok",
+                "detail": msg,
+            }
+        )
+        if not await _wait_port(overte_port, timeout=3):
+            return {
+                "overte_mcp_up": False,
+                "overte_mcp_detail": msg,
+                "steps": steps,
+            }
+
+    # 2. Overte domain-server
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            detect = await client.get(f"http://127.0.0.1:{overte_port}/api/overte/app/detect")
+            detect_data = detect.json() if detect.ok else {}
+            running = detect_data.get("running", {}) or {}
+            if running.get("domain-server"):
+                steps.append({"step": "domain-server", "status": "ok", "detail": "running"})
+            else:
+                start_resp = await client.post(
+                    f"http://127.0.0.1:{overte_port}/api/overte/app/start",
+                    json={"target": "domain-server"},
+                )
+                if start_resp.ok and await _wait_port(OVERTE_DOMAIN_PORT, timeout=20):
+                    steps.append({"step": "domain-server", "status": "ok", "detail": "launched (port 40100)"})
+                else:
+                    steps.append(
+                        {
+                            "step": "domain-server",
+                            "status": "failed",
+                            "detail": (
+                                start_resp.json()
+                                if start_resp.headers.get("content-type", "").startswith("application/json")
+                                else start_resp.text
+                            )[:300]
+                            if not start_resp.ok
+                            else "launched but :40100 not answering - install Overte from overte.org",
+                        }
+                    )
+    except Exception as e:
+        steps.append({"step": "domain-server", "status": "failed", "detail": str(e)})
+
+    # 3. Overte Interface (viewer + bridge host)
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            detect = await client.get(f"http://127.0.0.1:{overte_port}/api/overte/app/detect")
+            detect_data = detect.json() if detect.ok else {}
+            running = detect_data.get("running", {}) or {}
+            if running.get("interface"):
+                steps.append({"step": "interface", "status": "ok", "detail": "running"})
+            else:
+                start_resp = await client.post(
+                    f"http://127.0.0.1:{overte_port}/api/overte/app/start",
+                    json={"target": "interface"},
+                )
+                if start_resp.ok:
+                    steps.append(
+                        {
+                            "step": "interface",
+                            "status": "ok",
+                            "detail": "launched. One-time manual step: in Interface open Developer > Script Manager > Load Script > From Disk and select overte-mcp-bridge.js for live spawn.",
+                        }
+                    )
+                else:
+                    steps.append(
+                        {
+                            "step": "interface",
+                            "status": "failed",
+                            "detail": (
+                                start_resp.json()
+                                if start_resp.headers.get("content-type", "").startswith("application/json")
+                                else start_resp.text
+                            )[:300],
+                        }
+                    )
+    except Exception as e:
+        steps.append({"step": "interface", "status": "failed", "detail": str(e)})
+
+    return {"overte_mcp_up": True, "overte_mcp_detail": "ok", "steps": steps}
+
+
+async def _wait_port(port: int, timeout: float = 20.0) -> bool:
+    import asyncio
+    import socket
+
+    deadline = asyncio.get_event_loop().time() + timeout
+    while asyncio.get_event_loop().time() < deadline:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(1)
+            s.connect(("127.0.0.1", port))
+            s.close()
+            return True
+        except OSError:
+            await asyncio.sleep(0.5)
+    return False
+
+
+@router.get("/export/overte/status")
+async def overte_status() -> dict[str, Any]:
+    """Readiness report for the step-IN chain (overte-mcp, domain, interface)."""
+    overte_port = int(os.getenv("OVERTE_MCP_PORT", "11110"))
+    steps = await _overte_bringup(overte_port)
+    ready = all(s["status"] == "ok" for s in steps.get("steps", []))
+    return {
+        "status": "ready" if ready else "attention",
+        "target": "overte",
+        "steps": steps.get("steps", []),
+        "detail": steps.get("overte_mcp_detail"),
+    }
+
+
+@router.post("/export/overte")
+async def export_to_overte(req: ExportRequest) -> dict[str, Any]:
+    """Spawn a Marble world inside an Overte domain so you can walk through it.
+
+    Two entities are spawned via the overte-mcp bridge (port 11110,
+    /api/overte/spawn - the same endpoint overte-mcp's own tool uses):
+
+    1. **Model entity** - the world's collision mesh GLB (proxied through
+       /api/handoff so Overte can fetch it) placed at the origin. Your
+       avatar walks through the world's actual geometry.
+    2. **Web entity panel** - a floating 4x2.5m screen at [-0, 1.8, -3]
+       showing the full-quality splat world on marble.worldlabs.ai.
+
+    Requires: overte-mcp running (`uv run overte-mcp`), an Overte domain
+    server (default :40100), and `scripts/overte-mcp-bridge.js` connected
+    inside an Overte Interface client. Results are passed through - overte-mcp
+    labels responses `source: simulated` when the bridge is not connected.
+    """
+    overte_port = int(os.getenv("OVERTE_MCP_PORT", "11110"))
+    bridge_url = os.getenv("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
+    world_id = req.world_id or ""
+    world_name = req.world_name or "WorldLabs_World"
+    local_mesh_url = f"{bridge_url}/api/handoff?url={req.mesh_url}" if req.mesh_url else ""
+    marble_world_url = f"https://marble.worldlabs.ai/world/{world_id}" if world_id else ""
+
+    # ---- Automation chain: overte-mcp -> domain-server -> interface -> spawn
+    steps = await _overte_bringup(overte_port)
+    if steps.get("overte_mcp_up") is not True:
+        return {
+            "status": "error",
+            "target": "overte",
+            "message": steps.get("overte_mcp_detail", "overte-mcp unavailable."),
+            "steps": steps.get("steps", []),
+        }
+
+    # If no mesh URL was supplied, fetch the world's mesh asset from the Marble API
+    if not req.mesh_url and world_id:
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                wresp = await client.get(
+                    f"https://api.worldlabs.ai/api/v1/worlds/{world_id}",
+                    headers={"Referer": "https://marble.worldlabs.ai/"},
+                )
+                if wresp.ok:
+                    wdata = wresp.json()
+                    go = wdata.get("generation_output") or {}
+                    mesh_url = go.get("full_res_mesh_url") or go.get("hq_mesh_url") or go.get("collider_mesh_url") or ""
+                    if mesh_url:
+                        local_mesh_url = f"{bridge_url}/api/handoff?url={mesh_url}"
+        except Exception:
+            pass
+
+    results: list[dict[str, Any]] = []
+
+    async def _spawn(name: str, etype: str, position: list[float], scale: list[float], url: str) -> dict[str, Any]:
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(
+                f"http://127.0.0.1:{overte_port}/api/overte/spawn",
+                json={
+                    "name": name,
+                    "type": etype,
+                    "position": position,
+                    "scale": scale,
+                    "model_url": url,
+                    "script_url": None,
+                    "permanent": True,
+                },
+            )
+        body: Any = resp.text
+        try:
+            body = resp.json()
+        except Exception:
+            pass
+        return {"entity": etype.lower(), "http": resp.status_code, "body": body}
+
+    if local_mesh_url:
+        results.append(
+            await _spawn(f"MarbleWorld-{world_name}", "Model", [0.0, 0.0, 0.0], [1.0, 1.0, 1.0], local_mesh_url)
+        )
+    if marble_world_url:
+        results.append(
+            await _spawn(f"MarbleViewer-{world_name}", "Web", [0.0, 1.8, -3.0], [4.0, 2.5, 0.1], marble_world_url)
+        )
+
+    failed = [r for r in results if r["http"] >= 400]
+    simulated = [r for r in results if isinstance(r["body"], dict) and r["body"].get("source") == "simulated"]
+
+    if failed:
+        status = "error"
+        message = f"{len(failed)} entity spawn(s) failed - check overte-mcp logs."
+    elif simulated:
+        status = "ok_simulated"
+        message = (
+            "Entities reported as simulated - connect scripts/overte-mcp-bridge.js "
+            "inside an Overte Interface client for a live spawn."
+        )
+    else:
+        status = "ok"
+        message = f"Spawned {len(results)} entity/entities in Overte."
+
+    return {
+        "status": status,
+        "message": message,
+        "target": "overte",
+        "world_id": world_id,
+        "mesh_url": local_mesh_url,
+        "marble_url": marble_world_url,
+        "results": results,
+    }
+
+
 # SSRF guard for the handoff proxy: only fetch from known asset hosts.
 # Extend via WORLDLABS_HANDOFF_ALLOWED_HOSTS (comma-separated host suffixes).
 _HANDOFF_ALLOWED_HOST_SUFFIXES: tuple[str, ...] = tuple(
@@ -1563,7 +2131,7 @@ def _handoff_url_allowed(url: str) -> bool:
 
 @router.get("/handoff")
 async def proxy_splat_asset(url: str = Query(...)) -> StreamingResponse:
-    """CORS proxy for remote splat files — the Spark viewer loads SPZ/GLB
+    """CORS proxy for remote splat files - the Spark viewer loads SPZ/GLB
     files through this endpoint to avoid CORS issues with the Marble CDN.
 
     SECURITY: restricted to an allow-list of asset hosts. Without it this
@@ -1594,7 +2162,7 @@ async def proxy_splat_asset(url: str = Query(...)) -> StreamingResponse:
 
 @router.post("/handoff")
 async def handoff_asset(req: HandoffRequest) -> dict[str, Any]:
-    """Unified handoff router — lighter than /export/* (no temp downloads for simple cases)."""
+    """Unified handoff router - lighter than /export/* (no temp downloads for simple cases)."""
     results: dict[str, Any] = {
         "world_id": req.world_id,
         "target": req.target,
@@ -1627,7 +2195,7 @@ async def handoff_asset(req: HandoffRequest) -> dict[str, Any]:
                         results["detail"] = "Sent to resonite-mcp"
                         results["result"] = data
                         return results
-        except Exception:  # noqa: S110
+        except Exception:
             pass
         osc_host = os.getenv("RESONITE_OSC_HOST", "127.0.0.1")
         osc_port = int(os.getenv("RESONITE_OSC_PORT", "9000"))
@@ -1719,7 +2287,7 @@ async def delete_scene(scene_id: str) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Plex Media Integration — Cinema Worlds
+# Plex Media Integration - Cinema Worlds
 # ---------------------------------------------------------------------------
 
 
@@ -1903,7 +2471,7 @@ async def get_plex_video_url(rating_key: str) -> dict[str, Any]:
 
 @router.get("/plex/proxy/{part_path:path}")
 async def proxy_plex_video(part_path: str, request: Request) -> StreamingResponse:
-    """Stream Plex video bytes with auth injected — provides a localhost URL
+    """Stream Plex video bytes with auth injected - provides a localhost URL
     the generate/upload flow can download from."""
     if not PLEX_TOKEN:
         raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured.")
@@ -1952,14 +2520,14 @@ async def generate_world_from_plex(req: PlexGenerateRequest) -> dict[str, Any]:
     if grandparent:
         title = f"{grandparent} - {title}"
 
-    # 2. Stream Plex video to a temp file (max 500MB — Marble limit is 100MB
+    # 2. Stream Plex video to a temp file (max 500MB - Marble limit is 100MB
     #    but we truncate at the ffmpeg clip step if added later; for now pass as-is)
     plex_url = f"{PLEX_BASE_URL}{part_key}?X-Plex-Token={PLEX_TOKEN}"
     tmp_dir = Path(tempfile.gettempdir()) / "worldlabs_plex"
     tmp_dir.mkdir(exist_ok=True)
     tmp_file = tmp_dir / f"plex_{req.rating_key}.mkv"
 
-    MAX_BYTES = 95 * 1024 * 1024  # 95MB — stay under Marble's 100MB limit
+    MAX_BYTES = 95 * 1024 * 1024  # 95MB - stay under Marble's 100MB limit
 
     try:
         async with httpx.AsyncClient(timeout=120, follow_redirects=True) as client:
@@ -1981,7 +2549,7 @@ async def generate_world_from_plex(req: PlexGenerateRequest) -> dict[str, Any]:
 
     file_size = tmp_file.stat().st_size
     if file_size < 1024:
-        raise HTTPException(status_code=502, detail="Downloaded file is too small — check Plex token/key.")
+        raise HTTPException(status_code=502, detail="Downloaded file is too small - check Plex token/key.")
 
     # 3. Upload to Marble GCS
     ext = "mkv"
@@ -2070,7 +2638,7 @@ async def get_plex_stream_url(key: str = Query(...)) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Avatar Integration — probe avatar-mcp at 10793, list/place avatars
+# Avatar Integration - probe avatar-mcp at 10793, list/place avatars
 # ---------------------------------------------------------------------------
 
 AVATAR_MCP_PORT = int(os.getenv("AVATAR_MCP_PORT", "10793"))
@@ -2100,10 +2668,10 @@ async def place_avatar_in_world(body: dict) -> dict[str, Any]:
     """Place an avatar from avatar-mcp into a generated world at coordinates.
 
     Body:
-        avatar_id: str — ID of the avatar from avatar-mcp's registry
-        world_id: str (optional) — world ID for metadata
-        x, y, z: float — position in the 3D scene
-        rotation: float — yaw in radians
+        avatar_id: str - ID of the avatar from avatar-mcp's registry
+        world_id: str (optional) - world ID for metadata
+        x, y, z: float - position in the 3D scene
+        rotation: float - yaw in radians
 
     Returns:
         Narration event result (the viewer will render the avatar via SSE).
@@ -2124,13 +2692,13 @@ async def place_avatar_in_world(body: dict) -> dict[str, Any]:
             if export_resp.ok:
                 data = export_resp.json()
                 avatar_url = (data.get("result") or {}).get("url", "") or data.get("message", "")
-    except Exception:  # noqa: S110
+    except Exception:
         pass
 
     if not avatar_url:
         avatar_url = f"http://127.0.0.1:{AVATAR_MCP_PORT}/api/v1/avatars/{avatar_id}/export"
 
-    # Post a narration event — the spark viewer picks it up via SSE
+    # Post a narration event - the spark viewer picks it up via SSE
     narration_payload = {
         "type": "avatar",
         "url": avatar_url,
@@ -2143,3 +2711,205 @@ async def place_avatar_in_world(body: dict) -> dict[str, Any]:
         resp = await client.post(f"{bridge_url}/api/narration", json=narration_payload)
         resp.raise_for_status()
         return resp.json()
+
+
+# ---------------------------------------------------------------------------
+# Marble Community Gallery - public worlds from marble.worldlabs.ai
+# ---------------------------------------------------------------------------
+
+GALLERY_API = "https://api.worldlabs.ai/api/v1/worlds:by-tag"
+GALLERY_TAGS = {"curated", "stylized", "realism", "interior", "hq", "fantasy", "sci-fi"}
+_gallery_cache: dict[str, tuple[float, dict[str, Any]]] = {}
+_GALLERY_CACHE_TTL = 60.0  # seconds - be polite to the upstream API on tab switches
+
+
+def _format_gallery_entry(w: dict[str, Any]) -> dict[str, Any]:
+    """Flatten one by-tag world into the webapp card shape."""
+    gi = w.get("generation_input") or {}
+    go = w.get("generation_output") or {}
+    prompt = (gi.get("prompt") or {}).get("text_prompt") or gi.get("original_text_prompt") or ""
+    return {
+        "id": w.get("id"),
+        "display_name": w.get("display_name"),
+        "owner": (w.get("application_data") or {}).get("owner_username"),
+        "owner_id": w.get("owner_id"),
+        "like_count": (w.get("stats") or {}).get("like_count", 0),
+        "created_at": w.get("created_at"),
+        "tags": w.get("tags") or [],
+        "model": gi.get("model"),
+        "seed": gi.get("seed"),
+        "prompt": prompt,
+        "minimap_url": go.get("minimap_url"),
+        "spz_urls": list((go.get("spz_urls") or {}).values()),
+        "marble_url": f"https://marble.worldlabs.ai/world/{w.get('id')}",
+    }
+
+
+@router.get("/gallery")
+async def gallery_browse(
+    tag: str = "curated",
+    page_size: int = 24,
+    page_token: str = "",
+) -> dict[str, Any]:
+    """Browse the public Marble community gallery (mirrors marble.worldlabs.ai tabs).
+
+    Proxies the site's own POST /api/v1/worlds:by-tag. Public entries only.
+    Results are cached in-memory for 60s to avoid hammering the upstream API.
+    """
+    if tag not in GALLERY_TAGS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown gallery tag '{tag}'. Valid: {sorted(GALLERY_TAGS)}",
+        )
+    page_size = max(1, min(page_size, 50))
+
+    cache_key = f"{tag}:{page_size}:{page_token}"
+    now = time.monotonic()
+    hit = _gallery_cache.get(cache_key)
+    if hit and now - hit[0] < _GALLERY_CACHE_TTL:
+        return hit[1]
+
+    body = {"page_size": page_size, "page_token": page_token, "tag": tag}
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.post(
+            GALLERY_API,
+            json=body,
+            headers={"Referer": "https://marble.worldlabs.ai/"},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+    entries = [e for w in data.get("worlds", []) if (e := _format_gallery_entry(w))]
+    result: dict[str, Any] = {
+        "tag": tag,
+        "next_page_token": data.get("next_page_token") or "",
+        "count": len(entries),
+        "entries": entries,
+    }
+    _gallery_cache[cache_key] = (now, result)
+    return result
+
+
+async def _gallery_fetch_pages(tag: str, page_size: int, max_pages: int) -> list[dict[str, Any]]:
+    """Fetch up to max_pages pages of one gallery tag, reusing the TTL cache."""
+    entries: list[dict[str, Any]] = []
+    token = ""
+    for _ in range(max_pages):
+        cache_key = f"{tag}:{page_size}:{token}"
+        now = time.monotonic()
+        hit = _gallery_cache.get(cache_key)
+        if hit and now - hit[0] < _GALLERY_CACHE_TTL:
+            result = hit[1]
+        else:
+            body = {"page_size": page_size, "page_token": token, "tag": tag}
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.post(
+                    GALLERY_API,
+                    json=body,
+                    headers={"Referer": "https://marble.worldlabs.ai/"},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+            result = {
+                "tag": tag,
+                "next_page_token": data.get("next_page_token") or "",
+                "count": len(data.get("worlds", [])),
+                "entries": [e for w in data.get("worlds", []) if (e := _format_gallery_entry(w))],
+            }
+            _gallery_cache[cache_key] = (now, result)
+        entries.extend(result["entries"])
+        token = result.get("next_page_token") or ""
+        if not token:
+            break
+    return entries
+
+
+def _entry_matches(e: dict[str, Any], tokens: list[str]) -> bool:
+    haystack = " ".join(
+        [
+            e.get("display_name") or "",
+            e.get("prompt") or "",
+            e.get("owner") or "",
+            " ".join(e.get("tags") or []),
+        ]
+    ).lower()
+    return all(t in haystack for t in tokens)
+
+
+async def search_gallery(
+    query: str,
+    tag: str = "curated",
+    limit: int = 10,
+    max_pages: int = 5,
+) -> dict[str, Any]:
+    """Case-insensitive keyword search over public gallery entries.
+
+    The upstream by-tag API has no text search, so this scans pages of one
+    tag (or all tags) with a bounded page budget. Every token of the query
+    must appear somewhere in title, prompt, owner, or tags.
+    """
+    query = (query or "").strip()
+    if not query:
+        return {
+            "success": False,
+            "message": "query is required",
+            "entries": [],
+            "searched": 0,
+            "matched": 0,
+            "tag": tag,
+        }
+    if tag != "all" and tag not in GALLERY_TAGS:
+        return {
+            "success": False,
+            "message": f"Unknown gallery tag '{tag}'. Valid: {sorted(GALLERY_TAGS)} or 'all'.",
+            "entries": [],
+            "searched": 0,
+            "matched": 0,
+            "tag": tag,
+        }
+    limit = max(1, min(limit, 50))
+    max_pages = max(1, min(max_pages, 15))
+    tokens = [t.lower() for t in query.split() if t]
+    tags = list(GALLERY_TAGS) if tag == "all" else [tag]
+    page_size = min(50, max(limit, 24))
+
+    matches: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    searched = 0
+    for t in tags:
+        if len(matches) >= limit:
+            break
+        for e in await _gallery_fetch_pages(t, page_size, max_pages):
+            searched += 1
+            if e["id"] in seen:
+                continue
+            seen.add(e["id"])
+            if _entry_matches(e, tokens):
+                matches.append(e)
+                if len(matches) >= limit:
+                    break
+
+    return {
+        "success": True,
+        "message": f"Found {len(matches)} match(es) for '{query}' (searched {searched} entries in {', '.join(tags)}).",
+        "query": query,
+        "tag": tag,
+        "searched": searched,
+        "matched": len(matches),
+        "entries": matches,
+    }
+
+
+@router.get("/gallery/search")
+async def gallery_search(
+    query: str,
+    tag: str = "curated",
+    limit: int = 10,
+    max_pages: int = 5,
+) -> dict[str, Any]:
+    """Search public Marble gallery entries by prompt/title/owner keyword.
+
+    Bounded server-side scan (max_pages per tag, TTL-cached). Query tokens
+    are matched case-insensitively; all tokens must appear (AND).
+    """
+    return await search_gallery(query, tag=tag, limit=limit, max_pages=max_pages)

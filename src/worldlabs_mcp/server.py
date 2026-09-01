@@ -718,9 +718,9 @@ _TOOL_CATALOG = [
         "description": "Generate a 3D world from a text description",
         "group": "generate",
         "args": {
-            "text_prompt": "str — scene description",
-            "display_name": "str (optional) — human-readable label",
-            "model": "str — 'marble-1.1' (default) or 'marble-1.1-plus'",
+            "text_prompt": "str - scene description",
+            "display_name": "str (optional) - human-readable label",
+            "model": "str - 'marble-1.1' (default) or 'marble-1.1-plus'",
         },
         "returns": "Operation dict with operation_id for polling",
         "example": 'generate_world_from_text(text_prompt="A gothic cathedral interior at night")',
@@ -736,10 +736,10 @@ _TOOL_CATALOG = [
         "description": "Generate a 3D world from a public image URL",
         "group": "generate",
         "args": {
-            "image_url": "str — public URL (jpg, jpeg, png, webp)",
-            "text_prompt": "str (optional) — guiding text",
+            "image_url": "str - public URL (jpg, jpeg, png, webp)",
+            "text_prompt": "str (optional) - guiding text",
             "display_name": "str (optional)",
-            "is_panorama": "bool — set True for 360-degree equirectangular images",
+            "is_panorama": "bool - set True for 360-degree equirectangular images",
             "model": "str",
         },
         "returns": "Operation dict",
@@ -755,8 +755,8 @@ _TOOL_CATALOG = [
         "description": "Generate from multiple images at specified azimuth angles",
         "group": "generate",
         "args": {
-            "image_urls": "list[str] — public image URLs",
-            "azimuths_deg": "list[float] — azimuth angle for each image, 0-360",
+            "image_urls": "list[str] - public image URLs",
+            "azimuths_deg": "list[float] - azimuth angle for each image, 0-360",
             "text_prompt": "str (optional)",
             "display_name": "str (optional)",
             "model": "str",
@@ -779,7 +779,7 @@ _TOOL_CATALOG = [
         "description": "Generate a 3D world from a public video URL",
         "group": "generate",
         "args": {
-            "video_url": "str — public URL (mp4, mov, mkv)",
+            "video_url": "str - public URL (mp4, mov, mkv)",
             "text_prompt": "str (optional)",
             "display_name": "str (optional)",
             "model": "str",
@@ -797,7 +797,7 @@ _TOOL_CATALOG = [
         "description": "Upload a local file and generate end-to-end",
         "group": "upload",
         "args": {
-            "local_file_path": "str — absolute path on disk",
+            "local_file_path": "str - absolute path on disk",
             "kind": "'image' or 'video'",
             "text_prompt": "str (optional)",
             "display_name": "str (optional)",
@@ -818,9 +818,9 @@ _TOOL_CATALOG = [
         "description": "Get a signed GCS upload URL for manual file upload",
         "group": "upload",
         "args": {
-            "file_name": "str — original filename",
+            "file_name": "str - original filename",
             "kind": "'image' or 'video'",
-            "extension": "str — file extension without dot",
+            "extension": "str - file extension without dot",
         },
         "returns": "Dict with media_asset.id and upload_info.upload_url",
         "example": 'prepare_media_upload(file_name="photo.jpg", kind="image", extension="jpg")',
@@ -836,7 +836,7 @@ _TOOL_CATALOG = [
         "description": "Generate from a previously uploaded media asset ID",
         "group": "generate",
         "args": {
-            "media_asset_id": "str — ID from prepare_media_upload",
+            "media_asset_id": "str - ID from prepare_media_upload",
             "kind": "'image' or 'video'",
             "text_prompt": "str (optional)",
             "display_name": "str (optional)",
@@ -852,7 +852,7 @@ _TOOL_CATALOG = [
         "name": "get_operation",
         "description": "Single poll of an operation status",
         "group": "poll",
-        "args": {"operation_id": "str — from any generate call"},
+        "args": {"operation_id": "str - from any generate call"},
         "returns": ("Operation dict. Check done field. metadata.progress.status: IN_PROGRESS | SUCCEEDED | FAILED"),
         "example": 'get_operation("op-abc123")',
         "docstring": (
@@ -885,7 +885,7 @@ _TOOL_CATALOG = [
         "group": "world",
         "args": {
             "page_size": "int (default 20, max 100)",
-            "page_token": "str (optional) — from previous next_page_token",
+            "page_token": "str (optional) - from previous next_page_token",
         },
         "returns": "Dict with worlds list and optional next_page_token",
         "example": "list_worlds(page_size=50)",
@@ -896,7 +896,7 @@ _TOOL_CATALOG = [
         "name": "get_world",
         "description": "Fetch full details and asset URLs for a world",
         "group": "world",
-        "args": {"world_id": "str — UUID from list_worlds or operation response"},
+        "args": {"world_id": "str - UUID from list_worlds or operation response"},
         "returns": "World object with assets: splat URLs (SPZ), mesh (GLB), panorama, thumbnail, caption",
         "example": 'get_world("world-uuid-456")',
         "docstring": (
@@ -910,7 +910,7 @@ _TOOL_CATALOG = [
         "name": "delete_world",
         "description": "Permanently delete a world and all its assets",
         "group": "world",
-        "args": {"world_id": "str — UUID from list_worlds or operation response"},
+        "args": {"world_id": "str - UUID from list_worlds or operation response"},
         "returns": "Confirmation dict with world_id and deleted status",
         "example": 'delete_world("world-uuid-456")',
         "docstring": "Permanently removes the world and all associated "
@@ -923,7 +923,7 @@ _TOOL_CATALOG = [
         "group": "ui",
         "args": {
             "page_size": "int (default 5)",
-            "page_token": "str (optional) — pagination token",
+            "page_token": "str (optional) - pagination token",
         },
         "returns": "Rich card UI with world list",
         "example": "show_worlds_card(page_size=5)",
@@ -942,11 +942,11 @@ _TOOL_CATALOG = [
     },
     {
         "name": "worldlabs_help",
-        "description": "This help tool — API reference at quick / standard / verbose detail levels",
+        "description": "This help tool - API reference at quick / standard / verbose detail levels",
         "group": "meta",
         "args": {
             "detail": "'quick' | 'standard' (default) | 'verbose'",
-            "topic": "str (optional) — filter by group: generate, upload, poll, world, spatial, meta, ui",
+            "topic": "str (optional) - filter by group: generate, upload, poll, world, spatial, meta, ui",
         },
         "returns": "Structured help dict",
         "example": 'worldlabs_help(detail="verbose", topic="generate")',
@@ -954,7 +954,7 @@ _TOOL_CATALOG = [
         "notes": "",
     },
     # ------------------------------------------------------------------
-    # Spatial tools — POST events to the narration bridge at
+    # Spatial tools - POST events to the narration bridge at
     # WORLDLABS_BRIDGE_URL (default http://localhost:10865).
     # The Spark 2.0 viewer consumes these via SSE. Requires the
     # bridge to be running (same uvicorn process serves it).
@@ -964,10 +964,10 @@ _TOOL_CATALOG = [
         "description": "Speak text at a 3D coordinate via the Spatial Voice Agent",
         "group": "spatial",
         "args": {
-            "text": "str — message to be spoken",
-            "x": "float — scene X (default 0.0)",
-            "y": "float — scene Y (default 0.0)",
-            "z": "float — scene Z (default 0.0)",
+            "text": "str - message to be spoken",
+            "x": "float - scene X (default 0.0)",
+            "y": "float - scene Y (default 0.0)",
+            "z": "float - scene Z (default 0.0)",
         },
         "returns": "Status string with recipient count",
         "example": 'broadcast_spatial_notification(text="Welcome to the garden", x=-5.2, y=1.5, z=12.0)',
@@ -984,7 +984,7 @@ _TOOL_CATALOG = [
         "description": "Broadcast a music/ambience track at a 3D coordinate",
         "group": "spatial",
         "args": {
-            "prompt_or_url": "str — URL to audio file, or future: text prompt for Lyria generation",
+            "prompt_or_url": "str - URL to audio file, or future: text prompt for Lyria generation",
             "x": "float",
             "y": "float",
             "z": "float",
@@ -1000,11 +1000,11 @@ _TOOL_CATALOG = [
         "description": "Place a virtual TV screen playing a video in the scene",
         "group": "spatial",
         "args": {
-            "video_url": "str — URL to an mp4/webm",
+            "video_url": "str - URL to an mp4/webm",
             "x": "float (default 0.0)",
             "y": "float (default 1.6)",
             "z": "float (default 0.0)",
-            "rotation_y": "float — yaw in radians",
+            "rotation_y": "float - yaw in radians",
             "scale": "float (default 1.0)",
         },
         "returns": "Status string",
@@ -1017,11 +1017,11 @@ _TOOL_CATALOG = [
         "description": "Materialise an animated agent avatar in the scene",
         "group": "spatial",
         "args": {
-            "avatar_url": "str — URL to a glTF, or 'default_agent'",
+            "avatar_url": "str - URL to a glTF, or 'default_agent'",
             "x": "float",
             "y": "float",
             "z": "float",
-            "rotation": "float — yaw in radians",
+            "rotation": "float - yaw in radians",
         },
         "returns": "Status string",
         "example": 'spawn_agent_avatar(avatar_url="default_agent", x=0, y=0, z=0)',
@@ -1037,9 +1037,9 @@ _TOOL_CATALOG = [
         "description": "Refine a world prompt using a local Ollama model",
         "group": "meta",
         "args": {
-            "prompt": "str — the prompt to refine",
-            "style": "str (optional) — e.g. 'Cinematic', 'Fantasy', 'Photorealistic'",
-            "model": "str (optional) — Ollama model name (default: llama3.2:3b)",
+            "prompt": "str - the prompt to refine",
+            "style": "str (optional) - e.g. 'Cinematic', 'Fantasy', 'Photorealistic'",
+            "model": "str (optional) - Ollama model name (default: llama3.2:3b)",
         },
         "returns": "Refined prompt text",
         "example": 'refine_with_local_llm(prompt="a dark forest", style="Fantasy")',
@@ -1085,7 +1085,7 @@ _MODELS = [
     {
         "name": "marble-1.1-plus",
         "time": "variable; longer for larger worlds",
-        "quality": "Auto-expanding — produces larger worlds in a single pass when the scene allows.",
+        "quality": "Auto-expanding - produces larger worlds in a single pass when the scene allows.",
         "cost": "1500 base + 300 per additional dynamic cube (up to 5 cubes)",
         "use_when": "Outdoor scenes, large indoor spaces, architectural visualisation.",
     },
@@ -1095,14 +1095,14 @@ _WORKFLOW = [
     "generate_world_from_text(text_prompt=...) → returns operation_id immediately",
     "Poll: get_operation(operation_id) until done=True (or use wait_for_world for mini)",
     "On success: get_world(world_id) → download splat/mesh/panorama URLs",
-    "For local files: upload_and_generate(local_file_path=..., kind='image') — handles upload flow",
+    "For local files: upload_and_generate(local_file_path=..., kind='image') - handles upload flow",
     "List everything: list_worlds(page_size=50)",
 ]
 
 _WORLDLABS_CONTEXT = {
     "founded": "2023, San Francisco. Led by Fei-Fei Li (former Stanford AI Lab director).",
     "mission": (
-        "Build spatial intelligence — AI that understands the 3D structure of the world, not just text and images."
+        "Build spatial intelligence - AI that understands the 3D structure of the world, not just text and images."
     ),
     "marble_api": (
         "Marble is the World Labs world-generation API. It takes text, image, or video as input "
@@ -1141,15 +1141,15 @@ _WORLDLABS_CONTEXT = {
         "interior, hq, fantasy, sci-fi) and GET https://api.worldlabs.ai/api/v1/worlds/{id}. "
         "Each entry carries the creator's original prompt, seed, and public SPZ/minimap assets. "
         "Use the gallery_explore tool, the webapp /gallery page, or scripts/gallery_scrape.py "
-        "for bulk prompt mining. Attribution: respect creators — prompts are their originals."
+        "for bulk prompt mining. Attribution: respect creators - prompts are their originals."
     ),
     "spatial_intelligence_scene_2026": (
         "World Labs operates in the emerging Large World Model (LWM) space. "
         "Competing approaches in 2026: "
-        "Generative/persistent (World Labs Marble) — full 3D scene files, good for DCC pipelines. "
-        "Latent/predictive (Meta JEPA/AMI Labs) — physics reasoning in embedding space. "
-        "Interactive real-time (Google DeepMind Genie 3) — playable simulation at speed. "
-        "Industrial (Alibaba/Baidu) — autonomous vehicle and smart-city simulation. "
+        "Generative/persistent (World Labs Marble) - full 3D scene files, good for DCC pipelines. "
+        "Latent/predictive (Meta JEPA/AMI Labs) - physics reasoning in embedding space. "
+        "Interactive real-time (Google DeepMind Genie 3) - playable simulation at speed. "
+        "Industrial (Alibaba/Baidu) - autonomous vehicle and smart-city simulation. "
         "World Labs positions itself at the quality/persistence end: scenes you can download, "
         "import, and use in production rather than scenes that only exist inside a model's latent space."
     ),
@@ -1317,16 +1317,16 @@ async def worldlabs_help(
     topic: str = "",
 ) -> dict:
     """
-    World Labs MCP API reference — three detail levels.
+    World Labs MCP API reference - three detail levels.
 
     Returns structured documentation about every tool in this server,
     the Marble API models, typical workflow, and World Labs context.
 
     Args:
         detail: Level of detail to return.
-                'quick'    — tool names + one-line descriptions only.
-                'standard' — names, descriptions, args, returns, workflow, models.
-                'verbose'  — everything above + full docstrings, examples, notes,
+                'quick'    - tool names + one-line descriptions only.
+                'standard' - names, descriptions, args, returns, workflow, models.
+                'verbose'  - everything above + full docstrings, examples, notes,
                              World Labs company/API context, and output format docs.
         topic:  Optional filter. One of: generate, upload, poll, world, meta.
                 Returns all tools if topic doesn't match any group.
@@ -1387,7 +1387,7 @@ async def worldlabs_help(
 
 
 # ---------------------------------------------------------------------------
-# Marble Community Gallery tools — public worlds from marble.worldlabs.ai
+# Marble Community Gallery tools - public worlds from marble.worldlabs.ai
 # ---------------------------------------------------------------------------
 
 GALLERY_API = "https://api.worldlabs.ai/api/v1/worlds:by-tag"
@@ -1424,7 +1424,7 @@ async def gallery_explore(
     tag: Annotated[
         str,
         Field(
-            description="Gallery tab: curated, stylized, realism, interior, hq, fantasy, sci-fi — or 'all' for search. Default 'curated'."
+            description="Gallery tab: curated, stylized, realism, interior, hq, fantasy, sci-fi - or 'all' for search. Default 'curated'."
         ),
     ] = "curated",
     world_id: Annotated[
@@ -1579,7 +1579,7 @@ async def catch_exceptions_middleware(request: Request, call_next):
 
 
 # SECURITY: no wildcard origin. This bridge can launch DCC apps, run adb,
-# proxy remote assets, and serve local files — a wildcard + credentials CORS
+# proxy remote assets, and serve local files - a wildcard + credentials CORS
 # policy lets any webpage in a local browser read responses from it.
 # Extra origins (e.g. another LAN host) via WORLDLABS_EXTRA_ORIGINS (comma-sep).
 _allowed_origins = [

@@ -1,8 +1,8 @@
 """
 Prefab card tools for worldlabs-mcp.
 
-list_worlds_card  — paginated world library as a scannable table card
-get_world_card    — single world detail card with asset links and thumbnail
+list_worlds_card  - paginated world library as a scannable table card
+get_world_card    - single world detail card with asset links and thumbnail
 """
 
 from __future__ import annotations
@@ -151,7 +151,7 @@ def register_prefab_tools(mcp) -> None:
             with Card(css_class="max-w-2xl") as view:
                 with CardContent():
                     Text(f"Error fetching worlds: {exc}", css_class="text-destructive")
-            return PrefabApp(view=view, title="Error — World Library")
+            return PrefabApp(view=view, title="Error - World Library")
 
         worlds: list[dict[str, Any]] = data.get("worlds", [])
         next_token: str = data.get("next_page_token", "")
@@ -299,7 +299,7 @@ def register_prefab_tools(mcp) -> None:
                     Separator(spacing=2)
                     Text("Assets", css_class="font-semibold text-sm")
                     Text(
-                        "⚠ CDN links are time-limited — download promptly.",
+                        "⚠ CDN links are time-limited - download promptly.",
                         css_class="text-xs text-muted-foreground mb-1",
                     )
                     for line in asset_lines:

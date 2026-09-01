@@ -1,3 +1,7 @@
+﻿import sys, os
+site_pkgs = os.path.abspath('.venv/Lib/site-packages')
+if site_pkgs not in sys.path:
+    sys.path.insert(0, site_pkgs)
 # -*- mode: python ; coding: utf-8 -*-
 import PyInstaller.utils.hooks as _h
 _pydantic_all = _h.collect_submodules('pydantic')

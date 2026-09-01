@@ -8,6 +8,7 @@ import {
 import FloatingChat from "@/components/FloatingChat";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Apps } from "@/pages/apps";
+import ChatPage from "@/pages/chat";
 import { ChiselDetail } from "@/pages/chisel-detail";
 import { Dashboard } from "@/pages/dashboard";
 import { MarbleGallery } from "@/pages/gallery";
@@ -21,6 +22,7 @@ import { PaintingPortals } from "@/pages/painting-portals";
 import { LocalPaintings } from "@/pages/paintings";
 import PlexCinema from "@/pages/plex-cinema";
 import { Settings } from "@/pages/settings";
+import { SkillsPage } from "@/pages/skills";
 import { SparkDetail } from "@/pages/spark-detail";
 import { SparkViewer } from "@/pages/spark-viewer";
 import { Status } from "@/pages/status";
@@ -60,6 +62,8 @@ function App() {
               <Route path="/immersive" element={<ImmersiveDetail />} />
               <Route path="/tools-explorer" element={<ToolsExplorer />} />
               <Route path="/local-llm" element={<LocalLlm />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/skills" element={<SkillsPage />} />
               <Route path="/apps" element={<Apps />} />
               <Route path="/help" element={<Help />} />
               <Route path="/settings" element={<Settings />} />

@@ -2606,6 +2606,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-httpx" },
+    { name = "pywin32" },
     { name = "ruff" },
 ]
 
@@ -2636,6 +2637,7 @@ dev = [
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.23" },
     { name = "pytest-httpx", specifier = ">=0.30" },
+    { name = "pywin32", specifier = ">=311" },
     { name = "ruff", specifier = ">=0.16.0,<0.17" },
 ]
 

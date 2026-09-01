@@ -115,6 +115,22 @@ export function Dashboard() {
               Browse library
             </Link>
           </div>
+          {/* Onboarding CTA - big red under-hero per ONBOARDING_STANDARD.md */}
+          <Link
+            to="/onboarding"
+            data-testid="onboarding-cue"
+            className="mt-6 flex items-center justify-between gap-4 rounded-xl bg-red-600 hover:bg-red-500 border border-red-500 px-5 py-3 text-white no-underline transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              <span className="text-sm font-bold">
+                Set up your World Labs API key to start generating
+              </span>
+            </div>
+            <span className="text-xs font-semibold bg-white text-red-600 rounded-full px-3 py-1">
+              Onboarding
+            </span>
+          </Link>
         </div>
       </section>
 

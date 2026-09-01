@@ -1,0 +1,14 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "stabilityDays": 3,
+  "prConcurrentLimit": 3,
+  "schedule": ["before 4am on Monday"],
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "automerge": true
+    }
+  ]
+}

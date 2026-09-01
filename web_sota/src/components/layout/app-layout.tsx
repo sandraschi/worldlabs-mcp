@@ -1,12 +1,14 @@
 import {
   Activity,
   Binary,
+  Bot,
   ChevronLeft,
   ChevronRight,
   Clapperboard,
   Glasses,
   Globe2,
   Images,
+  Layers,
   LayoutDashboard,
   Library,
   Menu,
@@ -68,6 +70,8 @@ export function useSidebar() {
 
 const navItems = [
   { to: "/", label: "Overview", icon: LayoutDashboard },
+  { to: "/chat", label: "Chat", icon: Bot },
+  { to: "/skills", label: "Skills", icon: Layers },
   { to: "/tools-explorer", label: "Tools", icon: Wrench },
   { to: "/library", label: "World Library", icon: Library },
   { to: "/status", label: "Bridge Health", icon: Activity },

@@ -65,7 +65,7 @@ DEFAULT_OLLAMA_MODEL = os.getenv("DEFAULT_OLLAMA_MODEL", "llama3.2:3b")
 
 
 # ---------------------------------------------------------------------------
-# Data directory — writable, survives git operations, per-OS
+# Data directory - writable, survives git operations, per-OS
 # ---------------------------------------------------------------------------
 
 if platform.system() == "Windows":
@@ -261,7 +261,7 @@ async def _poll_operation_with_retry(
     operation_id: str,
     max_retries: int = 3,
 ) -> dict[str, Any]:
-    """Poll an operation with exponential backoff — prevents transient errors from killing long jobs."""
+    """Poll an operation with exponential backoff - prevents transient errors from killing long jobs."""
     last_exc: Exception | None = None
     for attempt in range(max_retries):
         try:
@@ -395,7 +395,7 @@ async def get_system_stats() -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Narration stream — Spatial Voice Agent
+# Narration stream - Spatial Voice Agent
 # ---------------------------------------------------------------------------
 
 _narration_clients: list[asyncio.Queue] = []
@@ -660,7 +660,7 @@ async def get_default_agent() -> FileResponse:
 
 
 # ---------------------------------------------------------------------------
-# Marble generation — fire-and-forget (returns operation immediately)
+# Marble generation - fire-and-forget (returns operation immediately)
 # ---------------------------------------------------------------------------
 
 
@@ -1143,7 +1143,7 @@ async def delete_world(world_id: str) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Download proxy — streams Marble's signed URLs with a sensible filename
+# Download proxy - streams Marble's signed URLs with a sensible filename
 # ---------------------------------------------------------------------------
 
 _ASSET_FILENAMES: dict[str, tuple[str, str]] = {
@@ -1261,22 +1261,22 @@ WORLDLABS_EXPERT_SKILL = """You are a World Labs Marble expert. You help users g
 explorable 3D worlds using the Marble API.
 
 ## Models
-- **marble-1.1** — Default, 1500 credits, 1-3 min. Good fidelity, fixed cost.
-- **marble-1.1-plus** — Auto-expanding, 1500 + 300/dynamic cube (max 5).
+- **marble-1.1** - Default, 1500 credits, 1-3 min. Good fidelity, fixed cost.
+- **marble-1.1-plus** - Auto-expanding, 1500 + 300/dynamic cube (max 5).
   Variable time. Best for outdoor scenes, large interiors.
 
 ## Key Tools
-- `generate_world_from_text(prompt)` — 3D world from text
-- `generate_world_from_image(url)` — 3D world from photograph
-- `upload_and_generate(file_path, kind)` — Local file upload + generation
-- `get_operation(id)` / `wait_for_world(id)` — Poll generation status
-- `get_world(id)` — Download asset URLs (splat, mesh, panorama)
-- `list_worlds()` — Browse generated worlds
+- `generate_world_from_text(prompt)` - 3D world from text
+- `generate_world_from_image(url)` - 3D world from photograph
+- `upload_and_generate(file_path, kind)` - Local file upload + generation
+- `get_operation(id)` / `wait_for_world(id)` - Poll generation status
+- `get_world(id)` - Download asset URLs (splat, mesh, panorama)
+- `list_worlds()` - Browse generated worlds
 
 ## Output Formats
-- SPZ (100k/500k/full_res) — Gaussian splat for Blender/Unity/VR
-- GLB — Collision mesh for physics simulation
-- Panorama — 360-degree JPEG
+- SPZ (100k/500k/full_res) - Gaussian splat for Blender/Unity/VR
+- GLB - Collision mesh for physics simulation
+- Panorama - 360-degree JPEG
 - Thumbnail + AI caption
 
 ## Prompt Engineering
@@ -1551,7 +1551,7 @@ async def llm_chat(req: ChatRequest) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# DCC handoff — Blender / Unity3D / Resonite
+# DCC handoff - Blender / Unity3D / Resonite
 # ---------------------------------------------------------------------------
 
 
@@ -1678,11 +1678,11 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
 
     This endpoint tries two paths in order:
 
-    1. **resonite-mcp** (port 10715) — if resonite-mcp is running, calls its
+    1. **resonite-mcp** (port 10715) - if resonite-mcp is running, calls its
        `/api/v1/import/worldlabs` endpoint with the splat URL. resonite-mcp
        handles ResoniteLink import, inventory upload, and OSC.
 
-    2. **Direct OSC** — fallback if resonite-mcp is not available. Sends OSC
+    2. **Direct OSC** - fallback if resonite-mcp is not available. Sends OSC
        packet to Resonite at port 9000 with the proxied URLs.
     """
     osc_host = os.getenv("RESONITE_OSC_HOST", "127.0.0.1")
@@ -2131,7 +2131,7 @@ def _handoff_url_allowed(url: str) -> bool:
 
 @router.get("/handoff")
 async def proxy_splat_asset(url: str = Query(...)) -> StreamingResponse:
-    """CORS proxy for remote splat files — the Spark viewer loads SPZ/GLB
+    """CORS proxy for remote splat files - the Spark viewer loads SPZ/GLB
     files through this endpoint to avoid CORS issues with the Marble CDN.
 
     SECURITY: restricted to an allow-list of asset hosts. Without it this
@@ -2162,7 +2162,7 @@ async def proxy_splat_asset(url: str = Query(...)) -> StreamingResponse:
 
 @router.post("/handoff")
 async def handoff_asset(req: HandoffRequest) -> dict[str, Any]:
-    """Unified handoff router — lighter than /export/* (no temp downloads for simple cases)."""
+    """Unified handoff router - lighter than /export/* (no temp downloads for simple cases)."""
     results: dict[str, Any] = {
         "world_id": req.world_id,
         "target": req.target,
@@ -2287,7 +2287,7 @@ async def delete_scene(scene_id: str) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Plex Media Integration — Cinema Worlds
+# Plex Media Integration - Cinema Worlds
 # ---------------------------------------------------------------------------
 
 
@@ -2471,7 +2471,7 @@ async def get_plex_video_url(rating_key: str) -> dict[str, Any]:
 
 @router.get("/plex/proxy/{part_path:path}")
 async def proxy_plex_video(part_path: str, request: Request) -> StreamingResponse:
-    """Stream Plex video bytes with auth injected — provides a localhost URL
+    """Stream Plex video bytes with auth injected - provides a localhost URL
     the generate/upload flow can download from."""
     if not PLEX_TOKEN:
         raise HTTPException(status_code=400, detail="PLEX_TOKEN not configured.")
@@ -2520,14 +2520,14 @@ async def generate_world_from_plex(req: PlexGenerateRequest) -> dict[str, Any]:
     if grandparent:
         title = f"{grandparent} - {title}"
 
-    # 2. Stream Plex video to a temp file (max 500MB — Marble limit is 100MB
+    # 2. Stream Plex video to a temp file (max 500MB - Marble limit is 100MB
     #    but we truncate at the ffmpeg clip step if added later; for now pass as-is)
     plex_url = f"{PLEX_BASE_URL}{part_key}?X-Plex-Token={PLEX_TOKEN}"
     tmp_dir = Path(tempfile.gettempdir()) / "worldlabs_plex"
     tmp_dir.mkdir(exist_ok=True)
     tmp_file = tmp_dir / f"plex_{req.rating_key}.mkv"
 
-    MAX_BYTES = 95 * 1024 * 1024  # 95MB — stay under Marble's 100MB limit
+    MAX_BYTES = 95 * 1024 * 1024  # 95MB - stay under Marble's 100MB limit
 
     try:
         async with httpx.AsyncClient(timeout=120, follow_redirects=True) as client:
@@ -2549,7 +2549,7 @@ async def generate_world_from_plex(req: PlexGenerateRequest) -> dict[str, Any]:
 
     file_size = tmp_file.stat().st_size
     if file_size < 1024:
-        raise HTTPException(status_code=502, detail="Downloaded file is too small — check Plex token/key.")
+        raise HTTPException(status_code=502, detail="Downloaded file is too small - check Plex token/key.")
 
     # 3. Upload to Marble GCS
     ext = "mkv"
@@ -2638,7 +2638,7 @@ async def get_plex_stream_url(key: str = Query(...)) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Avatar Integration — probe avatar-mcp at 10793, list/place avatars
+# Avatar Integration - probe avatar-mcp at 10793, list/place avatars
 # ---------------------------------------------------------------------------
 
 AVATAR_MCP_PORT = int(os.getenv("AVATAR_MCP_PORT", "10793"))
@@ -2668,10 +2668,10 @@ async def place_avatar_in_world(body: dict) -> dict[str, Any]:
     """Place an avatar from avatar-mcp into a generated world at coordinates.
 
     Body:
-        avatar_id: str — ID of the avatar from avatar-mcp's registry
-        world_id: str (optional) — world ID for metadata
-        x, y, z: float — position in the 3D scene
-        rotation: float — yaw in radians
+        avatar_id: str - ID of the avatar from avatar-mcp's registry
+        world_id: str (optional) - world ID for metadata
+        x, y, z: float - position in the 3D scene
+        rotation: float - yaw in radians
 
     Returns:
         Narration event result (the viewer will render the avatar via SSE).
@@ -2698,7 +2698,7 @@ async def place_avatar_in_world(body: dict) -> dict[str, Any]:
     if not avatar_url:
         avatar_url = f"http://127.0.0.1:{AVATAR_MCP_PORT}/api/v1/avatars/{avatar_id}/export"
 
-    # Post a narration event — the spark viewer picks it up via SSE
+    # Post a narration event - the spark viewer picks it up via SSE
     narration_payload = {
         "type": "avatar",
         "url": avatar_url,
@@ -2714,7 +2714,7 @@ async def place_avatar_in_world(body: dict) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Marble Community Gallery — public worlds from marble.worldlabs.ai
+# Marble Community Gallery - public worlds from marble.worldlabs.ai
 # ---------------------------------------------------------------------------
 
 GALLERY_API = "https://api.worldlabs.ai/api/v1/worlds:by-tag"

@@ -6,7 +6,7 @@
   "type": "mcp_server",
   "status": "beta",
   "framework": "FastMCP 3.4+",
-  "tools": 21,
+  "tools": 19,
   "transport": ["stdio"],
   "keywords": [
     "worldlabs",
