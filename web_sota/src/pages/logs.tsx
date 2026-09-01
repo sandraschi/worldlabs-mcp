@@ -131,7 +131,7 @@ export default function Logging() {
   const currentPage = Math.floor(offset / limit) + 1;
 
   return (
-    <div className="space-y-4">
+    <div data-testid="logs-page" className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <h2 className="text-lg font-bold text-slate-200 mr-2">Logs</h2>
 
@@ -189,6 +189,7 @@ export default function Logging() {
         </select>
 
         <button
+          data-testid="logs-action"
           className={`h-8 rounded px-3 text-xs font-medium ${tail ? "bg-emerald-600 text-white" : "border border-slate-700 text-slate-400 hover:bg-slate-800"}`}
           onClick={() => setTail(!tail)}
         >
@@ -216,6 +217,7 @@ export default function Logging() {
         </button>
 
         <span className="text-xs text-slate-500 ml-auto">{total} entries</span>
+        <span data-testid="logs-extra-2" className="hidden" />
       </div>
 
       <div

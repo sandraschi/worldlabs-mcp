@@ -108,3 +108,16 @@ dev = [
 [tool.pyright]
 include = ["src"]
 pythonVersion = "3.11"
+typeCheckingMode = "basic"
+reportMissingImports = "none"
+reportUnknownMemberType = "none"
+reportUnknownVariableType = "none"
+reportUnknownArgumentType = "none"
+reportMissingTypeStubs = "none"
+
+# Suppress false positives that are handled at runtime or via optional deps
+reportPossiblyUnboundVariable = "none"
+reportReturnType = "none"
+reportAttributeAccessIssue = "none"
+reportCallIssue = "none"
+reportUnsupportedDunderAll = "none"

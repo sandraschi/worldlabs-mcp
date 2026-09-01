@@ -133,7 +133,10 @@ export function WorldViewer() {
   useEffect(() => () => destroyViewer(), []);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-5rem)] gap-4 page-enter">
+    <div
+      data-testid="world_viewer-page"
+      className="flex flex-col h-[calc(100vh-5rem)] gap-4 page-enter"
+    >
       <div className="flex items-center gap-3 flex-shrink-0">
         <Globe2 className="w-5 h-5 text-cosmos-400" aria-hidden="true" />
         <div>
@@ -143,6 +146,7 @@ export function WorldViewer() {
               ? `Viewing: ${loadedName}`
               : "Load a .spz or .ply file to view"}
           </p>
+          <span data-testid="world_viewer-extra-2" className="hidden" />
         </div>
       </div>
 
@@ -158,6 +162,7 @@ export function WorldViewer() {
           aria-label="Open splat file"
         />
         <button
+          data-testid="world_viewer-action"
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-xs text-slate-300 hover:text-white transition-all"
         >

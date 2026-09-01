@@ -1703,7 +1703,7 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             health = await client.get(f"http://127.0.0.1:{resonite_mcp_port}/health")
-            if health.ok:
+            if health.is_success:
                 import_resp = await client.post(
                     f"http://127.0.0.1:{resonite_mcp_port}/api/resonite/integrations/worldlabs",
                     json={
@@ -1712,8 +1712,8 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
                         "world_name": req.world_name or "WorldLabs_World",
                     },
                 )
-                data = import_resp.json() if import_resp.ok else {}
-                if import_resp.ok:
+                data = import_resp.json() if import_resp.is_success else {}
+                if import_resp.is_success:
                     return {
                         "status": "ok",
                         "world_id": world_id,
@@ -1897,7 +1897,7 @@ async def _overte_bringup(overte_port: int) -> dict[str, Any]:
     try:
         async with httpx.AsyncClient(timeout=8) as client:
             detect = await client.get(f"http://127.0.0.1:{overte_port}/api/overte/app/detect")
-            detect_data = detect.json() if detect.ok else {}
+            detect_data = detect.json() if detect.is_success else {}
             running = detect_data.get("running", {}) or {}
             if running.get("domain-server"):
                 steps.append({"step": "domain-server", "status": "ok", "detail": "running"})
@@ -1906,7 +1906,7 @@ async def _overte_bringup(overte_port: int) -> dict[str, Any]:
                     f"http://127.0.0.1:{overte_port}/api/overte/app/start",
                     json={"target": "domain-server"},
                 )
-                if start_resp.ok and await _wait_port(OVERTE_DOMAIN_PORT, timeout=20):
+                if start_resp.is_success and await _wait_port(OVERTE_DOMAIN_PORT, timeout=20):
                     steps.append({"step": "domain-server", "status": "ok", "detail": "launched (port 40100)"})
                 else:
                     steps.append(
@@ -1918,7 +1918,7 @@ async def _overte_bringup(overte_port: int) -> dict[str, Any]:
                                 if start_resp.headers.get("content-type", "").startswith("application/json")
                                 else start_resp.text
                             )[:300]
-                            if not start_resp.ok
+                            if not start_resp.is_success
                             else "launched but :40100 not answering - install Overte from overte.org",
                         }
                     )
@@ -1929,7 +1929,7 @@ async def _overte_bringup(overte_port: int) -> dict[str, Any]:
     try:
         async with httpx.AsyncClient(timeout=8) as client:
             detect = await client.get(f"http://127.0.0.1:{overte_port}/api/overte/app/detect")
-            detect_data = detect.json() if detect.ok else {}
+            detect_data = detect.json() if detect.is_success else {}
             running = detect_data.get("running", {}) or {}
             if running.get("interface"):
                 steps.append({"step": "interface", "status": "ok", "detail": "running"})
@@ -1938,7 +1938,7 @@ async def _overte_bringup(overte_port: int) -> dict[str, Any]:
                     f"http://127.0.0.1:{overte_port}/api/overte/app/start",
                     json={"target": "interface"},
                 )
-                if start_resp.ok:
+                if start_resp.is_success:
                     steps.append(
                         {
                             "step": "interface",
@@ -2038,7 +2038,7 @@ async def export_to_overte(req: ExportRequest) -> dict[str, Any]:
                     f"https://api.worldlabs.ai/api/v1/worlds/{world_id}",
                     headers={"Referer": "https://marble.worldlabs.ai/"},
                 )
-                if wresp.ok:
+                if wresp.is_success:
                     wdata = wresp.json()
                     go = wdata.get("generation_output") or {}
                     mesh_url = go.get("full_res_mesh_url") or go.get("hq_mesh_url") or go.get("collider_mesh_url") or ""
@@ -2180,7 +2180,7 @@ async def handoff_asset(req: HandoffRequest) -> dict[str, Any]:
         try:
             async with httpx.AsyncClient(timeout=10) as client:
                 health = await client.get(f"http://127.0.0.1:{resonite_mcp_port_res}/health")
-                if health.ok:
+                if health.is_success:
                     import_resp = await client.post(
                         f"http://127.0.0.1:{resonite_mcp_port_res}/api/v1/import/worldlabs",
                         json={
@@ -2189,8 +2189,8 @@ async def handoff_asset(req: HandoffRequest) -> dict[str, Any]:
                             "world_name": req.world_id,
                         },
                     )
-                    data = import_resp.json() if import_resp.ok else {}
-                    if import_resp.ok:
+                    data = import_resp.json() if import_resp.is_success else {}
+                    if import_resp.is_success:
                         results["status"] = "ok"
                         results["detail"] = "Sent to resonite-mcp"
                         results["result"] = data
@@ -2652,7 +2652,7 @@ async def avatar_mcp_status() -> dict[str, Any]:
             health = await client.get(f"http://127.0.0.1:{AVATAR_MCP_PORT}/health")
             health.raise_for_status()
             avatars_resp = await client.get(f"http://127.0.0.1:{AVATAR_MCP_PORT}/api/v1/avatars")
-            avatars = avatars_resp.json() if avatars_resp.ok else []
+            avatars = avatars_resp.json() if avatars_resp.is_success else []
             return {
                 "available": True,
                 "url": f"http://127.0.0.1:{AVATAR_MCP_PORT}",
@@ -2689,7 +2689,7 @@ async def place_avatar_in_world(body: dict) -> dict[str, Any]:
                 f"http://127.0.0.1:{AVATAR_MCP_PORT}/api/v1/tools/call",
                 json={"name": "export_avatar", "arguments": {"avatar_id": avatar_id, "format": "glb"}},
             )
-            if export_resp.ok:
+            if export_resp.is_success:
                 data = export_resp.json()
                 avatar_url = (data.get("result") or {}).get("url", "") or data.get("message", "")
     except Exception:

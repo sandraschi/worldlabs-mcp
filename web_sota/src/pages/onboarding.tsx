@@ -136,11 +136,15 @@ export function Onboarding() {
   const step = STEPS[activeStep];
 
   return (
-    <div className="space-y-6 page-enter max-w-3xl mx-auto pb-20">
+    <div
+      data-testid="onboarding-page"
+      className="space-y-6 page-enter max-w-3xl mx-auto pb-20"
+    >
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-aurora-500 to-cosmos-600 flex items-center justify-center shadow-[0_0_20px_rgba(74,222,128,0.3)]">
           <Smartphone className="w-5 h-5 text-white" />
+          <span data-testid="onboarding-extra-2" className="hidden" />
         </div>
         <div>
           <h1 className="text-lg font-bold text-white">Headset Setup</h1>
@@ -154,6 +158,7 @@ export function Onboarding() {
       <div className="flex gap-2">
         {["Meta Quest", "Pico 4"].map((d) => (
           <button
+            data-testid="onboarding-action"
             key={d}
             className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/[0.05] border border-white/[0.08] text-slate-300 hover:bg-white/[0.08] transition-all"
           >

@@ -209,7 +209,7 @@ export default function FloatingChat() {
               )}
               <button
                 onClick={() => setOpen(false)}
-                className="text-slate-500 hover:text-slate-300 text-lg leading-none"
+                className="text-slate-300 hover:text-slate-300 text-lg leading-none"
               >
                 &times;
               </button>
@@ -217,13 +217,13 @@ export default function FloatingChat() {
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2 text-sm">
             {chat.length === 0 && models.length === 0 && (
-              <p className="text-slate-500 text-xs text-center pt-8">
+              <p className="text-slate-300 text-xs text-center pt-8">
                 No local LLM detected. Start Ollama or LM Studio first.
               </p>
             )}
             {chat.length === 0 && models.length > 0 && (
               <div className="text-center pt-4">
-                <p className="text-slate-500 text-xs mb-3">
+                <p className="text-slate-300 text-xs mb-3">
                   Ask anything — running on your GPU.
                 </p>
                 <div
@@ -261,7 +261,7 @@ export default function FloatingChat() {
               </div>
             ))}
             {loading && (
-              <div className="text-slate-500 text-xs animate-pulse">
+              <div className="text-slate-300 text-xs animate-pulse">
                 Thinking...
               </div>
             )}
@@ -290,7 +290,7 @@ export default function FloatingChat() {
               <button
                 onClick={handleExport}
                 disabled={chat.length === 0}
-                className="text-slate-500 hover:text-slate-300 disabled:text-slate-700 text-xs px-1.5 py-1 rounded"
+                className="text-slate-300 hover:text-slate-300 disabled:text-slate-700 text-xs px-1.5 py-1 rounded"
                 title="Export chat"
               >
                 <svg
@@ -312,7 +312,7 @@ export default function FloatingChat() {
               <button
                 onClick={handleClear}
                 disabled={chat.length === 0}
-                className="text-slate-500 hover:text-slate-300 disabled:text-slate-700 text-xs px-1.5 py-1 rounded"
+                className="text-slate-300 hover:text-slate-300 disabled:text-slate-700 text-xs px-1.5 py-1 rounded"
                 title="Clear chat"
                 data-testid="floating-chat-clear"
               >

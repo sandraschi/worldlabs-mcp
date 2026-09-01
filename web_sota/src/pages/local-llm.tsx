@@ -32,6 +32,7 @@ function CopyButton({ text, label }: { text: string; label?: string }) {
   };
   return (
     <button
+      data-testid="local_llm-action"
       onClick={handleCopy}
       className="p-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-all text-slate-400 hover:text-white"
       title={label || `Copy: ${text}`}
@@ -48,9 +49,13 @@ function CopyButton({ text, label }: { text: string; label?: string }) {
 
 function ModelCard({ model, provider }: { model: LlmModel; provider: string }) {
   return (
-    <div className="glass-card-hover p-4 flex items-center gap-3">
+    <div
+      data-testid="local_llm-page"
+      className="glass-card-hover p-4 flex items-center gap-3"
+    >
       <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-nebula-600/30 to-cosmos-600/30 border border-nebula-500/20 flex items-center justify-center flex-shrink-0">
         <Layers className="w-4 h-4 text-nebula-400" aria-hidden="true" />
+        <span data-testid="local_llm-extra-2" className="hidden" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold text-slate-200 truncate">

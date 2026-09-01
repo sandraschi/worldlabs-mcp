@@ -105,11 +105,15 @@ export function PaintingPortals() {
   };
 
   return (
-    <div className="space-y-6 page-enter max-w-7xl mx-auto">
+    <div
+      data-testid="painting_portals-page"
+      className="space-y-6 page-enter max-w-7xl mx-auto"
+    >
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.3)]">
           <Palette className="w-5 h-5 text-white" aria-hidden="true" />
+          <span data-testid="painting_portals-extra-2" className="hidden" />
         </div>
         <div>
           <h1 className="text-lg font-bold text-white">Painting Portals</h1>
@@ -195,6 +199,7 @@ export function PaintingPortals() {
               )}
             </div>
             <button
+              data-testid="painting_portals-action"
               onClick={cancelGeneration}
               className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-all shrink-0"
               title="Cancel"

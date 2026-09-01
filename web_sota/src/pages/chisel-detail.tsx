@@ -2,9 +2,15 @@ import { Box, PenTool, Ruler, Scale, Shapes } from "lucide-react";
 
 export function ChiselDetail() {
   return (
-    <div className="space-y-12 pb-20 animate-in fade-in duration-500">
+    <div
+      data-testid="chisel_detail-page"
+      className="space-y-12 pb-20 animate-in fade-in duration-500"
+    >
       {/* Hero Header */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-black/40 border border-slate-800 p-12 backdrop-blur-xl group">
+      <section
+        data-testid="chisel_detail-section"
+        className="relative overflow-hidden rounded-[2rem] bg-black/40 border border-slate-800 p-12 backdrop-blur-xl group"
+      >
         <div className="absolute inset-0 bg-gradient-to-br from-void-600/10 via-transparent to-aurora-600/10 opacity-50 transition-opacity group-hover:opacity-100" />
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-void-500/10 blur-[120px] rounded-full animate-pulse" />
 
@@ -12,6 +18,7 @@ export function ChiselDetail() {
           <div className="inline-flex items-center gap-2 rounded-full bg-void-500/10 px-4 py-1.5 text-xs font-bold text-void-400 border border-void-500/20 mb-6 uppercase tracking-widest">
             <Shapes className="h-3.5 w-3.5" />
             Geometry Engine Spec
+            <span data-testid="chisel_detail-extra-2" className="hidden" />
           </div>
           <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white mb-6 leading-none">
             Chisel <br />

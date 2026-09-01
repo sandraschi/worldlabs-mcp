@@ -187,12 +187,16 @@ export function WorldLibrary() {
   };
 
   return (
-    <div className="space-y-6 page-enter max-w-7xl mx-auto">
+    <div
+      data-testid="library-page"
+      className="space-y-6 page-enter max-w-7xl mx-auto"
+    >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cosmos-500 to-void-600 flex items-center justify-center shadow-[0_0_20px_rgba(92,84,255,0.3)]">
             <Globe2 className="w-5 h-5 text-white" aria-hidden="true" />
+            <span data-testid="library-extra-2" className="hidden" />
           </div>
           <div>
             <h1 className="text-lg font-bold text-white">World Library</h1>
@@ -206,6 +210,7 @@ export function WorldLibrary() {
         <div className="flex items-center gap-2">
           <div className="flex bg-white/[0.05] rounded-lg border border-white/[0.08] p-0.5">
             <button
+              data-testid="library-action"
               onClick={() => setViewMode("card")}
               className={cn(
                 "p-1.5 rounded-md transition-all",

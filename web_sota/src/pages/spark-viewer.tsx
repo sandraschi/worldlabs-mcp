@@ -74,7 +74,10 @@ function ManifestHub({
   onBrowse: () => void;
 }) {
   return (
-    <div className="absolute inset-0 flex items-center justify-center p-8 bg-slate-950/40 backdrop-blur-sm z-20">
+    <div
+      data-testid="spark_viewer-page"
+      className="absolute inset-0 flex items-center justify-center p-8 bg-slate-950/40 backdrop-blur-sm z-20"
+    >
       <div className="relative w-full max-w-5xl space-y-12 text-center animate-in fade-in zoom-in-95 duration-700">
         {/* Background Grid Accent */}
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
@@ -97,6 +100,7 @@ function ManifestHub({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {PORTAL_PRESETS.map((p) => (
             <button
+              data-testid="spark_viewer-action"
               key={p.name}
               onClick={() => onLoad(p.url, p.name)}
               className="group glass-card p-6 text-left hover:border-cosmos-500/50 hover:shadow-2xl hover:shadow-cosmos-500/10 transition-all duration-300 space-y-4"

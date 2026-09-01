@@ -56,7 +56,7 @@ export function Status() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div data-testid="status-page" className="space-y-6">
       <header>
         <h2 className="text-3xl font-bold tracking-tight text-white">
           Bridge Health
@@ -66,7 +66,10 @@ export function Status() {
         </p>
       </header>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div
+        data-testid="status-content"
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+      >
         <div className="glass-card p-6">
           <div className="flex items-center gap-4">
             <Globe className="h-8 w-8 text-cyan-400" />

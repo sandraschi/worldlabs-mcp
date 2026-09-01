@@ -21,13 +21,18 @@ function ToolCard({
       )}
     >
       <button
+        data-testid="tools_explorer-action"
         onClick={onToggle}
         className="w-full flex items-center gap-3 p-4 text-left hover:bg-white/[0.03] transition-colors"
         aria-expanded={expanded}
         aria-controls={`tool-${tool.name}`}
       >
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cosmos-600/30 to-void-600/30 border border-cosmos-500/20 flex items-center justify-center flex-shrink-0">
+        <div
+          data-testid="tools_explorer-page"
+          className="w-8 h-8 rounded-lg bg-gradient-to-br from-cosmos-600/30 to-void-600/30 border border-cosmos-500/20 flex items-center justify-center flex-shrink-0"
+        >
           <Wrench className="w-3.5 h-3.5 text-cosmos-400" aria-hidden="true" />
+          <span data-testid="tools_explorer-extra-2" className="hidden" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-semibold text-slate-200 font-mono">

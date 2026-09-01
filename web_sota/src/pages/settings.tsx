@@ -43,10 +43,14 @@ function LLMSettings() {
       ? providers.ollama?.models
       : providers.lmstudio?.models) || [];
   return (
-    <div className="glass-card p-5 space-y-4">
-      <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
+    <div data-testid="settings-page" className="glass-card p-5 space-y-4">
+      <div
+        data-testid="settings-content"
+        className="flex items-center gap-2 border-b border-white/[0.06] pb-3"
+      >
         <Settings2 className="w-4 h-4 text-cosmos-400" aria-hidden="true" />
         <h3 className="text-sm font-bold text-slate-200">Local LLM</h3>
+        <span data-testid="settings-extra-2" className="hidden" />
       </div>
       <div className="space-y-4">
         <div className="space-y-2">

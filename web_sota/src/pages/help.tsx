@@ -46,8 +46,9 @@ function Section({
 }: SectionProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="glass-card overflow-hidden">
+    <div data-testid="help-page" className="glass-card overflow-hidden">
       <button
+        data-testid="help-action"
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between gap-2 p-5 text-left"
         aria-expanded={open}
@@ -58,6 +59,7 @@ function Section({
             aria-hidden="true"
           />
           <span className="text-sm font-bold text-slate-200">{title}</span>
+          <span data-testid="help-extra-2" className="hidden" />
         </div>
         {open ? (
           <ChevronDown className="w-3.5 h-3.5 text-slate-500" />

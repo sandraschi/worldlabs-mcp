@@ -109,7 +109,10 @@ export default function PlexCinema() {
     libraries.find((l) => l.id === activeLibrary)?.title ?? "Library";
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div
+      data-testid="plex_cinema-page"
+      className="max-w-7xl mx-auto p-6 space-y-6"
+    >
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -157,6 +160,7 @@ export default function PlexCinema() {
           />
         </div>
         <button
+          data-testid="plex_cinema-action"
           type="button"
           onClick={handleSearch}
           disabled={searching || !query.trim()}

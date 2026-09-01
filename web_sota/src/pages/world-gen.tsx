@@ -162,7 +162,10 @@ function GenerationModal({
 
   return (
     // Backdrop
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div
+      data-testid="world_gen-page"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+    >
       <div
         className={cn(
           "relative w-full max-w-md rounded-2xl border p-6 shadow-2xl transition-all duration-300",
@@ -176,6 +179,7 @@ function GenerationModal({
         {/* Close button — only when done or failed */}
         {(done || failed) && (
           <button
+            data-testid="world_gen-action"
             onClick={onDismiss}
             className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
             aria-label="Close"
@@ -194,6 +198,7 @@ function GenerationModal({
             <div className="relative">
               <Globe2 className="w-12 h-12 text-cosmos-400" />
               <RefreshCw className="absolute -bottom-1 -right-1 w-5 h-5 text-cosmos-300 animate-spin" />
+              <span data-testid="world_gen-extra-2" className="hidden" />
             </div>
           )}
         </div>

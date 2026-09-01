@@ -35,8 +35,12 @@ function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="glass-card overflow-hidden">
+    <div
+      data-testid="immersive_detail-page"
+      className="glass-card overflow-hidden"
+    >
       <button
+        data-testid="immersive_detail-action"
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between gap-2 p-5 text-left"
         aria-expanded={open}
@@ -44,6 +48,7 @@ function Section({
         <div className="flex items-center gap-2">
           <Icon className="w-4 h-4 text-aurora-400 shrink-0" />
           <span className="text-sm font-bold text-slate-200">{title}</span>
+          <span data-testid="immersive_detail-extra-2" className="hidden" />
         </div>
         {open ? (
           <ChevronDown className="w-3.5 h-3.5 text-slate-500" />

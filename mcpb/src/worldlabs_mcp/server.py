@@ -73,6 +73,15 @@ VALID_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 VALID_VIDEO_EXTENSIONS = {"mp4", "mov", "mkv"}
 
 
+def _error_response(message: str, *, exc: BaseException | None = None) -> dict:
+    """Standard error envelope with auto-logging (fleet Pattern 3)."""
+    if exc is not None:
+        logger.exception(f"{message}: {exc}")
+    else:
+        logger.error(message)
+    return {"success": False, "message": message}
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -167,7 +176,14 @@ async def _api_call(method: str, path: str, json_data: dict | None = None, timeo
 # ---------------------------------------------------------------------------
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "title": "Generate World from Text",
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "openWorldHint": True,
+    }
+)
 async def generate_world_from_text(
     text_prompt: str,
     display_name: str = "",
@@ -180,7 +196,7 @@ async def generate_world_from_text(
     Returns immediately with an operation_id.  Use get_operation to check
     status, or wait_for_world for blocking poll (≤90s by default).
 
-    Args:
+    Parameters:
         text_prompt: Description of the world to generate.
         display_name: Optional human-readable name for the world.
         model: 'marble-1.1' (default, 1500 credits) or 'marble-1.1-plus' (auto-expanding, 1500 + 300/dynamic-cube).
@@ -189,6 +205,17 @@ async def generate_world_from_text(
 
     Returns:
         Operation object with operation_id for polling.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     payload: dict = {
         "display_name": display_name,
@@ -205,7 +232,14 @@ async def generate_world_from_text(
     return await _api_call("POST", "/worlds:generate", json_data=payload)
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "title": "Generate World from Image",
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "openWorldHint": True,
+    }
+)
 async def generate_world_from_image(
     image_url: str,
     text_prompt: str = "",
@@ -221,7 +255,7 @@ async def generate_world_from_image(
 
     Returns immediately with an operation_id.
 
-    Args:
+    Parameters:
         image_url: Public URL of the source image (jpg, jpeg, png, webp).
         text_prompt: Optional text to guide generation.
         display_name: Optional name for the world.
@@ -233,6 +267,17 @@ async def generate_world_from_image(
 
     Returns:
         Operation object with operation_id for polling.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     image_prompt: dict = {"source": "uri", "uri": image_url}
     if is_panorama:
@@ -269,7 +314,7 @@ async def generate_world_from_image(
             _handle_status_error(e)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Generate World from Multi-Image", "readOnlyHint": False, "destructiveHint": False})
 async def generate_world_from_multi_image(
     image_urls: list[str],
     azimuths_deg: list[float],
@@ -280,7 +325,7 @@ async def generate_world_from_multi_image(
     """
     Generate a 3D world from multiple images at specified azimuth angles.
 
-    Args:
+    Parameters:
         image_urls: List of public image URLs (must match azimuths_deg length).
         azimuths_deg: Azimuth angles in degrees for each image (0-360).
                       Example: [0, 90, 180, 270] for 4 images at cardinal directions.
@@ -290,6 +335,17 @@ async def generate_world_from_multi_image(
 
     Returns:
         Operation object with operation_id for polling.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     if len(image_urls) != len(azimuths_deg):
         raise ValueError(
@@ -328,7 +384,7 @@ async def generate_world_from_multi_image(
             _handle_status_error(e)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Generate World from Video", "readOnlyHint": False})
 async def generate_world_from_video(
     video_url: str,
     text_prompt: str = "",
@@ -343,7 +399,7 @@ async def generate_world_from_video(
 
     Returns immediately with an operation_id.
 
-    Args:
+    Parameters:
         video_url: Public URL of the source video (mp4, mov, mkv).
         text_prompt: Optional text to guide generation.
         display_name: Optional name for the world.
@@ -354,6 +410,17 @@ async def generate_world_from_video(
 
     Returns:
         Operation object with operation_id for polling.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     world_prompt: dict = {
         "type": "video",
@@ -401,7 +468,7 @@ async def upload_and_generate(
     Handles the full flow: prepare upload -> PUT file to GCS -> generate world.
     Returns immediately with an operation_id once upload completes.
 
-    Args:
+    Parameters:
         local_file_path: Absolute path to the local image or video file.
         kind: 'image' or 'video'.
         text_prompt: Optional guiding text.
@@ -411,6 +478,17 @@ async def upload_and_generate(
 
     Returns:
         Operation object with operation_id for polling.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     if kind not in ("image", "video"):
         raise ValueError("kind must be 'image' or 'video'")
@@ -492,13 +570,24 @@ async def prepare_media_upload(
     with the returned upload_info.headers, then pass media_asset.id to
     generate_world_from_media_asset. For a simpler flow, use upload_and_generate.
 
-    Args:
+    Parameters:
         file_name: Original filename (e.g. 'photo.jpg').
         kind: 'image' or 'video'.
         extension: File extension without dot (e.g. 'jpg', 'mp4').
 
     Returns:
         Dict with 'media_asset' (contains id) and 'upload_info' (upload_url, method, headers).
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     if kind not in ("image", "video"):
         raise ValueError("kind must be 'image' or 'video'")
@@ -529,7 +618,7 @@ async def generate_world_from_media_asset(
     """
     Generate a world from a previously uploaded media asset.
 
-    Args:
+    Parameters:
         media_asset_id: ID returned by prepare_media_upload or upload_and_generate.
         kind: 'image' or 'video'.
         text_prompt: Optional guiding text.
@@ -539,6 +628,17 @@ async def generate_world_from_media_asset(
 
     Returns:
         Operation object with operation_id for polling.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     if kind == "image":
         image_prompt: dict = {"source": "media_asset", "media_asset_id": media_asset_id}
@@ -570,7 +670,7 @@ async def generate_world_from_media_asset(
             _handle_status_error(e)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Get Operation", "readOnlyHint": True})
 async def get_operation(operation_id: str) -> dict:
     """
     Poll a generation operation for its current status.
@@ -578,13 +678,24 @@ async def get_operation(operation_id: str) -> dict:
     Recommended for long-running jobs (marble-1.1-plus, auto-expanding, multi-minute).
     Call repeatedly until done=True rather than using wait_for_world.
 
-    Args:
+    Parameters:
         operation_id: The operation_id returned by a generate call.
 
     Returns:
         Operation object. Check 'done' field. If done and no 'error',
         'response' contains the world. metadata.progress.status is
         IN_PROGRESS, SUCCEEDED, or FAILED.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     data = await _api_call("GET", f"/operations/{operation_id}")
     if data.get("done"):
@@ -592,7 +703,7 @@ async def get_operation(operation_id: str) -> dict:
     return data
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Wait for World", "readOnlyHint": True})
 async def wait_for_world(
     operation_id: str,
     poll_interval_seconds: int = DEFAULT_POLL_INTERVAL,
@@ -605,7 +716,7 @@ async def wait_for_world(
     For marble-1.1-plus jobs (often multi-minute), use get_operation manually instead,
     or increase timeout_seconds explicitly (e.g. 600) if your client supports it.
 
-    Args:
+    Parameters:
         operation_id: The operation_id to wait on.
         poll_interval_seconds: Seconds between polls (default 15).
         timeout_seconds: Max seconds to wait before giving up (default 90).
@@ -616,6 +727,17 @@ async def wait_for_world(
     Raises:
         RuntimeError: If the operation completed with an error.
         TimeoutError: If timeout_seconds elapses before completion.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     deadline = time.monotonic() + timeout_seconds
     async with httpx.AsyncClient(timeout=30) as client:
@@ -646,7 +768,7 @@ async def wait_for_world(
             await asyncio.sleep(poll_interval_seconds)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "List Worlds", "readOnlyHint": True})
 async def list_worlds(
     page_size: int = 20,
     page_token: str = "",
@@ -654,12 +776,23 @@ async def list_worlds(
     """
     List previously generated worlds.
 
-    Args:
+    Parameters:
         page_size: Number of worlds to return (default 20, max 100).
         page_token: Pagination token from a previous response's next_page_token.
 
     Returns:
         Dict with 'worlds' list and optional 'next_page_token'.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     body: dict = {"page_size": page_size, "sort_by": "created_at"}
     if page_token:
@@ -667,22 +800,33 @@ async def list_worlds(
     return await _api_call("POST", "/worlds:list", json_data=body)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Get World", "readOnlyHint": True})
 async def get_world(world_id: str) -> dict:
     """
     Fetch the latest details for a generated world by its ID.
 
-    Args:
+    Parameters:
         world_id: The world UUID (from operation response or list_worlds).
 
     Returns:
         World object with assets: splat URLs (SPZ), collision mesh (GLB),
         panorama, thumbnail, AI-generated caption.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     return await _api_call("GET", f"/worlds/{world_id}")
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Delete World", "readOnlyHint": False, "destructiveHint": True})
 async def delete_world(world_id: str) -> dict:
     """
     Delete a previously generated world by its ID.
@@ -690,11 +834,22 @@ async def delete_world(world_id: str) -> dict:
     Permanently removes the world and all its associated assets (splat files,
     mesh, panorama, thumbnail) from the Marble API. This action cannot be undone.
 
-    Args:
+    Parameters:
         world_id: The world UUID (from operation response or list_worlds).
 
     Returns:
         Deletion confirmation dict with world_id and deleted status.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     async with httpx.AsyncClient(timeout=30) as client:
         try:
@@ -1072,6 +1227,16 @@ _TOOL_CATALOG = [
         ),
         "notes": "Prompts are the creators' originals - credit owners when reusing.",
     },
+    {
+        "name": "worldlabs_shutdown",
+        "description": "Gracefully shut down the World Labs MCP server",
+        "group": "meta",
+        "args": {},
+        "returns": '{"success": true, "message": "Shutting down..."}',
+        "example": "await worldlabs_shutdown()",
+        "docstring": "Graceful self-termination for agentic workflows. Delays exit by 1s so the response can flush.",
+        "notes": "Destructive - server exits after response.",
+    },
 ]
 
 _MODELS = [
@@ -1171,6 +1336,17 @@ async def broadcast_spatial_audio(
     Pass a URL to an audio file (mp3, wav) to play it at the given
     3D coordinate. The audio is spatialised via WebAudio PannerNode
     in the Spark viewer.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
 
@@ -1200,6 +1376,17 @@ async def place_world_tv(
 ) -> str:
     """
     Place a virtual TV screen in the 3D world playing a Veo 3.1 video.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
     payload = {"type": "video", "url": video_url, "x": x, "y": y, "z": z, "rotation": rotation_y, "scale": scale}
@@ -1220,6 +1407,17 @@ async def spawn_agent_avatar(
     """
     Materialize an animated agent avatar in the 3D scene.
     The viewer will attempt to ground the avatar on the collider mesh.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
     resolved_url = f"{bridge_url}/api/default-agent" if avatar_url == "default_agent" else avatar_url
@@ -1242,11 +1440,22 @@ async def broadcast_spatial_notification(
     Broadcast a spatial voice notification to the active World Labs Spark Viewer.
     Connects to the Spatial Voice Agent to narrate specific locations in the 3D world.
 
-    Args:
+    Parameters:
         text: The message to be spoken by Gemini TTS.
         x: X coordinate in the 3D scene (Default 0.0).
         y: Y coordinate in the 3D scene (Default 0.0).
         z: Z coordinate in the 3D scene (Default 0.0).
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     bridge_url = os.environ.get("WORLDLABS_BRIDGE_URL", "http://localhost:10865")
     payload = {"type": "speech", "text": text, "x": x, "y": y, "z": z}
@@ -1273,13 +1482,24 @@ async def refine_with_local_llm(
     Sends a short prompt to Ollama for expansion into a detailed,
     Marble-optimised 3D world generation prompt.
 
-    Args:
+    Parameters:
         prompt: The short prompt to refine.
         style: Visual style hint (e.g. Cinematic, Fantasy, Photorealistic).
         model: Ollama model name (default: llama3.2:3b).
 
     Returns:
         Dict with refined prompt text on success, or an error message.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     from .api_bridge import OLLAMA_URL
 
@@ -1322,7 +1542,7 @@ async def worldlabs_help(
     Returns structured documentation about every tool in this server,
     the Marble API models, typical workflow, and World Labs context.
 
-    Args:
+    Parameters:
         detail: Level of detail to return.
                 'quick'    - tool names + one-line descriptions only.
                 'standard' - names, descriptions, args, returns, workflow, models.
@@ -1334,6 +1554,17 @@ async def worldlabs_help(
     Returns:
         Dict with keys: level, tools, (models, workflow for standard+),
         (worldlabs_context for verbose).
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Operation completed", "data": {"operation_id": "op_abc123"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_from_text(text_prompt="a misty Japanese garden")
+    operation_id = result["operation_id"]
+    ```
     """
     # Normalise detail level
     valid_levels = {"quick", "standard", "verbose"}
@@ -1561,6 +1792,84 @@ async def gallery_explore(
 
 
 # ---------------------------------------------------------------------------
+# MCP Resources + Prompts (SOTA §2.1)
+# ---------------------------------------------------------------------------
+
+
+@mcp.resource("world://{world_id}")
+async def resource_world(world_id: str) -> str:
+    """Return world JSON for a given world_id.
+
+    ## Return Format
+    JSON string with world detail (assets, status, caption).
+
+    ## Examples
+    ```python
+    data = await resource_world("wl_abc123")
+    ```
+    """
+    try:
+        data = await get_world(world_id)
+        import json as _json
+
+        return _json.dumps(data, indent=2)
+    except Exception as e:
+        return f'{{"error": "{e}"}}'
+
+
+@mcp.resource("gallery://{tag}")
+async def resource_gallery(tag: str) -> str:
+    """Return Marble Community Gallery entries for a tag.
+
+    ## Return Format
+    JSON string with entries array.
+
+    ## Examples
+    ```python
+    data = await resource_gallery("curated")
+    ```
+    """
+    import json as _json
+
+    result = await gallery_explore(operation="browse", tag=tag)
+    return _json.dumps(result, indent=2)
+
+
+@mcp.prompt("world-gen")
+def prompt_world_gen(topic: str = "fantasy landscape") -> str:
+    """Prompt template for Marble world generation.
+
+    ## Return Format
+    System prompt string for the LLM.
+
+    ## Examples
+    Provide `topic="cyberpunk city at night"` to tailor the prompt.
+    """
+    return (
+        f"You are a World Labs Marble expert. Help the user craft a vivid, spatially coherent prompt for: {topic}.\n"
+        "Include: art style, landmark, materials, lighting, time of day, and negative cues to avoid.\n"
+        "Keep prompts under 500 chars for best Marble results. Use seed for deterministic iteration."
+    )
+
+
+@mcp.prompt("spark-viewer")
+def prompt_spark_viewer() -> str:
+    """Prompt template for Spark 2.0 viewer guidance.
+
+    ## Return Format
+    System prompt string.
+
+    ## Examples
+    Use when user asks about .RAD streaming, LoD, or WebXR headset setup.
+    """
+    return (
+        "You are a Spark 2.0 Gaussian splat expert. Help with LoD splat tree, .RAD streaming, "
+        "virtual GPU paging, Chisel mesh extraction, and WebXR (Quest/Pico 4) headset setup. "
+        "Refer to docs/SPARK_V2.md and docs/WEBXR.md."
+    )
+
+
+# ---------------------------------------------------------------------------
 # ASGI app for uvicorn (web_sota/start.ps1): worldlabs_mcp.server:app
 # REST /api/* for web_sota + Spatial Voice Agent narration stream
 # ---------------------------------------------------------------------------
@@ -1613,6 +1922,32 @@ async def health():
 
 _web_app.include_router(api_router, prefix="/api")
 app = _web_app
+
+
+# ---------------------------------------------------------------------------
+# Self-termination (fleet agentic workflow)
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool(annotations={"title": "Shutdown Server", "destructiveHint": True})
+async def worldlabs_shutdown() -> dict:
+    """Gracefully shut down the World Labs MCP server.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Shutting down..."}
+    ```
+
+    ## Examples
+    ```python
+    await worldlabs_shutdown()
+    ```
+    """
+    import asyncio as _aio
+
+    logger.info("worldlabs_shutdown requested - exiting in 1s")
+    _aio.get_event_loop().call_later(1, lambda: __import__("os")._exit(0))
+    return {"success": True, "message": "Shutting down World Labs MCP server..."}
 
 
 # ---------------------------------------------------------------------------
