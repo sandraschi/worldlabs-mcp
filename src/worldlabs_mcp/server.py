@@ -1923,6 +1923,136 @@ async def health():
 _web_app.include_router(api_router, prefix="/api")
 app = _web_app
 
+# ---------------------------------------------------------------------------
+# Vault Backup/Restore — vault is source of truth, db/vectors are derivatives
+# ---------------------------------------------------------------------------
+_VAULT_PATH = Path.home() / ".advanced-memory" / "vault"
+_DB_PATH_MEM = Path.home() / ".advanced-memory" / "memory.db"
+
+
+@_web_app.get("/api/backup/status")
+async def backup_status():
+    vault_files = sum(1 for _ in _VAULT_PATH.rglob("*.md")) if _VAULT_PATH.exists() else 0
+    vault_mb = (
+        sum(f.stat().st_size for f in _VAULT_PATH.rglob("*") if f.is_file()) / (1024 * 1024)
+        if _VAULT_PATH.exists()
+        else 0
+    )
+    db_mb = _DB_PATH_MEM.stat().st_size / (1024 * 1024) if _DB_PATH_MEM.exists() else 0
+    return {
+        "vault_path": str(_VAULT_PATH),
+        "vault_files": vault_files,
+        "vault_mb": round(vault_mb, 1),
+        "db_mb": round(db_mb, 1),
+        "derivative": "memory.db + vectors/ are rebuilt from vault markdown via re-embed — back up vault only",
+    }
+
+
+@_web_app.get("/api/backup/vault")
+async def backup_vault():
+    import io
+    import zipfile
+
+    from starlette.responses import StreamingResponse
+
+    if not _VAULT_PATH.exists():
+        return JSONResponse(status_code=404, content={"error": f"vault not found: {_VAULT_PATH}"})
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for f in _VAULT_PATH.rglob("*"):
+            if f.is_file():
+                zf.write(f, f.relative_to(_VAULT_PATH.parent))
+    buf.seek(0)
+    return StreamingResponse(
+        buf,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename=memops-vault-{time.strftime('%Y-%m-%d')}.zip"},
+    )
+
+
+@_web_app.post("/api/backup/restore")
+async def restore_vault(request: Request):
+    import io
+    import shutil
+    import zipfile
+
+    data = await request.body()
+    content_type = request.headers.get("content-type", "")
+    if "multipart/form-data" in content_type:
+        form = await request.form()
+        file = form.get("file")
+        if not file:
+            return JSONResponse(status_code=400, content={"error": "missing file field"})
+        data = await file.read()
+    if not data or data[:2] != b"PK":
+        return JSONResponse(status_code=400, content={"error": "not a zip (PK header missing)"})
+    ts = time.strftime("%Y%m%d_%H%M%S")
+    backup_dir = _VAULT_PATH.parent / f"vault.bak-{ts}"
+    if _VAULT_PATH.exists():
+        shutil.copytree(_VAULT_PATH, backup_dir)
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            if not any(n.endswith(".md") for n in zf.namelist()):
+                return JSONResponse(status_code=400, content={"error": "zip contains no .md files"})
+            if _VAULT_PATH.exists():
+                shutil.rmtree(_VAULT_PATH)
+            _VAULT_PATH.mkdir(parents=True, exist_ok=True)
+            for member in zf.infolist():
+                name = member.filename
+                if name.startswith("vault/"):
+                    name = name[len("vault/") :]
+                target = _VAULT_PATH / name
+                if member.is_dir():
+                    target.mkdir(parents=True, exist_ok=True)
+                else:
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    with zf.open(member) as src, open(target, "wb") as dst:
+                        shutil.copyfileobj(src, dst)
+    except Exception as e:
+        logger.exception("restore failed")
+        return JSONResponse(status_code=500, content={"error": str(e), "backup": str(backup_dir)})
+    return {
+        "status": "restored",
+        "vault": str(_VAULT_PATH),
+        "backup": str(backup_dir),
+        "note": "db/vectors will re-embed on next sync — run adn_system sync or wait for watcher",
+    }
+
+
+@mcp.tool(annotations={"title": "Backup Vault", "readOnlyHint": False})
+async def backup_vault_tool(ctx: Context) -> dict:
+    vault_files = sum(1 for _ in _VAULT_PATH.rglob("*.md")) if _VAULT_PATH.exists() else 0
+    vault_mb = (
+        sum(f.stat().st_size for f in _VAULT_PATH.rglob("*") if f.is_file()) / (1024 * 1024)
+        if _VAULT_PATH.exists()
+        else 0
+    )
+    return {
+        "success": True,
+        "vault": str(_VAULT_PATH),
+        "files": vault_files,
+        "mb": round(vault_mb, 1),
+        "note": "db/vectors are derivatives — vault zip is sufficient; GET /api/backup/vault to download",
+    }
+
+
+@mcp.tool(annotations={"title": "Restore Vault Info", "readOnlyHint": False})
+async def restore_vault_info(ctx: Context, zip_path: str | None = None) -> dict:
+    import zipfile
+
+    info = {"vault": str(_VAULT_PATH), "derivative": "memory.db + vectors/ rebuilt from markdown"}
+    if zip_path and Path(zip_path).exists():
+        try:
+            with zipfile.ZipFile(zip_path) as zf:
+                info["zip_files"] = len(zf.namelist())
+                info["has_md"] = any(n.endswith(".md") for n in zf.namelist())
+        except Exception as e:
+            info["zip_error"] = str(e)
+    return {"success": True, **info}
+
+
+app = _web_app
+
 
 # ---------------------------------------------------------------------------
 # Self-termination (fleet agentic workflow)

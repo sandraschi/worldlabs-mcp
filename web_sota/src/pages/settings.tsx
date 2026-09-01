@@ -1,5 +1,6 @@
 import { ExternalLink, Globe2, Key, Settings2, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
+import { BackupCard } from "@/components/BackupCard";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -251,6 +252,8 @@ export function Settings() {
       </div>
 
       <LLMSettings />
+
+      <BackupCard />
     </div>
   );
 }
