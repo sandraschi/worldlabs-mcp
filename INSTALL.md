@@ -23,7 +23,7 @@ just serve       # start the server
 just web         # start the frontend (if applicable)
 ```
 
-> **Why not `pip install`?** MCP servers bundle webapps, configs, project scaffolding, and tooling that a flat Python package can't deliver. PyPI offers no safety advantage — it doesn't audit packages either. `just` gives you the complete, ready-to-run stack.
+> **Why not `pip install`?** MCP servers bundle webapps, configs, project scaffolding, and tooling that a flat Python package can't deliver. PyPI offers no safety advantage - it doesn't audit packages either. `just` gives you the complete, ready-to-run stack.
 
 ---
 
@@ -58,7 +58,7 @@ If you prefer not to use `just`:
 | Issue | Fix |
 |---|---|
 | `just` not found | Install via `winget install Casey.Just`, `scoop install just`, or `brew install just` |
-| Port conflict | Run `just kill-all` to clear fleet ports (10700–11000) |
+| Port conflict | Run `just kill-all` to clear fleet ports (10700-11000) |
 | Dependencies out of sync | `uv sync --all-extras` |
 | Something else | [Open a GitHub issue](https://github.com/sandraschi/worldlabs-mcp/issues) |
 
@@ -72,7 +72,7 @@ If you prefer not to use `just`:
 
 _This INSTALL.md was updated with the standard fleet Quick Start template. The original instructions are preserved below._
 
-# worldlabs-mcp ÔÇö Installation Guide
+# worldlabs-mcp - Installation Guide
 
 ## Prerequisites
 
@@ -80,11 +80,11 @@ Everything below installs automatically on first run of `start.bat` on a fresh W
 
 | Tool | Version | Auto-install |
 |------|---------|-------------|
-| Python | 3.10+ | No ÔÇö install from python.org |
+| Python | 3.10+ | No - install from python.org |
 | uv | latest | Yes (winget `astral-sh.uv`) |
 | Node.js LTS | 20+ | Yes (winget `OpenJS.NodeJS.LTS`) |
 | just | latest | Yes (winget `Casey.Just`) |
-| Git | latest | Recommended ÔÇö for cloning |
+| Git | latest | Recommended - for cloning |
 
 ## Quick Start (Windows)
 
@@ -155,13 +155,13 @@ Required for `broadcast_spatial_notification` to generate audio. Without it, not
 
 ## Troubleshooting
 
-**`uv` not found after install** ÔÇö Close the terminal and reopen. winget installs to user PATH which needs a new session to take effect.
+**`uv` not found after install** - Close the terminal and reopen. winget installs to user PATH which needs a new session to take effect.
 
-**Port already in use** ÔÇö `start.ps1` kills squatters automatically. If it fails: `Get-NetTCPConnection -LocalPort 10864,10865 | Stop-Process -Force`
+**Port already in use** - `start.ps1` kills squatters automatically. If it fails: `Get-NetTCPConnection -LocalPort 10864,10865 | Stop-Process -Force`
 
-**WORLDLABS_API_KEY 402 error** ÔÇö Credits on `marble.worldlabs.ai` (web app) are **separate** from API platform credits. Check your API balance at https://platform.worldlabs.ai/billing
+**WORLDLABS_API_KEY 402 error** - Credits on `marble.worldlabs.ai` (web app) are **separate** from API platform credits. Check your API balance at https://platform.worldlabs.ai/billing
 
-**`npm install` fails** ÔÇö Ensure Node.js LTS is installed: `node --version`. Minimum: v20.
+**`npm install` fails** - Ensure Node.js LTS is installed: `node --version`. Minimum: v20.
 
 ## Development
 
