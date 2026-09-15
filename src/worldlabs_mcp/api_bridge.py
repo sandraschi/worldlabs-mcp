@@ -1843,7 +1843,7 @@ async def marble_adventure_launch() -> dict[str, Any]:
                     "running": True,
                     "message": "Marble Adventure launched.",
                 }
-            time.sleep(0.5)
+            await asyncio.sleep(0.5)
         return {
             "status": "ok",
             "running": False,
