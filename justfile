@@ -18,15 +18,15 @@ bootstrap:
 
 # Start full stack (backend + frontend webapp)
 start:
-    pwsh -File '{{justfile_directory()}}\start.ps1'
+    powershell.exe -File '{{justfile_directory()}}\start.ps1'
 
 # Start backend only (uvicorn on port 10865, no frontend)
 start-backend:
-    pwsh -File '{{justfile_directory()}}\start.ps1' -BackendOnly
+    powershell.exe -File '{{justfile_directory()}}\start.ps1' -BackendOnly
 
 # Start headless (no browser open, hidden windows)
 start-headless:
-    pwsh -File '{{justfile_directory()}}\start.ps1' -Headless -NoBrowser
+    powershell.exe -File '{{justfile_directory()}}\start.ps1' -Headless -NoBrowser
 
 # Start MCP server in stdio mode (for Claude Desktop)
 run:
@@ -202,11 +202,11 @@ version:
 
 # Launch Spark 2.0 Viewer with a local Gaussian splat asset
 view:
-    pwsh -File '{{justfile_directory()}}\scripts\view-residence.ps1'
+    powershell.exe -File '{{justfile_directory()}}\scripts\view-residence.ps1'
 
 # Run spatial narration demo (requires backend running)
 demo-narration:
-    pwsh -File '{{justfile_directory()}}\scripts\demo-narration.ps1'
+    powershell.exe -File '{{justfile_directory()}}\scripts\demo-narration.ps1'
 
 # Generate a test world from text via the MCP tool (requires API key)
 demo-text:
@@ -285,7 +285,7 @@ clean-all:
 
 # Backup repo to mcp-central-docs archive
 backup:
-    pwsh -File '{{justfile_directory()}}\scripts\backup-repo.ps1'
+    powershell.exe -File '{{justfile_directory()}}\scripts\backup-repo.ps1'
 
 # --- Documentation ---
 
