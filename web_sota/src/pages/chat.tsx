@@ -1,16 +1,20 @@
 import { Bot, Download, Eraser, Send, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { API_BASE } from "@/lib/api";
+import { apiGet } from "@/lib/api";
+import {
+  fetchModels,
+  fetchProviders,
+  type ChatMessage as LlmMessage,
+  loadSelection,
+  type ProviderInfo,
+  saveSelection,
+  streamChat,
+  subscribeSelection,
+} from "@/lib/llm";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
-}
-
-interface LlmProvider {
-  id: string;
-  available: boolean;
-  models: { id: string; name: string }[];
 }
 
 const PERSONALITIES = [
@@ -59,36 +63,53 @@ export function ChatPage() {
   const [personality, setPersonality] = useState("default");
   const [customPrompt, setCustomPrompt] = useState("");
   const [skillPreprompt, setSkillPreprompt] = useState("");
-  const [llmProvider, setLlmProvider] = useState<LlmProvider | null>(null);
+  const [providerId, setProviderId] = useState("ollama");
+  const [providers, setProviders] = useState<ProviderInfo[]>([]);
+  const [models, setModels] = useState<string[]>([]);
   const [llmModel, setLlmModel] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Load skills as system preprompt
+  // Canonical selection: Settings owns it, Chat live-syncs (same + cross tab).
   useEffect(() => {
-    fetch(`${API_BASE}/api/capabilities`)
-      .then((r) => r.json())
-      .then((d: { skills?: string; tools?: unknown }) => {
+    const sel = loadSelection();
+    setProviderId(sel.provider || "ollama");
+    setLlmModel(sel.model || "");
+    return subscribeSelection((s) => {
+      setProviderId(s.provider || "ollama");
+      setLlmModel(s.model || "");
+    });
+  }, []);
+
+  // Provider registry + model list (skill-first preprompt via /api/skills).
+  useEffect(() => {
+    apiGet<{ skills?: string; tools?: unknown }>("/api/capabilities")
+      .then((d) => {
         if (d.skills) setSkillPreprompt(String(d.skills));
       })
       .catch(() => {});
-    // LLM discovery
-    fetch(`${API_BASE}/api/llm/discover`)
-      .then((r) => r.json())
-      .then((d: { ollama?: LlmProvider; lmstudio?: LlmProvider }) => {
-        const ollama = d.ollama?.available ? d.ollama : null;
-        const lmstudio = d.lmstudio?.available ? d.lmstudio : null;
-        const chosen = ollama || lmstudio || null;
-        if (chosen) {
-          setLlmProvider(chosen);
-          const saved = localStorage.getItem("llm_model");
-          setLlmModel(saved || chosen.models[0]?.id || "");
+    fetchProviders()
+      .then(async (pv) => {
+        setProviders(pv.providers);
+        const sel = loadSelection();
+        const usable = pv.providers.find(
+          (p) => p.id === sel.provider && (p.detected || p.configured),
+        );
+        const active =
+          usable?.id ||
+          pv.providers.find((p) => p.kind === "local" && p.detected)?.id ||
+          sel.provider ||
+          "ollama";
+        setProviderId(active);
+        const md = await fetchModels(active).catch(() => null);
+        const list = md?.models || [];
+        setModels(list);
+        if (!sel.model || !list.includes(sel.model)) {
+          setLlmModel(list[0] || "");
         }
       })
       .catch(() => {});
-    // Also try /api/skills
-    fetch(`${API_BASE}/api/skills`)
-      .then((r) => r.json())
+    apiGet<unknown>("/api/skills")
       .then((d: unknown) => {
         if (Array.isArray(d) && d.length > 0)
           setSkillPreprompt(JSON.stringify(d).slice(0, 2000));
@@ -116,10 +137,31 @@ export function ChatPage() {
   const handleSend = async () => {
     const text = input.trim();
     if (!text || sending) return;
+    if (!providerId || !llmModel) {
+      setMessages((m) =>
+        [
+          ...m,
+          {
+            role: "assistant" as const,
+            content:
+              "No AI provider selected. Open Settings and pick a local engine or paste a cloud key.",
+          },
+        ].slice(-MAX_MESSAGES),
+      );
+      return;
+    }
     const userMsg: Message = { role: "user", content: text };
     setMessages((m) => [...m, userMsg].slice(-MAX_MESSAGES));
     setInput("");
     setSending(true);
+    // Streaming assistant bubble: appended once, extended per token.
+    let assistantIndex = -1;
+    setMessages((m) => {
+      assistantIndex = m.length;
+      return [...m, { role: "assistant" as const, content: "" }].slice(
+        -MAX_MESSAGES,
+      );
+    });
     try {
       const personalityPrompt =
         PERSONALITIES.find((p) => p.id === personality)?.prompt || "";
@@ -129,28 +171,23 @@ export function ChatPage() {
       ]
         .filter(Boolean)
         .join("\n\n");
-      const res = await fetch(`${API_BASE}/api/llm/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [...messages, userMsg] as Message[],
-          system: sysPrompt || undefined,
-          model: llmModel || undefined,
-        }),
+      const out: LlmMessage[] = [
+        ...(sysPrompt ? [{ role: "system" as const, content: sysPrompt }] : []),
+        ...[...messages, userMsg].map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        })),
+      ];
+      await streamChat(providerId, llmModel, out, (token) => {
+        setMessages((m) =>
+          m.map((msg, i) =>
+            i === Math.min(assistantIndex, m.length - 1) &&
+            msg.role === "assistant"
+              ? { ...msg, content: msg.content + token }
+              : msg,
+          ),
+        );
       });
-      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-      const data = (await res.json()) as {
-        content?: string;
-        message?: string;
-        reply?: string;
-      };
-      const reply =
-        data.content || data.message || data.reply || JSON.stringify(data);
-      setMessages((m) =>
-        [...m, { role: "assistant" as const, content: reply }].slice(
-          -MAX_MESSAGES,
-        ),
-      );
     } catch (e) {
       const err = e instanceof Error ? e.message : String(e);
       setMessages((m) =>
@@ -158,7 +195,7 @@ export function ChatPage() {
           ...m,
           {
             role: "assistant" as const,
-            content: `Error: ${err}. Is a local LLM running? Check /local-llm.`,
+            content: `Error: ${err}. Check Settings — provider, model, and key.`,
           },
         ].slice(-MAX_MESSAGES),
       );
@@ -210,14 +247,40 @@ export function ChatPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <select
+            data-testid="llm-provider-select"
+            value={providerId}
+            onChange={async (e) => {
+              const id = e.target.value;
+              setProviderId(id);
+              const md = await fetchModels(id).catch(() => null);
+              const list = md?.models || [];
+              setModels(list);
+              const want = list[0] || "";
+              setLlmModel(want);
+              saveSelection(id, want);
+            }}
+            className="hidden sm:block bg-white/[0.05] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-slate-200"
+          >
+            {providers.map((p) => (
+              <option key={p.id} value={p.id} className="bg-zinc-900">
+                {p.label}
+                {p.kind === "local"
+                  ? p.detected
+                    ? " · on"
+                    : " · off"
+                  : p.configured
+                    ? " · key"
+                    : " · no key"}
+              </option>
+            ))}
+          </select>
           <span className="text-xs text-slate-400 hidden sm:inline">
-            {llmProvider
-              ? `${llmProvider.id} ${llmModel || ""}`
-              : "No LLM detected"}
+            {providerId ? `${providerId} ${llmModel || ""}` : "No LLM selected"}
           </span>
           <span
-            className={`w-2 h-2 rounded-full ${llmProvider ? "bg-emerald-500" : "bg-amber-500"}`}
-            title={llmProvider ? "LLM ready" : "No LLM"}
+            className={`w-2 h-2 rounded-full ${llmModel ? "bg-emerald-500" : "bg-amber-500"}`}
+            title={llmModel ? "LLM ready" : "No LLM"}
           />
         </div>
       </div>
@@ -249,7 +312,7 @@ export function ChatPage() {
             )}
           </div>
 
-          {llmProvider && llmProvider.models.length > 0 && (
+          {models.length > 0 && (
             <div>
               <label className="section-label block mb-2">Model</label>
               <select
@@ -257,13 +320,13 @@ export function ChatPage() {
                 value={llmModel}
                 onChange={(e) => {
                   setLlmModel(e.target.value);
-                  localStorage.setItem("llm_model", e.target.value);
+                  saveSelection(providerId, e.target.value);
                 }}
                 className="w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100"
               >
-                {llmProvider.models.map((m) => (
-                  <option key={m.id} value={m.id} className="bg-zinc-900">
-                    {m.name || m.id}
+                {models.map((m) => (
+                  <option key={m} value={m} className="bg-zinc-900">
+                    {m}
                   </option>
                 ))}
               </select>
@@ -370,9 +433,9 @@ export function ChatPage() {
                 }
               }}
               placeholder={
-                llmProvider
+                llmModel
                   ? "Ask about worlds, Spark, or export..."
-                  : "Start Ollama/LM Studio first, then chat..."
+                  : "Pick a provider in Settings first, then chat..."
               }
               className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-full px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cosmos-500/50"
             />

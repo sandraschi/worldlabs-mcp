@@ -1,6 +1,7 @@
 import { Activity, Box, Globe, Wand2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { LlmOnboarding } from "@/components/LlmOnboarding";
 import { api } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 
@@ -188,6 +189,9 @@ export function Dashboard() {
           )}
         </div>
       </section>
+
+      {/* AI provider onboarding (banner only when setup incomplete) */}
+      <LlmOnboarding mode="banner" />
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-4">
