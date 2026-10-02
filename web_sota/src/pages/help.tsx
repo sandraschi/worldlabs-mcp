@@ -489,6 +489,13 @@ export function Help() {
             addressing that gap.
           </p>
           <p>
+            In late September 2026{" "}
+            <strong className="text-slate-300">AMD</strong> announced an
+            agreement to acquire World Labs for over $8 billion, bringing
+            spatial-intelligence world models in-house alongside its AI
+            accelerator roadmap.
+          </p>
+          <p>
             <strong className="text-slate-300">Marble</strong> is the production
             API. It accepts a text prompt, a single image, multiple images at
             azimuth angles, or a video clip, and returns a fully navigable 3D

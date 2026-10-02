@@ -1283,6 +1283,10 @@ _WORKFLOW = [
 
 _WORLDLABS_CONTEXT = {
     "founded": "2023, San Francisco. Led by Fei-Fei Li (former Stanford AI Lab director).",
+    "acquisition": (
+        "In late September 2026 AMD announced an agreement to acquire World Labs "
+        "for over $8 billion (owner-supplied, not independently verified in-repo)."
+    ),
     "mission": (
         "Build spatial intelligence - AI that understands the 3D structure of the world, not just text and images."
     ),
