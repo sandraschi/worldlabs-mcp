@@ -182,6 +182,17 @@ PATCH /api/prompts/{id}          — Update prompt (fave/star/comment)
 DELETE /api/prompts/{id}         — Delete prompt
 GET  /api/llm/discover           — Probe Ollama + LM Studio
 POST /api/llm/refine             — Refine prompt via local LLM
+GET  /api/llm/providers          — Canonical registry (local detected + cloud key flags)
+GET  /api/llm/models             — Live model list per provider, curated fallback (?provider=)
+POST /api/llm/test               — Validate provider/key without saving
+POST /api/llm/chat/stream        — SSE streaming chat (OpenAI-style chunks)
+GET  /api/llm/gpus               — nvidia-smi VRAM per GPU
+GET  /api/llm/loaded             — Ollama resident models (?provider=ollama)
+POST /api/llm/unload             — Evict loaded models (VRAM release)
+GET  /api/llm/onboarding         — Starter facts + recommended path
+POST /api/llm/install            — One-click Ollama install (background job)
+GET  /api/settings/llm           — Saved selection + keys_configured flags
+POST /api/settings/llm           — Save selection; write-only api_key to 0600 keystore
 POST /api/narration              — Push spatial event to SSE stream
 GET  /api/narration/stream       — SSE stream for Spark viewer
 GET  /api/local-assets           — List local splat/mesh assets

@@ -79,16 +79,24 @@ just demo-text
 
 If generation succeeds, the webapp **World Library** (`/library`) will list it and the Spark Viewer can stream its Gaussian splats.
 
-## Optional: Local LLM (for prompt refinement + Chat)
+## Optional: AI providers (local LLM + cloud, for Chat + prompt tools)
 
-No LLM is required - the server works without one. To enable LLM features:
+No LLM is required - the server works without one. Two paths (local is free,
+cloud is pay-per-use; keys never leave the backend):
 
-1. Install [Ollama](https://ollama.ai) → `ollama serve` → `ollama pull llama3.2:3b`
-2. Or start [LM Studio](https://lmstudio.ai) local server on `:1234`
-3. Verify: `just probe-llm` should show `ollama: {available: true}` or `lmstudio: {available: true}`
-4. Webapp Chat (FloatingChat) and `refine_with_local_llm` tool will light up.
+1. **Local (free)** - install [Ollama](https://ollama.ai) → `ollama serve` →
+   `ollama pull qwen3.8:27b` (or start [LM Studio](https://lmstudio.ai) on
+   `:1234`). Verify: `just probe-llm`. The Dashboard shows a red **Set up AI**
+   cue until a provider is usable; one-click Ollama install is in Settings.
+2. **Cloud (paid)** - open the webapp Settings → AI Providers cards, paste a
+   key (OpenAI, Anthropic, DeepSeek, OpenRouter, Meta, Google, Groq, Mistral,
+   Together, Fireworks, Cohere, xAI, Perplexity), Save, then Test. Keys land
+   in a 0600 keystore (`%APPDATA%/worldlabs-mcp/llm_keys.json`) or env vars.
+3. Pick provider + model in Settings (resident-first: a loaded preferred
+   model is never evicted). Chat streams over SSE via the backend proxy.
 
-See `docs/LOCAL_LLM_FIRST_DOCTRINE.md` equivalent: `just probe-llm`, `web_sota/src/pages/local-llm.tsx`.
+See `web_sota/src/pages/local-llm.tsx` (legacy local chat) and the fleet
+contracts in `mcp-central-docs/standards/WEBAPP_SOTA_STANDARDS.md` section VI.
 
 ## What If Something Goes Wrong?
 

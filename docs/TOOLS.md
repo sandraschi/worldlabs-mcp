@@ -73,6 +73,18 @@ Served by `src/worldlabs_mcp/server.py` (`_web_app` FastAPI) + `src/worldlabs_mc
 | `GET` | `/api/capabilities` | Tool list, version, port info |
 | `GET` | `/api/skills` | Skill/tool listing (`{name, description}`) - Skills + Chat pages |
 | `POST` | `/api/shutdown` | Orderly shutdown (200 then exit; fleet launcher restart path) |
+| `GET` | `/api/llm/providers` | Canonical registry (`id,label,kind,needs_key,configured,detected,models`) |
+| `GET` | `/api/llm/models?provider=` | Live model list, curated fallback (`source: live\|curated`) |
+| `POST` | `/api/llm/test` | Validate provider/key without saving (`ok` only on live list) |
+| `POST` | `/api/llm/chat/stream` | SSE streaming chat (OpenAI-style chunks) - Chat page path |
+| `GET` | `/api/llm/gpus` | nvidia-smi VRAM per GPU (placement target) |
+| `GET` | `/api/llm/loaded` | Ollama residents (name + VRAM) |
+| `POST` | `/api/llm/unload` | Evict all loaded models (VRAM release) |
+| `GET` | `/api/llm/onboarding` | Starter facts + recommended path |
+| `POST` | `/api/llm/install` | One-click Ollama install (allowlisted, background job) |
+| `GET` | `/api/settings/llm` | Saved selection + `keys_configured` flags (never key bytes) |
+| `POST` | `/api/settings/llm` | Save selection; write-only `api_key` to 0600 keystore |
+| `DELETE` | `/api/settings/llm/key?provider=` | Delete a stored cloud key |
 | `GET` | `/api/status` | Server status, uptime |
 | `GET` | `/api/v1/status` | Extended status (CUA smoke feature path) |
 | `GET` | `/api/v1/diagnostics` | Full diagnostics (tool list, system info, errors) - CUA-NSIS required |

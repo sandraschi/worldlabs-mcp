@@ -95,6 +95,7 @@
     { "name": "spawn_agent_avatar", "description": "spawn_agent_avatar" },
     { "name": "broadcast_spatial_notification", "description": "broadcast_spatial_notification" },
     { "name": "refine_with_local_llm", "description": "refine_with_local_llm" },
+    { "name": "generate_world_prompt", "description": "generate_world_prompt" },
     { "name": "worldlabs_help", "description": "worldlabs_help" },
     { "name": "gallery_explore", "description": "gallery_explore" },
     { "name": "_get_api_key_browse", "description": "_get_api_key(browse)" },
