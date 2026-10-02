@@ -357,7 +357,30 @@ export function streamOperation(
   return () => es.close();
 }
 
-// ÔöÇÔöÇ API client ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// ─── Fleet LLM client ───
+
+// Full-path GET/POST/DELETE over API_BASE (no /api auto-prefix).
+// Canonical contract for the vendored lib/llm.ts (do not rename).
+export async function apiGet<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`);
+  if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+  return res.json() as Promise<T>;
+}
+
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+  return res.json() as Promise<T>;
+}
+
+export async function apiDelete(path: string): Promise<void> {
+  const res = await fetch(`${API_BASE}${path}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+}
 
 export const api = {
   health: () => get<HealthResponse>("/health"),
