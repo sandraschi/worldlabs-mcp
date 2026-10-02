@@ -9,10 +9,13 @@ doesn't have to manually start blender-mcp, unity3d-mcp, etc.
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 import platform
 import subprocess
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 async def _wait_for_port(host: str, port: int, timeout: float = 15.0) -> bool:
@@ -40,8 +43,8 @@ def _find_blender() -> str | None:
             result = subprocess.run(["which", "blender"], capture_output=True, text=True, timeout=5)
             if result.returncode == 0 and result.stdout.strip():
                 return result.stdout.strip()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("which blender probe failed: %s", e)
         return None
 
     # Windows search paths
@@ -174,8 +177,8 @@ def _find_resonite_mcp() -> str | None:
         r = subprocess.run(["uvx", "resonite-mcp", "--help"], capture_output=True, text=True, timeout=10)
         if r.returncode == 0:
             return "uvx"
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("uvx resonite-mcp probe failed: %s", e)
     return None
 
 

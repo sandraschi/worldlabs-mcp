@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (2026-10-02 assfix: 34 -> 76/100)
+- **Ruff S110/S112 footgun closed** - removed both from `ignore`; converted 11
+  silent `except: pass` swallows (credit tally, resonite/overte OSC fallbacks,
+  avatar export, DCC probes) to `logger.debug`. Ruff + pyright + pytest green.
+- **Biome gate restored** - `biome.json` had invalid `"preset"` key (Biome 2.x
+  rejects it, `biome ci` died on config); now `"recommended": true`, 39 files clean.
+- **Removed `console.log` diagnostic** from spark-viewer (noConsole); debug
+  snapshot stays on `window.__sparkDebug`.
+- **Deleted 6 stale `.bak` files**; added justfile `serve` alias.
+- **Phantom docs fixed** - TOOLS.md promised `/api/status`, `/api/v1/status`,
+  `/api/v1/diagnostics` which had no routes; they now exist and are probed by
+  `tests/test_bridge_routes.py`.
+
+### Added (2026-10-02 assfix)
+- **GET /api/skills** - tool catalog as `{name, description}`; the Skills and
+  Chat pages already fetched it (degraded to fallbacks until now).
+- **POST /api/shutdown** - orderly exit (200 then 0.5s exit) for the fleet
+  launcher restart path.
+- **GET /api/status, /api/v1/status, /api/v1/diagnostics** - uptime/tool-count
+  status plus full CUA-NSIS diagnostics.
+
 ### Fixed (2026-08-05)
 - **Reality Hub (/immersive) crashed to a blank page** - ExternalLink used at
   web_sota/src/pages/immersive-detail.tsx was never imported from lucide-react,

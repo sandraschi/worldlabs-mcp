@@ -71,6 +71,8 @@ Served by `src/worldlabs_mcp/server.py` (`_web_app` FastAPI) + `src/worldlabs_mc
 | `GET` | `/health` | Liveness probe (`{status: ok}`) - used by `start.ps1` + frontend health dot |
 | `GET` | `/api/health` | Bridge health (via router) |
 | `GET` | `/api/capabilities` | Tool list, version, port info |
+| `GET` | `/api/skills` | Skill/tool listing (`{name, description}`) - Skills + Chat pages |
+| `POST` | `/api/shutdown` | Orderly shutdown (200 then exit; fleet launcher restart path) |
 | `GET` | `/api/status` | Server status, uptime |
 | `GET` | `/api/v1/status` | Extended status (CUA smoke feature path) |
 | `GET` | `/api/v1/diagnostics` | Full diagnostics (tool list, system info, errors) - CUA-NSIS required |

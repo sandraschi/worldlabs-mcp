@@ -1,7 +1,7 @@
-﻿{
+{
   "manifest_version": "0.2",
   "name": "worldlabs-mcp",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "MCP server wrapping the World Labs Marble API for 3D world generation and the Spark 2.0 spatial viewer",
   "author": { "name": "sandraschi" },
   "server": {

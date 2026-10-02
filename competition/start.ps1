@@ -13,12 +13,20 @@ $GodotMcpPort    = 10993      # godot-mcp backend
 $WorldLabsPort   = 10865      # worldlabs-mcp backend
 
 # ─── Clear port zombies ───────────────────────────────────────
+# HARDENED 2026-09-17: was a blind Start-Sleep -Seconds 1, no check the port
+# actually freed before the loop moved on / before backends below tried to bind
+# the same ports (TRAPS_AND_PITFALLS.md #36). Poll instead.
 foreach ($port in @($GodotBridgePort, $GodotMcpPort, $WorldLabsPort)) {
     $conn = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue
     if ($conn) {
         Write-Host "[start] Killing zombie on port $port (PID $($conn[0].OwningProcess))"
         Stop-Process -Id $conn[0].OwningProcess -Force -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 1
+        $zombieWaitSec = 10
+        $zombieElapsed = 0
+        while ($zombieElapsed -lt $zombieWaitSec -and (Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue)) {
+            Start-Sleep -Milliseconds 500
+            $zombieElapsed += 0.5
+        }
     }
 }
 
@@ -98,4 +106,3 @@ if (-not (Test-Path -LiteralPath $FleetStartPath)) {
     exit 1
 }
 . $FleetStartPath
-

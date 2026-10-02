@@ -5,7 +5,7 @@
     BackendPort  = 10865
     FrontendPort = 10864
     HealthPath   = '/health'
-    WebRoot      = 'D:\Dev\repos\worldlabs-mcp\web_sota'
+    WebRoot      = 'web_sota'
     Backend = @{
         Kind          = 'uvicorn'
         UvicornTarget = 'worldlabs_mcp.server:app'

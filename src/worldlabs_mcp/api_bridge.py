@@ -50,6 +50,8 @@ load_dotenv()
 
 router = APIRouter()
 
+_START_TIME = time.time()
+
 BASE_URL = "https://api.worldlabs.ai/marble/v1"
 DEFAULT_POLL_INTERVAL = 15
 DEFAULT_TIMEOUT = 90
@@ -574,6 +576,71 @@ async def capabilities() -> dict:
     }
 
 
+@router.get("/skills")
+async def skills() -> list[dict]:
+    """Skill/tool listing for the webapp Skills + Chat pages (skill-first).
+
+    Returns the MCP tool catalog as {name, description} entries. Consumed by
+    web_sota Skills page and Chat page preprompt builder; both degrade to
+    local fallbacks when this route is unreachable.
+    """
+    from .server import _TOOL_CATALOG
+
+    return [{"name": t["name"], "description": t.get("description", "MCP tool")} for t in _TOOL_CATALOG]
+
+
+@router.post("/shutdown")
+async def shutdown() -> dict:
+    """Orderly shutdown for the fleet launcher (checkpoint before restart).
+
+    Responds 200 immediately, then exits so Restart-Service never kills a
+    mid-write job. Pattern per repo-assess-and-fix.md §1E.
+    """
+    import asyncio as _asyncio
+
+    logger.info("POST /api/shutdown requested - exiting in 0.5s")
+    _asyncio.get_event_loop().call_later(0.5, lambda: os._exit(0))
+    return {"success": True, "message": "Shutting down worldlabs-mcp..."}
+
+
+@router.get("/status")
+async def status() -> dict:
+    """Server status — uptime, tool count, provider health (1E)."""
+    from . import __version__ as _pkg_version
+    from .server import _TOOL_CATALOG
+
+    return {
+        "status": "ok",
+        "service": "worldlabs-mcp",
+        "version": _pkg_version,
+        "uptime_seconds": round(time.time() - _START_TIME, 1),
+        "tool_count": len(_TOOL_CATALOG),
+        "marble_api_key_set": bool(os.environ.get("WORLDLABS_API_KEY")),
+    }
+
+
+@router.get("/v1/status")
+async def status_v1() -> dict:
+    """Versioned alias of /api/status (CUA smoke feature path)."""
+    return await status()
+
+
+@router.get("/v1/diagnostics")
+async def diagnostics_v1() -> dict:
+    """Full diagnostics — tool list, system info, errors (CUA-NSIS smoke)."""
+    from . import __version__ as _pkg_version
+    from .server import _TOOL_CATALOG
+
+    return {
+        "service": "worldlabs-mcp",
+        "version": _pkg_version,
+        "tools": [t["name"] for t in _TOOL_CATALOG],
+        "tool_count": len(_TOOL_CATALOG),
+        "system": _get_system_stats(),
+        "marble_api_key_set": bool(os.environ.get("WORLDLABS_API_KEY")),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Local asset serving (Spark viewer reads .rad / .spz from local disk)
 # ---------------------------------------------------------------------------
@@ -962,8 +1029,8 @@ async def _local_credit_tally() -> dict[str, Any]:
             token = data.get("next_page_token") or ""
             if not token:
                 break
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Credit tally pagination aborted: %s", e)
 
     if generations == 0:
         # Fallback: local history count x base cost
@@ -973,8 +1040,8 @@ async def _local_credit_tally() -> dict[str, Any]:
             generations = len(done)
             total = generations * 1500
             by_model = {"marble-1.1 (assumed)": generations}
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Local credit fallback failed: %s", e)
 
     return {
         "local_generations": generations,
@@ -998,8 +1065,8 @@ async def credits_status() -> dict[str, Any]:
             resp = await client.get(f"{BASE_URL}/credits", headers=_headers())
             if resp.status_code == 200:
                 live = float(resp.json().get("remaining_credits", 0.0))
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Live credit balance probe failed: %s", e)
 
     tally = await _local_credit_tally()
     return {
@@ -1723,8 +1790,8 @@ async def export_to_resonite(req: ExportRequest) -> dict[str, Any]:
                         "mesh_url": local_mesh_url,
                         "result": data,
                     }
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("resonite-mcp import failed, falling back to OSC: %s", e)
 
     # Fallback: direct OSC
     address = "/worldlabs/import"
@@ -1776,8 +1843,8 @@ def _game_is_running() -> bool:
             cmd = " ".join(proc.info.get("cmdline") or [])
             if "godot" in name and "marble-adventure" in cmd:
                 return True
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Game process scan failed: %s", e)
     return False
 
 
@@ -2044,8 +2111,8 @@ async def export_to_overte(req: ExportRequest) -> dict[str, Any]:
                     mesh_url = go.get("full_res_mesh_url") or go.get("hq_mesh_url") or go.get("collider_mesh_url") or ""
                     if mesh_url:
                         local_mesh_url = f"{bridge_url}/api/handoff?url={mesh_url}"
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Mesh URL fetch failed: %s", e)
 
     results: list[dict[str, Any]] = []
 
@@ -2066,8 +2133,8 @@ async def export_to_overte(req: ExportRequest) -> dict[str, Any]:
         body: Any = resp.text
         try:
             body = resp.json()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Overte response is not JSON, using text: %s", e)
         return {"entity": etype.lower(), "http": resp.status_code, "body": body}
 
     if local_mesh_url:
@@ -2195,8 +2262,8 @@ async def handoff_asset(req: HandoffRequest) -> dict[str, Any]:
                         results["detail"] = "Sent to resonite-mcp"
                         results["result"] = data
                         return results
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("resonite-mcp import failed, falling back to OSC: %s", e)
         osc_host = os.getenv("RESONITE_OSC_HOST", "127.0.0.1")
         osc_port = int(os.getenv("RESONITE_OSC_PORT", "9000"))
         try:
@@ -2692,8 +2759,8 @@ async def place_avatar_in_world(body: dict) -> dict[str, Any]:
             if export_resp.is_success:
                 data = export_resp.json()
                 avatar_url = (data.get("result") or {}).get("url", "") or data.get("message", "")
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Avatar export URL fetch failed, using direct URL: %s", e)
 
     if not avatar_url:
         avatar_url = f"http://127.0.0.1:{AVATAR_MCP_PORT}/api/v1/avatars/{avatar_id}/export"

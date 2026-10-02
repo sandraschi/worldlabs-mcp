@@ -20,6 +20,9 @@ bootstrap:
 start:
     powershell.exe -File '{{justfile_directory()}}\start.ps1'
 
+# Alias: `serve` (fleet checklist expects serve/test/lint/fmt)
+serve: start
+
 # Start backend only (uvicorn on port 10865, no frontend)
 start-backend:
     powershell.exe -File '{{justfile_directory()}}\start.ps1' -BackendOnly

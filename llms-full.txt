@@ -204,6 +204,11 @@ GET  /api/export/overte/status    — Step-in chain readiness (overte-mcp, domai
 GET  /api/avatars/status         — Check avatar-mcp availability
 POST /api/avatars/place          — Place avatar from avatar-mcp in scene
 GET  /api/capabilities           — Runtime feature flags
+GET  /api/skills                 — Skill/tool listing for Skills + Chat pages
+POST /api/shutdown               — Orderly shutdown (fleet launcher restart path)
+GET  /api/status                 — Server status, uptime, tool count
+GET  /api/v1/status              — Versioned alias of /api/status
+GET  /api/v1/diagnostics         — Full diagnostics (CUA-NSIS smoke)
 GET  /api/health                 — Health + system stats
 GET  /api/system                 — Server version and config info
 GET  /api/system/stats           — CPU/memory/disk/GPU stats

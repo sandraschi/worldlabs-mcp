@@ -684,18 +684,8 @@ export function SparkViewer() {
         controls,
         spark,
       };
-      console.log(
-        "[SPARK-DIAG]",
-        JSON.stringify({
-          centroid: [
-            Math.round(cx * 100) / 100,
-            Math.round(cy * 100) / 100,
-            Math.round(cz * 100) / 100,
-          ],
-          splatCount: n,
-          camPos: [camera.position.x, camera.position.y, camera.position.z],
-        }),
-      );
+      // Diagnostic snapshot kept on window for devtools inspection
+      // (console output removed per fleet noConsole rule).
 
       // 5. Initialize Geofencing for the demo asset
       if (loadedName.includes("Tropical Luxury Residence")) {
