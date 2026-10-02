@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (2026-10-02 LLM 3-stage upgrade, vended per WEBAPP_SOTA VI.10)
+- **Backend `src/worldlabs_mcp/llm_providers.py`** - vendored from
+  arxiv-mcp (registry, 0600 keystore, cloud proxy, SSE stream, GPU/VRAM,
+  Ollama switch/unload, winget install jobs). Env wins, keys never in
+  GET/logs/bundle.
+- **14 new endpoints** - `/api/llm/models|test|chat/stream|gpus|loaded|
+  unload|onboarding|install(+status)`, `/api/settings/llm` (GET/POST/DELETE
+  key). `/api/llm/providers` upgraded to the canonical shape;
+  `/api/llm/chat` unified (canonical `{messages}` + legacy `{prompt}` bodies).
+- **Frontend `lib/llm.ts` + `lib/model-preference.ts`** - vendored; Settings
+  rebuilt (provider/model/GPU selects, per-provider cards with Save/Test/
+  Clear, resident KPI + Release VRAM, one-click Ollama install);
+  Chat streams via SSE with canonical selection sync; Dashboard shows the
+  `LlmOnboarding` banner cue when no provider is usable.
+- **`generate_world_prompt` MCP tool** - sampling-first prompt expansion
+  (`ctx.sample` SEP-1577, local-engine fallback, structured error).
+- **Fixed latent Chat 422** - the Chat page posted `{messages, system, model}`
+  but the backend required `prompt`; unified handler accepts both.
+
 ### Fixed (2026-10-02 assfix: 34 -> 76/100)
 - **Ruff S110/S112 footgun closed** - removed both from `ignore`; converted 11
   silent `except: pass` swallows (credit tally, resonite/overte OSC fallbacks,

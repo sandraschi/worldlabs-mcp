@@ -1228,6 +1228,23 @@ _TOOL_CATALOG = [
         "notes": "Prompts are the creators' originals - credit owners when reusing.",
     },
     {
+        "name": "generate_world_prompt",
+        "description": "Expand a short idea into a Marble-optimized prompt (sampling-first, local fallback)",
+        "group": "generate",
+        "args": {
+            "idea": "str - short scene idea",
+            "style": "str (optional) - cinematic, stylized, realism, fantasy, sci-fi",
+        },
+        "returns": '{"success": true, "message": ..., "data": {"expanded": ..., "via": "sampling|ollama"}}',
+        "example": 'generate_world_prompt(idea="misty Japanese garden at dawn")',
+        "docstring": (
+            "Sampling-first prompt expansion: host LLM via MCP sampling when "
+            "supported, else the resident local engine, else a structured error "
+            "with recovery options."
+        ),
+        "notes": "Read-only - generates text, consumes no Marble credits.",
+    },
+    {
         "name": "worldlabs_shutdown",
         "description": "Gracefully shut down the World Labs MCP server",
         "group": "meta",
@@ -1529,6 +1546,79 @@ async def refine_with_local_llm(
             return {"status": "ok", "original": prompt, "refined": refined, "model": model}
     except Exception as e:
         return {"status": "error", "original": prompt, "error": str(e)}
+
+
+@mcp.tool(annotations={"title": "Expand World Prompt", "readOnlyHint": True})
+async def generate_world_prompt(
+    idea: Annotated[str, Field(description="Short scene idea, e.g. 'misty Japanese garden at dawn'")],
+    style: Annotated[
+        str, Field(description="Style preset: cinematic, stylized, realism, fantasy, sci-fi")
+    ] = "cinematic",
+    ctx: Context | None = None,
+) -> dict:
+    """Expand a short idea into a Marble-optimized generation prompt.
+
+    Sampling-first: uses the host LLM via MCP sampling when the host supports
+    it (SEP-1577), else falls back to the resident local engine via the
+    backend proxy, else returns a structured error with recovery options.
+
+    ## Return Format
+    ```json
+    {"success": true, "message": "Prompt expanded", "data": {"expanded": "...", "via": "sampling"}}
+    ```
+
+    ## Examples
+    ```python
+    result = await generate_world_prompt(idea="misty Japanese garden at dawn")
+    expanded = result["data"]["expanded"]
+    ```
+    """
+    brief = (
+        "You are an expert World Labs Marble prompt engineer. Expand the short "
+        f"idea below into a detailed 3D-world generation prompt (style: {style}). "
+        "Cover spatial layout + scale, architecture, materials (PBR), lighting + "
+        "mood, weather/atmosphere, and object density. Template: [ARCHITECTURE] + "
+        "[MATERIALS] + [LIGHTING] + [WEATHER] + [SCALE]. No 2D-painting "
+        "techniques, no emotions without 3D decomposition, no specific human "
+        f"faces. Output ONLY the prompt text.\n\nIdea:\n{idea[:2000]}"
+    )
+    if ctx is not None:
+        try:
+            result = await ctx.sample(
+                messages=brief,
+                system_prompt="Plain text only. No markdown fences, no conversational filler.",
+                max_tokens=1200,
+            )
+            text = (getattr(result, "text", None) or str(result)).strip()
+            if text:
+                return {"success": True, "message": "Prompt expanded", "data": {"expanded": text, "via": "sampling"}}
+        except Exception as e:
+            logger.debug("generate_world_prompt sampling failed (%s); trying local engine", e)
+    try:
+        from . import llm_providers
+
+        reachable, models = await llm_providers.probe_local("ollama")
+        if not reachable or not models:
+            raise RuntimeError("no local engine reachable")
+        expanded = await llm_providers.chat_complete("ollama", models[0], [{"role": "user", "content": brief}])
+        return {
+            "success": True,
+            "message": "Prompt expanded",
+            "data": {"expanded": expanded.strip(), "via": "ollama", "model": models[0]},
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Prompt expansion failed: {e}",
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "idea": idea,
+            "recovery_options": [
+                "Use a client that supports MCP sampling (SEP-1577).",
+                "Start Ollama so the local fallback has an engine.",
+                "Call refine_prompt with your own detailed prompt instead.",
+            ],
+        }
 
 
 @mcp.tool()

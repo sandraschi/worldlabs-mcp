@@ -39,8 +39,9 @@ import psutil
 from dotenv import load_dotenv
 from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from . import llm_providers
 from .logger import _log_clients, get_logger
 
 logger = get_logger()
@@ -1316,7 +1317,8 @@ async def delete_prompt(prompt_id: str) -> dict[str, Any]:
 class ChatRequest(BaseModel):
     provider: str = "ollama"
     model: str = ""
-    prompt: str
+    prompt: str = ""
+    messages: list[dict[str, Any]] = Field(default_factory=list)
     personality: str = "expert"
     inject_skill: bool = True
     skill_content: str = ""
@@ -1537,23 +1539,39 @@ no markdown, no introduction."""
 
 @router.get("/llm/providers")
 async def list_llm_providers() -> dict[str, Any]:
-    """List LLM providers with their available models (for chat dropdown)."""
-    ollama, lmstudio = await asyncio.gather(_probe_ollama(), _probe_lmstudio())
-    providers = []
-    if ollama["available"]:
-        providers.append({"name": "Ollama", "provider": "ollama", "models": ollama["models"]})
-    if lmstudio["available"]:
-        providers.append({"name": "LM Studio", "provider": "lmstudio", "models": lmstudio["models"]})
-    return {"providers": providers, "ollama_url": OLLAMA_URL, "lmstudio_url": "http://localhost:1234"}
+    """Provider registry with live local detection + cloud key flags.
+
+    Canonical shape per WEBAPP_SOTA_STANDARDS.md §VI.10 (vended contract from
+    arxiv-mcp): [{id, label, kind, base_url, needs_key, key_env, configured,
+    detected, models}]. Never key bytes. Legacy local-only shape retired —
+    the Settings page consumes this contract.
+    """
+    infos = llm_providers.public_provider_info()
+    locals_ = [i for i in infos if i["kind"] == "local"]
+    probes = await asyncio.gather(*(llm_providers.probe_local(i["id"]) for i in locals_))
+    for info, (reachable, models) in zip(locals_, probes, strict=True):
+        info["detected"] = reachable
+        info["models"] = models
+    for info in infos:
+        if info["kind"] == "cloud":
+            info["detected"] = info["configured"]
+            info["models"] = []
+    return {"providers": infos}
 
 
 @router.post("/llm/chat")
 async def llm_chat(req: ChatRequest) -> dict[str, Any]:
-    """Send a chat message to a local LLM with personality, skill injection, and conversation memory.
+    """Chat via the backend proxy (keys never leave the server).
 
-    Returns the assistant response text. Falls back to the first available
-    model if the requested model is empty or unavailable.
+    Two body shapes (unified 2026-10-02 — the Chat page posts canonical
+    {provider, model, messages}; older callers post legacy {prompt, ...}):
+    - canonical: messages[] used as-is, any provider (local or cloud).
+    - legacy: prompt + personality/skill/session composition, any provider
+      (ollama/lmstudio keep their native path; clouds go via the proxy).
     """
+    if req.messages:
+        return await _canonical_chat(req)
+
     model = req.model
     if not model:
         ollama, lmstudio = await asyncio.gather(_probe_ollama(), _probe_lmstudio())
@@ -1576,45 +1594,255 @@ async def llm_chat(req: ChatRequest) -> dict[str, Any]:
         messages.append(turn)
     messages.append({"role": "user", "content": req.prompt})
 
+    if req.provider in ("ollama", "lmstudio"):
+        response = await _local_native_chat(req.provider, model, messages)
+    else:
+        try:
+            response = await llm_providers.chat_complete(req.provider, model, messages)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    if req.session_id:
+        _append_chat_turn(req.session_id, req.prompt, response)
+
+    return {
+        "provider": req.provider,
+        "model": model,
+        "content": response,
+        "response": response,
+        "personality": req.personality,
+        "skill_injected": req.inject_skill,
+        "session_id": req.session_id,
+    }
+
+
+async def _canonical_chat(req: ChatRequest) -> dict[str, Any]:
+    """Canonical {provider, model, messages} path for the Chat page."""
+    provider = req.provider or "ollama"
+    model = req.model
+    if provider in ("ollama", "lmstudio") and not model:
+        ollama, lmstudio = await asyncio.gather(_probe_ollama(), _probe_lmstudio())
+        probed = ollama if provider == "ollama" else lmstudio
+        if probed["available"] and probed["models"]:
+            model = probed["models"][0]["id"]
     try:
-        if req.provider == "ollama":
-            payload = {"model": model, "messages": messages, "stream": False}
+        content = await llm_providers.chat_complete(provider, model, req.messages)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return {"provider": provider, "model": model, "content": content}
+
+
+async def _local_native_chat(provider: str, model: str, messages: list[dict]) -> str:
+    """Legacy native local path (keeps session-memory behavior)."""
+    try:
+        if provider == "ollama":
+            payload: dict[str, Any] = {"model": model, "messages": messages, "stream": False}
             async with httpx.AsyncClient(timeout=120) as client:
                 resp = await client.post(f"{OLLAMA_URL}/api/chat", json=payload)
                 resp.raise_for_status()
                 result = resp.json()
-                response = result.get("message", {}).get("content", "").strip()
-        elif req.provider == "lmstudio":
+                return str(result.get("message", {}).get("content", "")).strip()
+        elif provider == "lmstudio":
             payload = {"model": model, "messages": messages, "temperature": 0.7, "max_tokens": 2048}
             async with httpx.AsyncClient(timeout=120) as client:
                 resp = await client.post("http://localhost:1234/v1/chat/completions", json=payload)
                 resp.raise_for_status()
                 result = resp.json()
-                response = result.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
-        else:
-            raise HTTPException(status_code=400, detail=f"Unknown provider: {req.provider}")
-
-        if req.session_id:
-            _append_chat_turn(req.session_id, req.prompt, response)
-
-        return {
-            "response": response,
-            "provider": req.provider,
-            "model": model,
-            "personality": req.personality,
-            "skill_injected": req.inject_skill,
-            "session_id": req.session_id,
-        }
-
+                return str(result.get("choices", [{}])[0].get("message", {}).get("content", "")).strip()
+        raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
     except HTTPException:
         raise
     except httpx.ConnectError as e:
         raise HTTPException(
             status_code=503,
-            detail=f"Could not connect to {req.provider}. Is it running?",
+            detail=f"Could not connect to {provider}. Is it running?",
         ) from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"LLM chat failed: {e}") from e
+
+
+# ---------------------------------------------------------------------------
+# Canonical LLM provider surface (vended contracts §VI.10 — do not reshape)
+# ---------------------------------------------------------------------------
+
+
+class LlmProvidersChatIn(BaseModel):
+    provider: str = Field(...)
+    model: str = Field(..., min_length=1)
+    messages: list[dict[str, Any]] = Field(..., min_length=1)
+
+
+class LlmTestIn(BaseModel):
+    provider: str = Field(...)
+    api_key: str | None = Field(default=None, description="Typed-but-unsaved key; validated only, never stored")
+    endpoint: str = Field(default="")
+
+
+class LlmSettingsWriteIn(BaseModel):
+    provider: str = Field(default="ollama")
+    endpoint: str = Field(default="http://127.0.0.1:11434")
+    model: str = Field(default="")
+    api_key: str | None = Field(default=None, description="Write-only; stored in 0600 keystore")
+    select: bool = Field(
+        default=True,
+        description="False saves a card key without switching the active selection",
+    )
+
+
+class LlmUnloadIn(BaseModel):
+    provider: str = Field(default="ollama")
+    endpoint: str = Field(default="http://localhost:11434")
+
+
+class LlmInstallIn(BaseModel):
+    engine: str = Field(...)
+
+
+@router.get("/llm/models")
+async def llm_models(provider: str = Query(...)) -> dict[str, Any]:
+    """Model list for one provider: live when reachable/keyed, else curated."""
+    try:
+        return await llm_providers.list_models(provider)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/llm/test")
+async def llm_test(body: LlmTestIn) -> dict[str, Any]:
+    """Validate a provider without saving anything.
+
+    ok is True only for a live list — curated names without a key come back
+    ok:false with key_missing so the UI never reports them as success.
+    """
+    try:
+        result = await llm_providers.list_models(body.provider, None, body.api_key or "")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    ok = result.get("source") == "live" and len(result.get("models", [])) > 0
+    return {"success": True, "ok": ok, **result}
+
+
+@router.post("/llm/chat/stream")
+async def llm_chat_stream(body: LlmProvidersChatIn) -> StreamingResponse:
+    """Streaming chat (SSE, OpenAI-style chunks) via the backend proxy."""
+    try:
+        llm_providers.require_provider(body.provider)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not body.model.strip():
+        raise HTTPException(status_code=400, detail="Empty model name")
+    gen = llm_providers.chat_stream(body.provider, body.model, body.messages, None)
+    return StreamingResponse(gen, media_type="text/event-stream")
+
+
+@router.get("/llm/gpus")
+async def llm_gpus() -> dict[str, Any]:
+    """Live GPU VRAM (used/total) via nvidia-smi. Empty list when unavailable."""
+    return {"gpus": await asyncio.to_thread(llm_providers.gpu_vram)}
+
+
+@router.get("/llm/loaded")
+async def llm_loaded(provider: str = Query(...), endpoint: str = Query(default="")) -> dict[str, Any]:
+    """Models currently resident on the local engine (name + VRAM + expiry)."""
+    if provider != "ollama":
+        raise HTTPException(status_code=400, detail="loaded residents need the ollama provider")
+    base = endpoint.rstrip("/") or "http://localhost:11434"
+    return {"success": True, "provider": provider, **await llm_providers.ollama_loaded(base)}
+
+
+@router.post("/llm/unload")
+async def llm_unload(body: LlmUnloadIn) -> dict[str, Any]:
+    """Kick every loaded model out of the local engine (full VRAM release)."""
+    if body.provider != "ollama":
+        raise HTTPException(status_code=400, detail="unload needs the ollama provider")
+    switch = await llm_providers.switch_ollama_model("", body.endpoint)
+    if not switch.get("engine"):
+        raise HTTPException(status_code=502, detail="Ollama engine unreachable - start it first")
+    return {"success": True, "provider": body.provider, **switch}
+
+
+@router.get("/llm/onboarding")
+async def llm_onboarding() -> dict[str, Any]:
+    """Fresh-install starter facts: what exists, what can be installed, best path."""
+    return llm_providers.onboarding_state()
+
+
+@router.post("/llm/install")
+async def llm_install(body: LlmInstallIn) -> dict[str, Any]:
+    """Start a fixed-command engine install (allowlist: ollama). No user input reaches the shell."""
+    try:
+        return llm_providers.start_install(body.engine.strip().lower())
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/llm/install/status")
+async def llm_install_status(engine: str = Query(...)) -> dict[str, Any]:
+    """Poll a background engine install: idle | running | done | error."""
+    try:
+        return llm_providers.install_status(engine.strip().lower())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/settings/llm")
+async def llm_settings_get() -> dict[str, Any]:
+    """Read saved LLM provider config from data dir (key bytes never returned)."""
+    path = DATA_DIR / "llm_settings.json"
+    base: dict[str, Any] = {"provider": "ollama", "endpoint": "http://localhost:11434", "model": ""}
+    if path.is_file():
+        try:
+            base.update(json.loads(path.read_text(encoding="utf-8")))
+        except (json.JSONDecodeError, OSError):
+            pass
+    base.pop("api_key", None)
+    base["keys_configured"] = llm_providers.keys_configured()
+    return base
+
+
+@router.post("/settings/llm")
+async def llm_settings_save(body: LlmSettingsWriteIn) -> dict[str, Any]:
+    """Save LLM provider config to data dir; API key goes to the keystore only."""
+    try:
+        llm_providers.require_provider(body.provider)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    payload = {"provider": body.provider, "endpoint": body.endpoint, "model": body.model}
+    if not body.select:
+        if not body.api_key:
+            raise HTTPException(status_code=400, detail="api_key required when select is false") from None
+        try:
+            llm_providers.save_key(body.provider, body.api_key)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"success": True, "key_saved": True, "select": False}
+    path = DATA_DIR / "llm_settings.json"
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    key_saved = False
+    if body.api_key:
+        try:
+            llm_providers.save_key(body.provider, body.api_key)
+            key_saved = True
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+    switch: dict[str, Any] = {}
+    if body.provider == "ollama" and body.model.strip():
+        switch = await llm_providers.switch_ollama_model(body.model.strip(), body.endpoint)
+    return {"success": True, **payload, "key_saved": key_saved, "switch": switch}
+
+
+@router.delete("/settings/llm/key")
+async def llm_key_delete(provider: str = Query(...)) -> dict[str, Any]:
+    """Delete one stored cloud API key."""
+    try:
+        removed = llm_providers.delete_key(provider)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"success": True, "provider": provider, "removed": removed}
 
 
 # ---------------------------------------------------------------------------
