@@ -40,8 +40,9 @@ def setup_logger(name: str = "worldlabs-mcp", level: int = logging.DEBUG) -> log
     if logger.handlers:
         return logger
 
-    # Ensure logs directory exists
-    log_dir = os.path.join(os.getcwd(), "logs")
+    # Ensure logs directory exists. Absolute, never cwd-relative: Claude Desktop
+    # spawns stdio servers with cwd=C:\Windows\System32 (BUG-063).
+    log_dir = os.path.join(os.environ.get("LOCALAPPDATA") or os.path.expanduser("~"), "worldlabs-mcp", "logs")
     os.makedirs(log_dir, exist_ok=True)
     log_file = os.path.join(log_dir, "bridge.log")
 
