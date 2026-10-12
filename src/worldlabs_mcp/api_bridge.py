@@ -454,7 +454,7 @@ async def adb_devices() -> dict[str, Any]:
     try:
         import subprocess
 
-        result = subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=10)
+        result = await asyncio.to_thread(subprocess.run, ["adb", "devices"], capture_output=True, text=True, timeout=10)
         lines = result.stdout.strip().split("\n")[1:]  # Skip "List of devices attached"
         devices = []
         for line in lines:

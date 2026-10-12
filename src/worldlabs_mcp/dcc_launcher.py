@@ -76,7 +76,7 @@ async def ensure_blender(host: str = "127.0.0.1", port: int = 10700) -> str | No
     if await _wait_for_port(host, port, timeout=2):
         return None  # already running
 
-    blender_path = _find_blender()
+    blender_path = await asyncio.to_thread(_find_blender)
     if not blender_path:
         return "Blender not found. Install Blender from https://blender.org"
 
@@ -122,7 +122,7 @@ async def ensure_resonite(host: str = "127.0.0.1", port: int = 10715, osc_port: 
     if await _wait_for_port(host, osc_port, timeout=2):
         return None  # OSC receiver already running
 
-    mcp_path = _find_resonite_mcp()
+    mcp_path = await asyncio.to_thread(_find_resonite_mcp)
     if not mcp_path:
         return (
             "resonite-mcp not found. Clone it to D:\\Dev\\repos\\resonite-mcp "
