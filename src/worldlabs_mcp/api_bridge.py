@@ -2117,7 +2117,7 @@ async def marble_adventure_launch() -> dict[str, Any]:
             "message": "Marble Adventure is already running.",
         }
 
-    godot = os.environ.get("GODOT_EXE", r"C:\Users\sandr\.local\bin\godot.exe")
+    godot = os.environ.get("GODOT_EXE", str(Path.home() / ".local" / "bin" / "godot.exe"))
     if not Path(godot).is_file():
         return {
             "status": "error",
