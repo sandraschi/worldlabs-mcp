@@ -453,7 +453,7 @@ async def generate_world_from_video(
             _handle_status_error(e)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Upload and Generate", "readOnlyHint": False, "destructiveHint": False})
 async def upload_and_generate(
     local_file_path: str,
     kind: str,
@@ -557,7 +557,7 @@ async def upload_and_generate(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Prepare Media Upload", "readOnlyHint": False, "destructiveHint": False})
 async def prepare_media_upload(
     file_name: str,
     kind: str,
@@ -606,7 +606,7 @@ async def prepare_media_upload(
             _handle_status_error(e)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Generate World from Media Asset", "readOnlyHint": False, "destructiveHint": False})
 async def generate_world_from_media_asset(
     media_asset_id: str,
     kind: str,
@@ -1342,7 +1342,7 @@ _WORLDLABS_CONTEXT = {
 }
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Broadcast Spatial Audio", "readOnlyHint": False, "destructiveHint": False})
 async def broadcast_spatial_audio(
     prompt_or_url: str,
     x: float = 0.0,
@@ -1386,7 +1386,7 @@ async def broadcast_spatial_audio(
         return f"Audio broadcasted: {prompt_or_url} at [{x}, {y}, {z}]"
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Place World TV", "readOnlyHint": False, "destructiveHint": False})
 async def place_world_tv(
     video_url: str,
     x: float = 0.0,
@@ -1417,7 +1417,7 @@ async def place_world_tv(
         return f"TV Materialized at [{x}, {y}, {z}] with video: {video_url}"
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Spawn Agent Avatar", "readOnlyHint": False, "destructiveHint": False})
 async def spawn_agent_avatar(
     avatar_url: str = "default_agent",
     x: float = 0.0,
@@ -1449,7 +1449,7 @@ async def spawn_agent_avatar(
         return f"Avatar materialized at [{x}, {y}, {z}]"
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Broadcast Spatial Notification", "readOnlyHint": False, "destructiveHint": False})
 async def broadcast_spatial_notification(
     text: str,
     x: float = 0.0,
@@ -1491,7 +1491,7 @@ async def broadcast_spatial_notification(
         return f"Success: {msg} (Recipients: {data.get('recipients', 0)})"
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Refine World Prompt", "readOnlyHint": True, "destructiveHint": False})
 async def refine_with_local_llm(
     prompt: str,
     style: str = "Cinematic",
@@ -1625,7 +1625,7 @@ async def generate_world_prompt(
         }
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "World Labs Help", "readOnlyHint": True, "destructiveHint": False})
 async def worldlabs_help(
     detail: str = "standard",
     topic: str = "",
@@ -1738,7 +1738,7 @@ def _gallery_entry(w: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations={"title": "Gallery Explore", "readOnlyHint": True, "destructiveHint": False})
 async def gallery_explore(
     operation: Annotated[
         Literal["browse", "world", "prompts", "search"],

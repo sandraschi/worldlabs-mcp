@@ -25,7 +25,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { api } from "@/lib/api";
+import { api, apiUrl } from "@/lib/api";
 import { logger } from "@/lib/logger";
 import {
   type CachedSplatMeta,
@@ -945,7 +945,7 @@ export function SparkViewer() {
     };
 
     try {
-      await fetch("http://localhost:10865/api/scenes/bake", {
+      await fetch(apiUrl("/api/scenes/bake"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(manifest),
@@ -959,9 +959,7 @@ export function SparkViewer() {
   async function handleRestoreScene() {
     if (!worldId) return;
     try {
-      const resp = await fetch(
-        `http://localhost:10865/api/scenes?world_id=${worldId}`,
-      );
+      const resp = await fetch(apiUrl(`/api/scenes?world_id=${worldId}`));
       const scenes = await resp.json();
       if (scenes.length === 0) {
         alert("No baked scenes found for this world.");
@@ -1009,7 +1007,7 @@ export function SparkViewer() {
 
   async function fetchLocalAssets() {
     try {
-      const resp = await fetch("http://localhost:10865/api/local-assets");
+      const resp = await fetch(apiUrl("/api/local-assets"));
       const files = await resp.json();
       setLocalAssets(files);
     } catch (err) {
@@ -1031,7 +1029,7 @@ export function SparkViewer() {
     setIsSearchingPlex(true);
     try {
       const resp = await fetch(
-        `http://localhost:10865/api/plex/search?q=${encodeURIComponent(plexQuery)}`,
+        apiUrl(`/api/plex/search?q=${encodeURIComponent(plexQuery)}`),
       );
       const results = await resp.json();
       setPlexResults(results);
@@ -1045,7 +1043,7 @@ export function SparkViewer() {
   async function handlePlexStream(movie: any) {
     try {
       const resp = await fetch(
-        `http://localhost:10865/api/plex/stream_url?key=${encodeURIComponent(movie.key)}`,
+        apiUrl(`/api/plex/stream_url?key=${encodeURIComponent(movie.key)}`),
       );
       const data = await resp.json();
       setToolboxPrompt(data.url);
@@ -1057,7 +1055,7 @@ export function SparkViewer() {
 
   async function fetchStats() {
     try {
-      const resp = await fetch("http://localhost:10865/api/system/stats");
+      const resp = await fetch(apiUrl("/api/system/stats"));
       const data = await resp.json();
       setSystemStats(data);
     } catch (_err) {
@@ -2061,9 +2059,7 @@ export function SparkViewer() {
                   <button
                     key={f}
                     onClick={() => {
-                      setToolboxPrompt(
-                        `http://localhost:10865/api/local-assets/${f}`,
-                      );
+                      setToolboxPrompt(apiUrl(`/api/local-assets/${f}`));
                     }}
                     className="w-full text-left p-2 rounded-lg hover:bg-white/5 truncate text-xs text-slate-300 font-bold"
                   >

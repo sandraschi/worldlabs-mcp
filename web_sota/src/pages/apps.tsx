@@ -11,7 +11,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { api, backendOrigin } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 
 interface AppLink {
@@ -41,7 +41,7 @@ const apps: AppLink[] = [
   {
     title: "MCP Bridge Backend",
     desc: "FastAPI bridge server powering this dashboard.",
-    url: "http://localhost:10865/docs",
+    url: `${backendOrigin()}/docs`,
     port: ":10865",
     icon: Server,
     badge: "Local",

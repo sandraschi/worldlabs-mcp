@@ -1,4 +1,29 @@
-export const API_BASE = "http://127.0.0.1:10865";
+// Fleet 1F rule: same-origin relative URLs everywhere, absolute backend URL
+// ONLY behind a Tauri gate. Absolute http://127.0.0.1:10865 calls die on CORS
+// in any non-localhost browser tab (LAN name, Tailscale MagicDNS, `goliath`),
+// while the vite proxy (vite.config.ts /api -> 127.0.0.1:10865) serves
+// same-origin calls. See opencode-cli-mcp 2026-10-05 incident.
+declare global {
+  interface Window {
+    __TAURI__?: unknown;
+    __TAURI_INTERNALS__?: unknown;
+  }
+}
+
+function isTauri(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    "__TAURI__" in window ||
+    "__TAURI_INTERNALS__" in window ||
+    window.location.protocol === "tauri:"
+  );
+}
+
+// Absolute backend origin for the Tauri WebView only (no vite proxy there).
+const TAURI_API_BASE = "http://127.0.0.1:10865";
+// Same-origin by default: "" + "/api/..." hits the vite dev proxy or the
+// bundled backend in production. Absolute only when Tauri-detected.
+export const API_BASE = isTauri() ? TAURI_API_BASE : "";
 const BASE = "/api";
 
 // ÔöÇÔöÇ Asset types ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
@@ -260,6 +285,22 @@ export interface GalleryBrowseResult {
   next_page_token: string;
   count: number;
   entries: GalleryEntry[];
+}
+
+// Absolute backend origin for navigation links (new-tab docs, downloads).
+// Host-aware so LAN/Tailscale tabs reach the backend too; Tauri uses loopback.
+export function backendOrigin(): string {
+  if (isTauri()) return TAURI_API_BASE;
+  if (typeof window !== "undefined" && window.location.hostname)
+    return `http://${window.location.hostname}:10865`;
+  return TAURI_API_BASE;
+}
+
+// Absolute-URL builder with the same Tauri gate (for pages that call fetch
+// directly instead of going through the helpers below).
+export function apiUrl(path: string): string {
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return isTauri() ? `${TAURI_API_BASE}${p}` : p;
 }
 
 function urlFor(path: string): string {
