@@ -88,10 +88,10 @@ function LlmProviderCards({ onChanged }: { onChanged: () => void }) {
             <span className="text-sm font-medium text-slate-200">
               {p.label}
             </span>
-            <span className="text-[11px] text-slate-500">
+            <span className="text-[11px] text-slate-300">
               {p.kind === "local" ? "local · free" : "cloud · paid"}
             </span>
-            <span className="text-[11px] text-slate-500 ml-auto">
+            <span className="text-[11px] text-slate-300 ml-auto">
               {p.kind === "local"
                 ? p.detected
                   ? `detected · ${p.models?.length ?? 0} models`
@@ -112,7 +112,7 @@ function LlmProviderCards({ onChanged }: { onChanged: () => void }) {
                 placeholder={`Paste ${p.key_env}`}
                 aria-label={`${p.label} API key`}
                 data-testid={`llm-key-${p.id}`}
-                className="flex-1 min-w-44 rounded border border-white/[0.08] bg-white/[0.05] px-2 py-1.5 font-mono text-xs text-slate-100"
+                className="flex-1 min-w-44 rounded border border-white/[0.08] bg-white/[0.05] px-2 py-1.5 font-mono text-sm text-slate-100"
               />
               <button
                 onClick={() =>
@@ -127,7 +127,7 @@ function LlmProviderCards({ onChanged }: { onChanged: () => void }) {
                   })
                 }
                 disabled={busy[p.id] !== undefined}
-                className="text-xs bg-white/[0.05] hover:bg-white/[0.08] rounded-lg px-3 py-1.5 text-slate-200 transition"
+                className="text-sm bg-white/[0.05] hover:bg-white/[0.08] rounded-lg px-3 py-1.5 text-slate-200 transition"
               >
                 Save
               </button>
@@ -143,7 +143,7 @@ function LlmProviderCards({ onChanged }: { onChanged: () => void }) {
                 }
                 disabled={busy[p.id] !== undefined}
                 data-testid={`llm-test-${p.id}`}
-                className="text-xs bg-white/[0.05] hover:bg-white/[0.08] rounded-lg px-3 py-1.5 text-slate-200 transition"
+                className="text-sm bg-white/[0.05] hover:bg-white/[0.08] rounded-lg px-3 py-1.5 text-slate-200 transition"
               >
                 Test
               </button>
@@ -157,7 +157,7 @@ function LlmProviderCards({ onChanged }: { onChanged: () => void }) {
                     )
                   }
                   disabled={busy[p.id] !== undefined}
-                  className="text-xs text-red-300/80 hover:text-red-300 rounded-lg px-2 py-1.5 transition"
+                  className="text-sm text-red-300/80 hover:text-red-300 rounded-lg px-2 py-1.5 transition"
                 >
                   Clear
                 </button>
@@ -165,7 +165,7 @@ function LlmProviderCards({ onChanged }: { onChanged: () => void }) {
             </div>
           )}
           {result[p.id] && (
-            <p className="mt-1.5 text-[11px] text-slate-400">{result[p.id]}</p>
+            <p className="mt-1.5 text-[11px] text-slate-300">{result[p.id]}</p>
           )}
         </div>
       ))}
@@ -385,7 +385,7 @@ function LLMSettings() {
           ))}
         </select>
         {status === "error" && (
-          <p className="text-xs text-slate-500">
+          <p className="text-sm text-slate-300">
             No usable provider. Start Ollama or LM Studio — or paste a cloud key
             below.
           </p>
@@ -407,7 +407,7 @@ function LLMSettings() {
               </option>
             ))}
           </select>
-          <p className="text-[11px] text-slate-500">
+          <p className="text-[11px] text-slate-300">
             Models load on the secondary card — the primary stays resident.
           </p>
         </div>
@@ -415,7 +415,7 @@ function LLMSettings() {
 
       {selectedProvider === "ollama" && (
         <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
-          <div className="flex items-center gap-2 text-xs text-slate-300">
+          <div className="flex items-center gap-2 text-sm text-slate-300">
             <span
               className={cn(
                 "h-2 w-2 rounded-full",
@@ -430,26 +430,26 @@ function LLMSettings() {
             <button
               onClick={doUnload}
               disabled={!engineUp}
-              className="ml-auto text-xs bg-white/[0.05] hover:bg-white/[0.08] disabled:opacity-30 rounded-lg px-3 py-1.5 transition"
+              className="ml-auto text-sm bg-white/[0.05] hover:bg-white/[0.08] disabled:opacity-30 rounded-lg px-3 py-1.5 transition"
             >
               Release VRAM
             </button>
             {!engineUp && (
               <button
                 onClick={doInstall}
-                className="text-xs bg-cosmos-600 hover:bg-cosmos-500 rounded-lg px-3 py-1.5 text-white transition"
+                className="text-sm bg-cosmos-600 hover:bg-cosmos-500 rounded-lg px-3 py-1.5 text-white transition"
               >
                 {installState === "running" ? "Installing…" : "Install Ollama"}
               </button>
             )}
           </div>
           {installState && installState !== "running" && (
-            <p className="mt-1 text-[11px] text-slate-400">
+            <p className="mt-1 text-[11px] text-slate-300">
               Install: {installState}
             </p>
           )}
           {locals.length > 0 && !engineUp && (
-            <p className="mt-1 text-[11px] text-slate-500">
+            <p className="mt-1 text-[11px] text-slate-300">
               Install Ollama or LM Studio to unlock AI features for free.
             </p>
           )}
@@ -461,7 +461,7 @@ function LLMSettings() {
         <LlmProviderCards onChanged={refreshProviders} />
       </div>
 
-      {note && <p className="text-[11px] text-slate-400">{note}</p>}
+      {note && <p className="text-[11px] text-slate-300">{note}</p>}
     </div>
   );
 }
@@ -483,7 +483,7 @@ export function Settings() {
         <Settings2 className="w-5 h-5 text-cosmos-400" aria-hidden="true" />
         <div>
           <h2 className="text-lg font-bold gradient-text">Settings</h2>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-300 mt-0.5">
             Configure World Labs MCP
           </p>
         </div>
@@ -519,9 +519,9 @@ export function Settings() {
                   : "No API key configured on the server"}
             </span>
           </div>
-          <p className="text-xs text-slate-600">
+          <p className="text-sm text-slate-600">
             Set{" "}
-            <code className="font-mono text-slate-500">WORLDLABS_API_KEY</code>{" "}
+            <code className="font-mono text-slate-300">WORLDLABS_API_KEY</code>{" "}
             in your environment (recommended), then restart the server. Get your
             key at{" "}
             <a
@@ -545,7 +545,7 @@ export function Settings() {
             Pricing & Credits
           </h3>
         </div>
-        <div className="space-y-3 text-sm text-slate-400 leading-relaxed">
+        <div className="space-y-3 text-sm text-slate-300 leading-relaxed">
           <p>
             This MCP server wraps the{" "}
             <strong className="text-slate-200">World Labs Marble API</strong>.
@@ -576,7 +576,7 @@ export function Settings() {
               </span>
             </div>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm text-slate-300">
             Credits are consumed per generation regardless of success. Pricing
             and credit packages are set by World Labs — check the{" "}
             <a
@@ -600,10 +600,10 @@ export function Settings() {
             Server Configuration
           </h3>
         </div>
-        <p className="text-xs text-slate-500 leading-relaxed">
+        <p className="text-sm text-slate-300 leading-relaxed">
           Server settings (bridge port, Marble base URL, polling and generation
           timeouts) are configured via environment variables and{" "}
-          <code className="font-mono text-slate-400">.env</code> — restart the
+          <code className="font-mono text-slate-300">.env</code> — restart the
           server after changing them. See INSTALL.md for the full variable list.
         </p>
       </div>
@@ -615,7 +615,7 @@ export function Settings() {
           <h3 className="text-sm font-bold text-slate-200">UI Preferences</h3>
         </div>
         <div className="text-sm text-slate-300">Dark mode (always enabled)</div>
-        <p className="text-xs text-slate-500">
+        <p className="text-sm text-slate-300">
           The fleet identity — the webapp is dark by default and stays dark.
         </p>
       </div>

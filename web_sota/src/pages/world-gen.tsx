@@ -181,7 +181,7 @@ function GenerationModal({
           <button
             data-testid="world_gen-action"
             onClick={onDismiss}
-            className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+            className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
             aria-label="Close"
           >
             <X className="w-4 h-4" />
@@ -213,7 +213,7 @@ function GenerationModal({
         </h3>
 
         {/* Status message */}
-        <p className="text-center text-sm text-slate-400 mb-5 min-h-[2.5rem] leading-relaxed px-2">
+        <p className="text-center text-sm text-slate-300 mb-5 min-h-[2.5rem] leading-relaxed px-2">
           {done
             ? "Your 3D world has been created. Opening now…"
             : failed
@@ -233,7 +233,7 @@ function GenerationModal({
         )}
 
         {/* Elapsed / op id */}
-        <div className="flex items-center justify-between text-[11px] text-slate-500 mb-4">
+        <div className="flex items-center justify-between text-[11px] text-slate-300 mb-4">
           <span className="flex items-center gap-1.5">
             <Clock className="w-3 h-3" />
             {fmtElapsed(elapsed)} elapsed
@@ -299,7 +299,7 @@ function PromptCard({
           <span className="text-[10px] font-bold uppercase tracking-widest text-cosmos-400 bg-cosmos-500/10 px-1.5 py-0.5 rounded">
             {prompt.style}
           </span>
-          <span className="text-[10px] text-slate-500 font-mono">
+          <span className="text-[10px] text-slate-300 font-mono">
             {new Date(prompt.timestamp).toLocaleDateString()}
           </span>
         </div>
@@ -308,7 +308,7 @@ function PromptCard({
             onClick={() => onUpdate(prompt.id, { fave: !prompt.fave })}
             className={cn(
               "p-1 rounded hover:bg-white/10 transition-colors",
-              prompt.fave ? "text-pink-500" : "text-slate-400",
+              prompt.fave ? "text-pink-500" : "text-slate-300",
             )}
             aria-label="Favorite"
             title="Favorite"
@@ -321,7 +321,7 @@ function PromptCard({
             onClick={() => onUpdate(prompt.id, { star: !prompt.star })}
             className={cn(
               "p-1 rounded hover:bg-white/10 transition-colors",
-              prompt.star ? "text-amber-400" : "text-slate-400",
+              prompt.star ? "text-amber-400" : "text-slate-300",
             )}
             aria-label="Star"
             title="Star"
@@ -332,7 +332,7 @@ function PromptCard({
           </button>
           <button
             onClick={() => onDelete(prompt.id)}
-            className="p-1 rounded hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
+            className="p-1 rounded hover:bg-red-500/20 text-slate-300 hover:text-red-400 transition-colors"
             aria-label="Delete"
             title="Delete"
           >
@@ -341,7 +341,7 @@ function PromptCard({
         </div>
       </div>
 
-      <p className="text-xs text-slate-300 line-clamp-3 italic leading-relaxed">
+      <p className="text-sm text-slate-300 line-clamp-3 italic leading-relaxed">
         "{prompt.text}"
       </p>
 
@@ -370,7 +370,7 @@ function PromptCard({
           ) : (
             <button
               onClick={() => setIsEditingComment(true)}
-              className="flex items-center gap-1.5 text-[10px] text-slate-500 hover:text-slate-400 transition-colors"
+              className="flex items-center gap-1.5 text-[10px] text-slate-300 hover:text-slate-300 transition-colors"
             >
               <MessageSquare className="w-3 h-3" />
               {prompt.comment || "Add a comment"}
@@ -411,13 +411,13 @@ function StyleGallery({
               <Sparkles className="w-5 h-5 text-cosmos-400" />
               Style Gallery
             </h3>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-300">
               Select a creative preset to instantly build your new world.
             </p>
           </div>
           <button
             onClick={onDismiss}
-            className="p-2 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition-all"
+            className="p-2 rounded-xl hover:bg-white/5 text-slate-300 hover:text-white transition-all"
           >
             <X className="w-5 h-5" />
           </button>
@@ -431,7 +431,7 @@ function StyleGallery({
               "px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all border",
               categoryFilter === null
                 ? "bg-cosmos-600/30 border-cosmos-500/40 text-cosmos-300"
-                : "bg-white/[0.04] border-white/[0.06] text-slate-500 hover:text-slate-300 hover:border-white/[0.1]",
+                : "bg-white/[0.04] border-white/[0.06] text-slate-300 hover:text-slate-300 hover:border-white/[0.1]",
             )}
           >
             All
@@ -451,7 +451,7 @@ function StyleGallery({
                   "px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all border",
                   categoryFilter === cat
                     ? "bg-cosmos-600/30 border-cosmos-500/40 text-cosmos-300"
-                    : "bg-white/[0.04] border-white/[0.06] text-slate-500 hover:text-slate-300 hover:border-white/[0.1]",
+                    : "bg-white/[0.04] border-white/[0.06] text-slate-300 hover:text-slate-300 hover:border-white/[0.1]",
                 )}
               >
                 {cat} {count}
@@ -462,7 +462,7 @@ function StyleGallery({
 
         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
           {filtered.length === 0 ? (
-            <p className="text-sm text-slate-500 text-center py-12">
+            <p className="text-sm text-slate-300 text-center py-12">
               No presets match this category.
             </p>
           ) : (
@@ -483,7 +483,7 @@ function StyleGallery({
                     <h4 className="text-sm font-bold text-white group-hover:text-cosmos-300 transition-colors">
                       {p.name}
                     </h4>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">
+                    <p className="text-sm text-slate-300 mt-1 leading-relaxed line-clamp-2">
                       {p.description}
                     </p>
                   </div>
@@ -509,7 +509,7 @@ function StyleGallery({
         </div>
 
         <footer className="p-4 bg-white/[0.02] border-t border-white/5 text-center">
-          <p className="text-[10px] text-slate-500 italic">
+          <p className="text-[10px] text-slate-300 italic">
             Styles leverage Marble 1.1 PRO auto-expansion for maximum fidelity.
           </p>
         </footer>
@@ -589,7 +589,7 @@ function AssetPanel({ op, assets }: { op: Operation; assets: FlatAssets }) {
                 key={key}
                 onClick={() => triggerDownload(worldId, key, url)}
                 title={hint}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.07] hover:border-cosmos-500/40 text-xs text-slate-300 hover:text-white transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.07] hover:border-cosmos-500/40 text-sm text-slate-300 hover:text-white transition-all"
               >
                 <Download className="w-3 h-3" aria-hidden="true" />
                 {label}
@@ -615,8 +615,8 @@ function AssetPanel({ op, assets }: { op: Operation; assets: FlatAssets }) {
                 className="flex gap-1 p-0.5 bg-white/[0.03] rounded-lg border border-white/[0.06]"
               >
                 <div className="px-2 py-1.5 flex items-center gap-1.5 border-r border-white/[0.06]">
-                  <span className="text-xs">{icon}</span>
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <span className="text-sm">{icon}</span>
+                  <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
                     {label}
                   </span>
                 </div>
@@ -628,7 +628,7 @@ function AssetPanel({ op, assets }: { op: Operation; assets: FlatAssets }) {
                       !(assets.splat_500k || assets.splat_full)
                     }
                     className={cn(
-                      "px-2 py-1 rounded text-xs font-medium transition-all",
+                      "px-2 py-1 rounded text-sm font-medium transition-all",
                       splatState === "loading" &&
                         "opacity-60 cursor-not-allowed",
                       splatState === "ok" && "bg-aurora-500/20 text-aurora-300",
@@ -644,7 +644,7 @@ function AssetPanel({ op, assets }: { op: Operation; assets: FlatAssets }) {
                     onClick={() => handleHandoff(target, "mesh")}
                     disabled={meshState === "loading" || !assets.mesh}
                     className={cn(
-                      "px-2 py-1 rounded text-xs font-medium transition-all",
+                      "px-2 py-1 rounded text-sm font-medium transition-all",
                       meshState === "loading" &&
                         "opacity-60 cursor-not-allowed",
                       meshState === "ok" && "bg-aurora-500/20 text-aurora-300",
@@ -670,7 +670,7 @@ function AssetPanel({ op, assets }: { op: Operation; assets: FlatAssets }) {
             href={op.response?.world_marble_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cosmos-600/20 hover:bg-cosmos-600/30 border border-cosmos-500/30 text-xs text-cosmos-300 hover:text-cosmos-200 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cosmos-600/20 hover:bg-cosmos-600/30 border border-cosmos-500/30 text-sm text-cosmos-300 hover:text-cosmos-200 transition-all"
           >
             <ExternalLink className="w-3 h-3" aria-hidden="true" />
             View in Marble
@@ -679,7 +679,7 @@ function AssetPanel({ op, assets }: { op: Operation; assets: FlatAssets }) {
         {(assets.splat_500k || assets.splat_full) && (
           <a
             href={`/library?url=${encodeURIComponent(assets.splat_500k ?? assets.splat_full ?? "")}&name=${encodeURIComponent(worldName)}`}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-void-600/20 hover:bg-void-600/30 border border-void-500/30 text-xs text-void-300 hover:text-void-200 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-void-600/20 hover:bg-void-600/30 border border-void-500/30 text-sm text-void-300 hover:text-void-200 transition-all"
           >
             <Globe2 className="w-3 h-3" aria-hidden="true" />
             Legacy Viewer
@@ -691,7 +691,7 @@ function AssetPanel({ op, assets }: { op: Operation; assets: FlatAssets }) {
           assets.splat_full) && (
           <a
             href={`/spark-viewer?url=${encodeURIComponent(assets.rad ?? assets.ksplat ?? assets.splat_500k ?? assets.splat_full ?? "")}&name=${encodeURIComponent(worldName)}`}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-aurora-600/20 hover:bg-aurora-600/30 border border-aurora-500/30 text-xs text-aurora-300 hover:text-aurora-200 transition-all shadow-[0_0_10px_-2px_rgba(74,222,128,0.2)]"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-aurora-600/20 hover:bg-aurora-600/30 border border-aurora-500/30 text-sm text-aurora-300 hover:text-aurora-200 transition-all shadow-[0_0_10px_-2px_rgba(74,222,128,0.2)]"
           >
             <Zap className="w-3 h-3" aria-hidden="true" />
             Spark 2.0 (High-Fidelity)
@@ -755,7 +755,7 @@ function OperationCard({
             <div className="flex items-center gap-2 mt-1">
               <span
                 className={cn(
-                  "text-xs px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider",
+                  "text-sm px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider",
                   status === "SUCCEEDED"
                     ? "bg-aurora-500/20 text-aurora-300"
                     : status === "FAILED"
@@ -766,7 +766,7 @@ function OperationCard({
                 {status.replace("_", " ")}
               </span>
               {progress?.description && (
-                <span className="text-xs text-slate-400 truncate">
+                <span className="text-sm text-slate-300 truncate">
                   {progress.description}
                 </span>
               )}
@@ -775,7 +775,7 @@ function OperationCard({
         </div>
         <button
           onClick={onRemove}
-          className="text-slate-600 hover:text-slate-400 transition-colors"
+          className="text-slate-600 hover:text-slate-300 transition-colors"
           aria-label="Remove operation"
         >
           <ChevronDown className="w-4 h-4 rotate-45" />
@@ -785,7 +785,7 @@ function OperationCard({
       {isDone && !op.error && assets && <AssetPanel op={op} assets={assets} />}
 
       {op.error && (
-        <div className="mt-4 p-2 rounded bg-red-500/10 border border-red-500/20 text-xs text-red-300 leading-relaxed">
+        <div className="mt-4 p-2 rounded bg-red-500/10 border border-red-500/20 text-sm text-red-300 leading-relaxed">
           <strong>Error:</strong> {op.error}
         </div>
       )}
@@ -1077,7 +1077,7 @@ export default function WorldGenPage() {
               <h2 className="text-lg font-bold gradient-text">
                 World Generation
               </h2>
-              <p className="text-sm text-slate-400 mt-0.5">
+              <p className="text-sm text-slate-300 mt-0.5">
                 Generate 3D worlds with the Marble API
               </p>
             </div>
@@ -1098,10 +1098,10 @@ export default function WorldGenPage() {
                   aria-selected={mode === m ? "true" : "false"}
                   onClick={() => setMode(m)}
                   className={cn(
-                    "px-4 py-1.5 rounded-md text-xs font-medium capitalize transition-all",
+                    "px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-all",
                     mode === m
                       ? "bg-cosmos-600 text-white shadow"
-                      : "text-slate-500 hover:text-slate-300",
+                      : "text-slate-300 hover:text-slate-300",
                   )}
                 >
                   {m}
@@ -1117,10 +1117,10 @@ export default function WorldGenPage() {
                   aria-pressed={model === m ? "true" : "false"}
                   onClick={() => setModel(m)}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all",
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition-all",
                     model === m
                       ? "border-cosmos-500/60 bg-cosmos-600/20 text-cosmos-300"
-                      : "border-white/[0.08] text-slate-500 hover:text-slate-300",
+                      : "border-white/[0.08] text-slate-300 hover:text-slate-300",
                   )}
                 >
                   {m.includes("plus") ? (
@@ -1143,7 +1143,7 @@ export default function WorldGenPage() {
                       aria-label="Select style"
                       value={selectedStyle}
                       onChange={(e) => setSelectedStyle(e.target.value)}
-                      className="bg-black/40 border border-white/[0.08] rounded px-2 py-1 text-xs text-slate-300 outline-none focus:border-cosmos-500/50"
+                      className="bg-black/40 border border-white/[0.08] rounded px-2 py-1 text-sm text-slate-300 outline-none focus:border-cosmos-500/50"
                     >
                       {[
                         "Cinematic",
@@ -1171,7 +1171,7 @@ export default function WorldGenPage() {
                           e.target.value.split(":");
                         setSelectedLlm({ provider, id: idParts.join(":") });
                       }}
-                      className="bg-black/40 border border-white/[0.08] rounded px-2 py-1 text-xs text-slate-300 outline-none focus:border-cosmos-500/50"
+                      className="bg-black/40 border border-white/[0.08] rounded px-2 py-1 text-sm text-slate-300 outline-none focus:border-cosmos-500/50"
                     >
                       {availableModels.map((m) => (
                         <option
@@ -1187,7 +1187,7 @@ export default function WorldGenPage() {
                       disabled={!prompt.trim() || savePromptMutation.isPending}
                       title="Save to Library"
                       className={cn(
-                        "p-1.5 rounded bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-slate-400 hover:text-white transition-all",
+                        "p-1.5 rounded bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-slate-300 hover:text-white transition-all",
                         (!prompt.trim() || savePromptMutation.isPending) &&
                           "opacity-50 cursor-not-allowed",
                       )}
@@ -1209,7 +1209,7 @@ export default function WorldGenPage() {
                       onClick={() => refineMutation.mutate()}
                       disabled={!prompt.trim() || refineMutation.isPending}
                       className={cn(
-                        "flex items-center gap-1.5 px-2 py-1 rounded bg-cosmos-600/20 hover:bg-cosmos-600/30 border border-cosmos-500/30 text-xs text-cosmos-300 transition-all",
+                        "flex items-center gap-1.5 px-2 py-1 rounded bg-cosmos-600/20 hover:bg-cosmos-600/30 border border-cosmos-500/30 text-sm text-cosmos-300 transition-all",
                         (refineMutation.isPending || !prompt.trim()) &&
                           "opacity-50 cursor-not-allowed",
                       )}
@@ -1281,7 +1281,7 @@ export default function WorldGenPage() {
                           <div className="text-sm font-medium text-cosmos-300 truncate max-w-xs mx-auto">
                             {selectedFile.name}
                           </div>
-                          <div className="text-xs text-slate-500">
+                          <div className="text-sm text-slate-300">
                             {(selectedFile.size / 1024 / 1024).toFixed(1)} MB
                           </div>
                           <button
@@ -1290,7 +1290,7 @@ export default function WorldGenPage() {
                               e.stopPropagation();
                               setSelectedFile(null);
                             }}
-                            className="text-xs text-red-400 hover:text-red-300"
+                            className="text-sm text-red-400 hover:text-red-300"
                           >
                             Remove
                           </button>
@@ -1298,13 +1298,13 @@ export default function WorldGenPage() {
                       ) : (
                         <div className="space-y-2">
                           <Upload
-                            className="w-8 h-8 text-slate-500 mx-auto"
+                            className="w-8 h-8 text-slate-300 mx-auto"
                             aria-hidden="true"
                           />
-                          <p className="text-sm text-slate-400">
+                          <p className="text-sm text-slate-300">
                             Drop a file here or click to browse
                           </p>
-                          <p className="text-xs text-slate-600">
+                          <p className="text-sm text-slate-600">
                             Supports JPG, PNG, WebP, MP4, MOV, MKV
                           </p>
                         </div>
@@ -1345,7 +1345,7 @@ export default function WorldGenPage() {
                         <div className="w-1.5 h-1.5 bg-white rounded-full" />
                       )}
                     </div>
-                    <span className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
+                    <span className="text-sm text-slate-300 group-hover:text-slate-300 transition-colors">
                       Source is a 360° panorama
                     </span>
                   </label>
@@ -1388,7 +1388,7 @@ export default function WorldGenPage() {
               )}
             </button>
             {genMutation.error instanceof Error && (
-              <p className="text-xs text-red-400 mt-2 text-center">
+              <p className="text-sm text-red-400 mt-2 text-center">
                 {genMutation.error.message}
               </p>
             )}
@@ -1401,10 +1401,10 @@ export default function WorldGenPage() {
                 <button
                   onClick={() => setShowLibrary(false)}
                   className={cn(
-                    "text-xs font-bold uppercase tracking-widest pb-1 transition-all",
+                    "text-sm font-bold uppercase tracking-widest pb-1 transition-all",
                     !showLibrary
                       ? "text-white border-b-2 border-cosmos-500"
-                      : "text-slate-500 hover:text-slate-300",
+                      : "text-slate-300 hover:text-slate-300",
                   )}
                 >
                   Operations
@@ -1415,10 +1415,10 @@ export default function WorldGenPage() {
                 <button
                   onClick={() => setShowLibrary(true)}
                   className={cn(
-                    "text-xs font-bold uppercase tracking-widest pb-1 transition-all",
+                    "text-sm font-bold uppercase tracking-widest pb-1 transition-all",
                     showLibrary
                       ? "text-white border-b-2 border-cosmos-500"
-                      : "text-slate-500 hover:text-slate-300",
+                      : "text-slate-300 hover:text-slate-300",
                   )}
                 >
                   Prompt Library
@@ -1430,7 +1430,7 @@ export default function WorldGenPage() {
                 </button>
               </div>
               {isHistoryLoading && !showLibrary && (
-                <RefreshCw className="w-3 h-3 animate-spin text-slate-500" />
+                <RefreshCw className="w-3 h-3 animate-spin text-slate-300" />
               )}
             </div>
 
@@ -1441,10 +1441,10 @@ export default function WorldGenPage() {
                     <div className="w-12 h-12 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
                       <Globe2 className="w-5 h-5 text-slate-600" />
                     </div>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-slate-300">
                       No active or past operations.
                     </p>
-                    <p className="text-xs text-slate-600 mt-1 max-w-[200px]">
+                    <p className="text-sm text-slate-600 mt-1 max-w-[200px]">
                       Your generated worlds will appear here once you start.
                     </p>
                   </div>
@@ -1467,10 +1467,10 @@ export default function WorldGenPage() {
                     <div className="w-12 h-12 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
                       <Save className="w-5 h-5 text-slate-600" />
                     </div>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-slate-300">
                       Your library is empty.
                     </p>
-                    <p className="text-xs text-slate-600 mt-1 max-w-[200px]">
+                    <p className="text-sm text-slate-600 mt-1 max-w-[200px]">
                       Click the <Save className="w-2.5 h-2.5 inline" /> icon
                       after refining a prompt to save it here.
                     </p>

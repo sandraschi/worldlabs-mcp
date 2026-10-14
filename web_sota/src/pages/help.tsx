@@ -62,9 +62,9 @@ function Section({
           <span data-testid="help-extra-2" className="hidden" />
         </div>
         {open ? (
-          <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+          <ChevronDown className="w-3.5 h-3.5 text-slate-300" />
         ) : (
-          <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
         )}
       </button>
       {open && <div className="px-5 pb-5 space-y-3">{children}</div>}
@@ -87,8 +87,8 @@ function ToolCard({ tool, detail }: { tool: Tool; detail: DetailLevel }) {
       >
         <Code2 className="w-3.5 h-3.5 text-cosmos-400 flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
-          <code className="text-xs font-mono text-cosmos-300">{tool.name}</code>
-          <p className="text-xs text-slate-500 mt-0.5">{tool.description}</p>
+          <code className="text-sm font-mono text-cosmos-300">{tool.name}</code>
+          <p className="text-sm text-slate-300 mt-0.5">{tool.description}</p>
         </div>
         {detail !== "quick" && (
           <span className="text-[10px] text-slate-600 mt-0.5">
@@ -104,15 +104,15 @@ function ToolCard({ tool, detail }: { tool: Tool; detail: DetailLevel }) {
                 Args
               </p>
               {Object.entries(tool.args).map(([k, v]) => (
-                <div key={k} className="text-xs text-slate-400 flex gap-1.5">
+                <div key={k} className="text-sm text-slate-300 flex gap-1.5">
                   <code className="text-cosmos-400 flex-shrink-0">{k}</code>
-                  <span className="text-slate-500">{v}</span>
+                  <span className="text-slate-300">{v}</span>
                 </div>
               ))}
             </div>
           )}
           {detail === "verbose" && tool.docstring && (
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               {tool.docstring}
             </p>
           )}
@@ -419,7 +419,7 @@ export function Help() {
           <h2 className="text-lg font-bold gradient-text">
             Help &amp; Documentation
           </h2>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-300 mt-0.5">
             worldlabs-mcp · Marble API v1 · v0.5.0
           </p>
         </div>
@@ -427,7 +427,7 @@ export function Help() {
 
       {/* ---- What is this? ---- */}
       <Section title="What is this?" icon={Info} defaultOpen={true}>
-        <p className="text-sm text-slate-400 leading-relaxed">
+        <p className="text-sm text-slate-300 leading-relaxed">
           <strong className="text-slate-200">worldlabs-mcp</strong> is an MCP
           server that exposes the{" "}
           <a
@@ -442,15 +442,15 @@ export function Help() {
           navigable 3D scenes — Gaussian splats, collision meshes, panoramas —
           from text descriptions, images, and video.
         </p>
-        <p className="text-sm text-slate-400 leading-relaxed">
+        <p className="text-sm text-slate-300 leading-relaxed">
           This webapp (port 10864) is the management dashboard. The MCP server
           itself runs as a separate process (stdio for Claude Desktop, HTTP for
           testing). The FastAPI bridge on port 10865 proxies requests from this
           UI to the Marble API.
         </p>
-        <div className="bg-black/30 rounded-lg border border-white/[0.06] p-3 font-mono text-xs text-slate-300 space-y-1">
+        <div className="bg-black/30 rounded-lg border border-white/[0.06] p-3 font-mono text-sm text-slate-300 space-y-1">
           <div>
-            <span className="text-slate-500"># .env</span>
+            <span className="text-slate-300"># .env</span>
           </div>
           <div>WORLDLABS_API_KEY=wlt_...</div>
         </div>
@@ -458,7 +458,7 @@ export function Help() {
           href="https://platform.worldlabs.ai/api-keys"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs text-cosmos-400 hover:text-cosmos-300 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-cosmos-400 hover:text-cosmos-300 transition-colors"
         >
           <Key className="w-3 h-3" /> Get your API key →
         </a>
@@ -470,7 +470,7 @@ export function Help() {
         icon={Globe2}
         defaultOpen={false}
       >
-        <div className="space-y-3 text-sm text-slate-400 leading-relaxed">
+        <div className="space-y-3 text-sm text-slate-300 leading-relaxed">
           <p>
             World Labs was founded in 2023 in San Francisco by{" "}
             <strong className="text-slate-300">Fei-Fei Li</strong> (former
@@ -533,12 +533,12 @@ export function Help() {
                 >
                   {item.label}
                 </p>
-                <p className="text-xs text-slate-500">{item.body}</p>
+                <p className="text-sm text-slate-300">{item.body}</p>
               </div>
             ))}
           </div>
 
-          <p className="text-xs text-slate-500 border-l border-white/10 pl-3 italic">
+          <p className="text-sm text-slate-300 border-l border-white/10 pl-3 italic">
             The Marble community gallery lives at marble.worldlabs.ai and is
             browsable through a public API — see the{" "}
             <a
@@ -559,7 +559,7 @@ export function Help() {
         icon={Layers}
         defaultOpen={false}
       >
-        <div className="space-y-3 text-sm text-slate-400 leading-relaxed">
+        <div className="space-y-3 text-sm text-slate-300 leading-relaxed">
           <p>
             World Labs operates in the Large World Model (LWM) space, which in
             2026 has several distinct technical approaches competing for
@@ -594,11 +594,11 @@ export function Help() {
                 >
                   {item.label}
                 </p>
-                <p className="text-xs text-slate-500">{item.body}</p>
+                <p className="text-sm text-slate-300">{item.body}</p>
               </div>
             ))}
           </div>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <p className="text-sm text-slate-300 leading-relaxed">
             World Labs positions itself at the quality/persistence end: scenes
             you can download, import into Blender, and use in production, rather
             than scenes that only exist inside a model's latent space during
@@ -623,7 +623,7 @@ export function Help() {
                 className="w-3.5 h-3.5 text-cosmos-400 flex-shrink-0 mt-0.5"
                 aria-hidden="true"
               />
-              <code className="text-xs font-mono text-slate-300">{step}</code>
+              <code className="text-sm font-mono text-slate-300">{step}</code>
             </div>
           ))}
         </div>
@@ -635,7 +635,7 @@ export function Help() {
         icon={MessageSquare}
         defaultOpen={false}
       >
-        <div className="space-y-3 text-sm text-slate-400 leading-relaxed">
+        <div className="space-y-3 text-sm text-slate-300 leading-relaxed">
           <p>
             Marble is a <strong>3D world generator</strong> (Gaussian splat
             scenes), not a 2D image generator. Prompting strategies from
@@ -678,11 +678,11 @@ export function Help() {
                 >
                   {item.label}
                 </p>
-                <p className="text-xs text-slate-500">{item.items}</p>
+                <p className="text-sm text-slate-300">{item.items}</p>
               </div>
             ))}
           </div>
-          <p className="text-xs text-slate-500 border-l border-white/10 pl-3 italic">
+          <p className="text-sm text-slate-300 border-l border-white/10 pl-3 italic">
             Full guide:{" "}
             <code className="text-cosmos-400">docs/PROMPT_GUIDE.md</code> —
             covers artist references (Giger ✓, Monet ✗), landmark prompting,
@@ -698,14 +698,14 @@ export function Help() {
         icon={Brain}
         defaultOpen={true}
       >
-        <div className="space-y-3 text-sm text-slate-400 leading-relaxed">
+        <div className="space-y-3 text-sm text-slate-300 leading-relaxed">
           <p>
             The <strong>Local LLM</strong> page at{" "}
             <code className="text-cosmos-400">/local-llm</code> provides an
             interactive AI chat running entirely on your local GPU via Ollama or
             LM Studio.
           </p>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+          <h4 className="text-sm font-bold uppercase tracking-wider text-slate-300">
             Personalities
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -731,11 +731,11 @@ export function Help() {
                 <p className="text-[10px] font-bold uppercase tracking-wider text-cosmos-300">
                   {p.label}
                 </p>
-                <p className="text-xs text-slate-500 mt-0.5">{p.body}</p>
+                <p className="text-sm text-slate-300 mt-0.5">{p.body}</p>
               </div>
             ))}
           </div>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mt-2">
+          <h4 className="text-sm font-bold uppercase tracking-wider text-slate-300 mt-2">
             Skill Injection
           </h4>
           <p>
@@ -744,7 +744,7 @@ export function Help() {
             LLM detailed knowledge of all tools, models, output formats, prompt
             engineering, and pricing.
           </p>
-          <p className="text-xs text-slate-500 border-l border-white/10 pl-3 italic">
+          <p className="text-sm text-slate-300 border-l border-white/10 pl-3 italic">
             Conversation history is persisted per session and included as
             context for up to 10 previous exchanges.
           </p>
@@ -770,12 +770,12 @@ export function Help() {
           ].map((m) => (
             <div key={m.name} className="glass-card p-3">
               <div className="flex items-center justify-between">
-                <code className="text-xs font-mono text-void-300">
+                <code className="text-sm font-mono text-void-300">
                   {m.name}
                 </code>
                 <span className={m.badge}>{m.time}</span>
               </div>
-              <p className="text-xs text-slate-500 mt-1">{m.desc}</p>
+              <p className="text-sm text-slate-300 mt-1">{m.desc}</p>
             </div>
           ))}
         </div>
@@ -787,7 +787,7 @@ export function Help() {
         icon={Download}
         defaultOpen={false}
       >
-        <div className="space-y-2 text-sm text-slate-400 leading-relaxed">
+        <div className="space-y-2 text-sm text-slate-300 leading-relaxed">
           <p>
             The{" "}
             <a
@@ -816,7 +816,7 @@ export function Help() {
             </code>{" "}
             for bulk prompt mining.
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm text-slate-300">
             To download a world you generated: use{" "}
             <code className="bg-white/[0.06] px-1 rounded text-[11px]">
               get_world(world_id)
@@ -828,7 +828,7 @@ export function Help() {
             href="https://marble.worldlabs.ai"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-cosmos-400 hover:text-cosmos-300 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-cosmos-400 hover:text-cosmos-300 transition-colors"
           >
             <Globe2 className="w-3 h-3" /> Open gallery →
           </a>
@@ -840,13 +840,13 @@ export function Help() {
         <div className="flex flex-wrap gap-2 mb-3">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className="relative flex-1 max-w-[240px]">
-              <Search className="w-3 h-3 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-3 h-3 text-slate-300 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search tools..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-800/60 border border-slate-700 rounded pl-7 pr-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cosmos-500"
+                className="w-full bg-slate-800/60 border border-slate-700 rounded pl-7 pr-2 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-cosmos-500"
               />
             </div>
             <div className="flex gap-1.5">
@@ -854,10 +854,10 @@ export function Help() {
                 <button
                   key={d}
                   onClick={() => setDetail(d)}
-                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                  className={`px-2.5 py-1 rounded text-sm font-medium transition-colors ${
                     detail === d
                       ? "bg-cosmos-600/40 text-cosmos-300 border border-cosmos-500/40"
-                      : "text-slate-500 hover:text-slate-300 border border-transparent"
+                      : "text-slate-300 hover:text-slate-300 border border-transparent"
                   }`}
                 >
                   {d}
@@ -870,10 +870,10 @@ export function Help() {
               <button
                 key={g}
                 onClick={() => setGroup(g)}
-                className={`px-2.5 py-1 rounded text-xs transition-colors ${
+                className={`px-2.5 py-1 rounded text-sm transition-colors ${
                   group === g
                     ? "bg-void-600/30 text-void-300 border border-void-500/30"
-                    : "text-slate-600 hover:text-slate-400 border border-transparent"
+                    : "text-slate-600 hover:text-slate-300 border border-transparent"
                 }`}
               >
                 {g}
@@ -888,7 +888,7 @@ export function Help() {
 
         <div className="space-y-2">
           {searched.length === 0 && (
-            <p className="text-xs text-slate-500 text-center py-4">
+            <p className="text-sm text-slate-300 text-center py-4">
               No tools match "{searchQuery}".
             </p>
           )}
@@ -904,7 +904,7 @@ export function Help() {
         icon={Glasses}
         defaultOpen={false}
       >
-        <div className="space-y-4 text-sm text-slate-400 leading-relaxed">
+        <div className="space-y-4 text-sm text-slate-300 leading-relaxed">
           <p>
             World Labs worlds are <strong>WebXR Ready</strong>. Experience
             generatively persistent worlds from the inside using the{" "}
@@ -913,37 +913,37 @@ export function Help() {
           </p>
           <a
             href="/onboarding"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-aurora-600 to-cosmos-600 text-white hover:from-aurora-500 hover:to-cosmos-500 transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-aurora-600 to-cosmos-600 text-white hover:from-aurora-500 hover:to-cosmos-500 transition-all"
           >
             <Smartphone className="w-3.5 h-3.5" />
             Headset Setup Guide (Quest / Pico 4)
           </a>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="glass-card p-4 space-y-2">
-              <h4 className="text-xs font-black uppercase text-aurora-300">
+              <h4 className="text-sm font-black uppercase text-aurora-300">
                 Android XR Integration
               </h4>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-300">
                 Native optimization for Quest 3 Ultra. Optimized splat sorting
                 and hand-tracking support.
               </p>
             </div>
             <div className="glass-card p-4 space-y-2">
-              <h4 className="text-xs font-black uppercase text-cosmos-300">
+              <h4 className="text-sm font-black uppercase text-cosmos-300">
                 Spatialized Presence
               </h4>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-300">
                 Multimodal events (Speech/Audio/Video) are spatialized relative
                 to the HMD position in real-time.
               </p>
             </div>
           </div>
           <div className="p-3 rounded-lg bg-orange-500/5 border border-orange-500/20">
-            <p className="text-xs font-bold text-orange-400 flex items-center gap-2">
+            <p className="text-sm font-bold text-orange-400 flex items-center gap-2">
               <Info className="w-4 h-4" />
               Security / Secure Context
             </p>
-            <p className="text-[11px] text-slate-500 mt-1">
+            <p className="text-[11px] text-slate-300 mt-1">
               Entering VR requires <strong>HTTPS</strong> or a trusted origin.
               If connecting to a local PC from a headset, use the{" "}
               <code className="text-orange-300 bg-black/30 px-1 rounded">
@@ -957,7 +957,7 @@ export function Help() {
 
       {/* ---- API Docs ---- */}
       <Section title="External Links" icon={BookOpen} defaultOpen={false}>
-        <div className="space-y-2 text-xs">
+        <div className="space-y-2 text-sm">
           {[
             {
               label: "World Labs Platform (billing, API keys)",

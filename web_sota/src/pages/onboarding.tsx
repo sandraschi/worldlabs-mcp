@@ -148,7 +148,7 @@ export function Onboarding() {
         </div>
         <div>
           <h1 className="text-lg font-bold text-white">Headset Setup</h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-300">
             Connect your Quest, Pico, or Vive for wireless 3D streaming.
           </p>
         </div>
@@ -160,7 +160,7 @@ export function Onboarding() {
           <button
             data-testid="onboarding-action"
             key={d}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/[0.05] border border-white/[0.08] text-slate-300 hover:bg-white/[0.08] transition-all"
+            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-white/[0.05] border border-white/[0.08] text-slate-300 hover:bg-white/[0.08] transition-all"
           >
             {d}
           </button>
@@ -175,10 +175,10 @@ export function Onboarding() {
               key={s.id}
               onClick={() => setActiveStep(i)}
               className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-all",
+                "flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-all",
                 i === activeStep
                   ? "bg-cosmos-600/30 text-cosmos-300 border border-cosmos-500/30"
-                  : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.04]",
+                  : "text-slate-300 hover:text-slate-300 hover:bg-white/[0.04]",
               )}
             >
               <span
@@ -188,7 +188,7 @@ export function Onboarding() {
                     ? "bg-aurora-500/20 text-aurora-400"
                     : i === activeStep
                       ? "bg-cosmos-500 text-white"
-                      : "bg-white/[0.06] text-slate-500",
+                      : "bg-white/[0.06] text-slate-300",
                 )}
               >
                 {i < activeStep ? "✓" : i + 1}
@@ -225,14 +225,14 @@ export function Onboarding() {
                 <h2 className="text-base font-bold text-white">
                   {activeStep + 1}. {step.label}
                 </h2>
-                <p className="text-xs text-slate-500 mt-0.5">{step.desc}</p>
+                <p className="text-sm text-slate-300 mt-0.5">{step.desc}</p>
               </div>
-              <span className="text-xs text-slate-600">
+              <span className="text-sm text-slate-600">
                 {activeStep + 1} / {STEPS.length}
               </span>
             </div>
 
-            <div className="text-xs text-slate-400 leading-relaxed whitespace-pre-line">
+            <div className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">
               {step.content}
             </div>
 
@@ -240,13 +240,13 @@ export function Onboarding() {
             {step.id === "usb" && (
               <div className="glass-card p-4 border-cosmos-500/20 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-200">
+                  <span className="text-sm font-bold text-slate-200">
                     Device check
                   </span>
                   <button
                     onClick={() => adbRefetch()}
                     disabled={adbLoading}
-                    className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 transition-all disabled:opacity-50"
+                    className="flex items-center gap-1 px-2 py-1 rounded text-sm bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 transition-all disabled:opacity-50"
                   >
                     <RefreshCw
                       className={cn("w-3 h-3", adbLoading && "animate-spin")}
@@ -255,17 +255,17 @@ export function Onboarding() {
                   </button>
                 </div>
                 {adbLoading && (
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="flex items-center gap-2 text-sm text-slate-300">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     Scanning for devices...
                   </div>
                 )}
                 {adbData && !adbData.success && (
-                  <div className="flex items-start gap-2 text-xs text-red-400">
+                  <div className="flex items-start gap-2 text-sm text-red-400">
                     <XCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
                     <div>
                       <p className="font-medium">ADB not found</p>
-                      <p className="text-slate-500 mt-0.5">{adbData.error}</p>
+                      <p className="text-slate-300 mt-0.5">{adbData.error}</p>
                       <a
                         href="https://developer.android.com/studio/releases/platform-tools"
                         target="_blank"
@@ -289,7 +289,7 @@ export function Onboarding() {
                         >
                           <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-4 h-4 text-aurora-400" />
-                            <span className="text-xs font-mono text-slate-200">
+                            <span className="text-sm font-mono text-slate-200">
                               {d.serial}
                             </span>
                           </div>
@@ -307,7 +307,7 @@ export function Onboarding() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-xs text-slate-500">
+                    <div className="text-sm text-slate-300">
                       No devices connected. Connect via USB and check the
                       headset for the allow prompt.
                     </div>
@@ -320,12 +320,12 @@ export function Onboarding() {
               <div className="glass-card p-4 border-amber-500/20 space-y-2">
                 {step.id === "wireless" && (
                   <div className="flex items-center justify-between p-3 rounded-lg bg-black/40 border border-white/[0.06]">
-                    <code className="text-xs font-mono text-cosmos-200">
+                    <code className="text-sm font-mono text-cosmos-200">
                       adb tcpip 5555
                     </code>
                     <button
                       onClick={() => copyToClipboard("adb tcpip 5555", "tcpip")}
-                      className="p-1.5 rounded text-slate-500 hover:text-cosmos-400 transition-all"
+                      className="p-1.5 rounded text-slate-300 hover:text-cosmos-400 transition-all"
                     >
                       <ShieldCheck
                         className={cn(
@@ -338,7 +338,7 @@ export function Onboarding() {
                 )}
                 {step.id === "connect" && (
                   <div className="flex items-center justify-between p-3 rounded-lg bg-black/40 border border-white/[0.06]">
-                    <code className="text-xs font-mono text-cosmos-200">
+                    <code className="text-sm font-mono text-cosmos-200">
                       adb connect 192.168.1.XXX:5555
                     </code>
                     <button
@@ -348,7 +348,7 @@ export function Onboarding() {
                           "connect",
                         )
                       }
-                      className="p-1.5 rounded text-slate-500 hover:text-cosmos-400 transition-all"
+                      className="p-1.5 rounded text-slate-300 hover:text-cosmos-400 transition-all"
                     >
                       <ShieldCheck
                         className={cn(
@@ -361,7 +361,7 @@ export function Onboarding() {
                 )}
                 {step.id === "forward" && (
                   <div className="flex items-center justify-between p-3 rounded-lg bg-black/40 border border-white/[0.06]">
-                    <code className="text-xs font-mono text-cosmos-200">
+                    <code className="text-sm font-mono text-cosmos-200">
                       adb reverse tcp:10864 tcp:10865
                     </code>
                     <button
@@ -371,7 +371,7 @@ export function Onboarding() {
                           "reverse",
                         )
                       }
-                      className="p-1.5 rounded text-slate-500 hover:text-cosmos-400 transition-all"
+                      className="p-1.5 rounded text-slate-300 hover:text-cosmos-400 transition-all"
                     >
                       <ShieldCheck
                         className={cn(
@@ -387,7 +387,7 @@ export function Onboarding() {
 
             {/* Troubleshooting */}
             {step.id === "view" && (
-              <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs text-slate-400 leading-relaxed space-y-2">
+              <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-sm text-slate-300 leading-relaxed space-y-2">
                 <p className="flex items-center gap-2 text-amber-400 font-bold">
                   <AlertTriangle className="w-4 h-4" />
                   "Enter VR" button not showing?
@@ -404,7 +404,7 @@ export function Onboarding() {
                         "flags",
                       )
                     }
-                    className="p-1.5 rounded text-slate-500 hover:text-amber-400 transition-all"
+                    className="p-1.5 rounded text-slate-300 hover:text-amber-400 transition-all"
                   >
                     <ShieldCheck
                       className={cn(
@@ -427,7 +427,7 @@ export function Onboarding() {
             <button
               onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
               disabled={activeStep === 0}
-              className="px-4 py-2 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-white/[0.06] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Previous
             </button>
@@ -436,7 +436,7 @@ export function Onboarding() {
                 setActiveStep(Math.min(STEPS.length - 1, activeStep + 1))
               }
               disabled={activeStep === STEPS.length - 1}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-cosmos-600 to-cosmos-500 text-white hover:from-cosmos-500 hover:to-cosmos-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-cosmos-600 to-cosmos-500 text-white hover:from-cosmos-500 hover:to-cosmos-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Next <ArrowRight className="w-3 h-3" />
             </button>
@@ -446,7 +446,7 @@ export function Onboarding() {
 
       {/* Full reference */}
       <details className="glass-card">
-        <summary className="p-4 text-xs text-slate-400 cursor-pointer hover:text-slate-200 transition-colors flex items-center gap-2">
+        <summary className="p-4 text-sm text-slate-300 cursor-pointer hover:text-slate-200 transition-colors flex items-center gap-2">
           <BookOpen className="w-4 h-4" />
           Complete reference (all commands, troubleshooting)
         </summary>

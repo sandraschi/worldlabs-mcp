@@ -270,7 +270,7 @@ export function WorldLibrary() {
           <button
             onClick={() => setModelFilter("all")}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
+              "px-3 py-1.5 rounded-lg text-sm font-medium transition-all border",
               modelFilter === "all"
                 ? "bg-cosmos-600/30 border-cosmos-500/40 text-cosmos-300"
                 : "bg-white/[0.04] border-white/[0.06] text-slate-300 hover:text-slate-200",
@@ -283,7 +283,7 @@ export function WorldLibrary() {
               key={m}
               onClick={() => setModelFilter(m)}
               className={cn(
-                "px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
+                "px-3 py-1.5 rounded-lg text-sm font-medium transition-all border",
                 modelFilter === m
                   ? "bg-cosmos-600/30 border-cosmos-500/40 text-cosmos-300"
                   : "bg-white/[0.04] border-white/[0.06] text-slate-300 hover:text-slate-200",
@@ -309,7 +309,7 @@ export function WorldLibrary() {
           <p className="text-red-400 text-sm font-medium">
             Failed to load worlds
           </p>
-          <p className="text-slate-300 text-xs mt-1">
+          <p className="text-slate-300 text-sm mt-1">
             {(error as Error).message}
           </p>
           <button
@@ -375,7 +375,7 @@ export function WorldLibrary() {
           <div className="glass-card overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/[0.06] text-xs text-slate-300 uppercase tracking-wider">
+                <tr className="border-b border-white/[0.06] text-sm text-slate-300 uppercase tracking-wider">
                   <th className="text-left px-4 py-3 font-semibold">World</th>
                   <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">
                     Model
@@ -462,7 +462,7 @@ function WorldCard({
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-          <span className="text-xs text-white font-medium flex items-center gap-1">
+          <span className="text-sm text-white font-medium flex items-center gap-1">
             <Eye className="w-3 h-3" />
             View in Spark
           </span>
@@ -477,7 +477,7 @@ function WorldCard({
               {world.display_name || "Unnamed World"}
             </h3>
             {caption && (
-              <p className="text-xs text-slate-300 mt-0.5 line-clamp-2">
+              <p className="text-sm text-slate-300 mt-0.5 line-clamp-2">
                 {caption}
               </p>
             )}
@@ -487,7 +487,7 @@ function WorldCard({
           )}
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-300">
+        <div className="flex items-center gap-2 text-sm text-slate-300">
           {world.created_at && (
             <span>{formatRelativeTime(world.created_at)}</span>
           )}
@@ -508,7 +508,7 @@ function WorldCard({
         {/* Expand/collapse toggle */}
         <button
           onClick={onToggle}
-          className="flex items-center gap-1 text-xs text-slate-300 hover:text-slate-300 transition-colors w-full"
+          className="flex items-center gap-1 text-sm text-slate-300 hover:text-slate-300 transition-colors w-full"
         >
           {isExpanded ? (
             <>
@@ -524,7 +524,7 @@ function WorldCard({
         {/* Expanded: asset downloads */}
         {isExpanded && (
           <div className="pt-1 space-y-1.5 border-t border-white/[0.06]">
-            <p className="text-xs text-slate-300 font-semibold uppercase tracking-wider">
+            <p className="text-sm text-slate-300 font-semibold uppercase tracking-wider">
               Download
             </p>
             <div className="grid grid-cols-2 gap-1.5">
@@ -535,7 +535,7 @@ function WorldCard({
                   <button
                     key={key}
                     onClick={() => onDownload(key)}
-                    className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-all text-left"
+                    className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-all text-left"
                     title={`Download ${label}`}
                   >
                     <Icon
@@ -549,14 +549,14 @@ function WorldCard({
             </div>
             {/* Viewer links */}
             <div className="pt-1">
-              <p className="text-xs text-slate-300 font-semibold uppercase tracking-wider mb-1.5">
+              <p className="text-sm text-slate-300 font-semibold uppercase tracking-wider mb-1.5">
                 View
               </p>
               <div className="flex gap-1.5">
                 {splatUrl && (
                   <Link
                     to={buildViewerLink(world)}
-                    className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs bg-cosmos-600/20 text-cosmos-300 hover:bg-cosmos-600/30 border border-cosmos-500/20 transition-all"
+                    className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-sm bg-cosmos-600/20 text-cosmos-300 hover:bg-cosmos-600/30 border border-cosmos-500/20 transition-all"
                   >
                     <Eye className="w-3 h-3" />
                     Spark 2.0
@@ -567,7 +567,7 @@ function WorldCard({
                     href={world.world_marble_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs bg-white/[0.04] text-slate-300 hover:bg-white/[0.08] border border-white/[0.06] transition-all"
+                    className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-sm bg-white/[0.04] text-slate-300 hover:bg-white/[0.08] border border-white/[0.06] transition-all"
                   >
                     <ExternalLink className="w-3 h-3" />
                     Marble
@@ -581,7 +581,7 @@ function WorldCard({
                   e.stopPropagation();
                   onDelete();
                 }}
-                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/30 transition-all w-full"
+                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/30 transition-all w-full"
               >
                 <Trash2 className="w-3 h-3" />
                 Delete world
@@ -635,7 +635,7 @@ function WorldRow({
               <div className="text-sm font-medium text-white truncate">
                 {world.display_name || "Unnamed World"}
               </div>
-              <div className="text-xs text-slate-300 truncate max-w-xs">
+              <div className="text-sm text-slate-300 truncate max-w-xs">
                 {truncate(getCaption(world), 80)}
               </div>
             </div>
@@ -644,7 +644,7 @@ function WorldRow({
         <td className="px-4 py-3 hidden md:table-cell">
           {world.model && <span className="badge-info">{world.model}</span>}
         </td>
-        <td className="px-4 py-3 text-xs text-slate-300 hidden sm:table-cell">
+        <td className="px-4 py-3 text-sm text-slate-300 hidden sm:table-cell">
           {world.created_at ? formatRelativeTime(world.created_at) : "-"}
         </td>
         <td
@@ -689,7 +689,7 @@ function WorldRow({
         <tr className="bg-white/[0.02]">
           <td colSpan={4} className="px-4 py-3">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-slate-300 font-medium mr-1">
+              <span className="text-sm text-slate-300 font-medium mr-1">
                 Download:
               </span>
               {assetActions.map(({ key, label, icon: Icon, color }) => {
@@ -699,7 +699,7 @@ function WorldRow({
                   <button
                     key={key}
                     onClick={() => onDownload(key)}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-slate-300 transition-all"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-md text-sm bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-slate-300 transition-all"
                   >
                     <Icon className={cn("w-3 h-3", color)} />
                     {label}

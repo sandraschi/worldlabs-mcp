@@ -51,9 +51,9 @@ function Section({
           <span data-testid="immersive_detail-extra-2" className="hidden" />
         </div>
         {open ? (
-          <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+          <ChevronDown className="w-3.5 h-3.5 text-slate-300" />
         ) : (
-          <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
         )}
       </button>
       {open && <div className="px-5 pb-5 space-y-3">{children}</div>}
@@ -91,7 +91,7 @@ export function ImmersiveDetail() {
           </div>
           <div>
             <h1 className="text-lg font-bold text-white">Reality Hub</h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-300">
               Cross-reality streaming, device debugging, and spatial
               orchestration.
             </p>
@@ -105,9 +105,9 @@ export function ImmersiveDetail() {
           <div className="glass-card p-4 space-y-2">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-aurora-400" />
-              <h3 className="text-xs font-bold text-white">WebRTX Protocol</h3>
+              <h3 className="text-sm font-bold text-white">WebRTX Protocol</h3>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               Optimises LoD splat tree streaming for 6DOF headsets with
               bitrate-aware progressive refinement.
             </p>
@@ -115,11 +115,11 @@ export function ImmersiveDetail() {
           <div className="glass-card p-4 space-y-2">
             <div className="flex items-center gap-2">
               <Smartphone className="w-4 h-4 text-cosmos-400" />
-              <h3 className="text-xs font-bold text-white">
+              <h3 className="text-sm font-bold text-white">
                 Android XR Native
               </h3>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               Native hand-tracking, shared spatial anchors, multithreaded splat
               sorting for Quest 3 & Pico 4.
             </p>
@@ -127,11 +127,11 @@ export function ImmersiveDetail() {
           <div className="glass-card p-4 space-y-2">
             <div className="flex items-center gap-2">
               <Wifi className="w-4 h-4 text-amber-400" />
-              <h3 className="text-xs font-bold text-white">
+              <h3 className="text-sm font-bold text-white">
                 Sovereign Handoff
               </h3>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               Stream directly from your workstation (port 10865) to HMD with
               zero-latency handshakes.
             </p>
@@ -139,9 +139,9 @@ export function ImmersiveDetail() {
           <div className="glass-card p-4 space-y-2">
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-cyan-400" />
-              <h3 className="text-xs font-bold text-white">Pico 4 / Ultra</h3>
+              <h3 className="text-sm font-bold text-white">Pico 4 / Ultra</h3>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               Stereo Passthrough v2, PicoOS hand-tracking, WiFi-7 optimised
               streaming.
             </p>
@@ -165,7 +165,7 @@ export function ImmersiveDetail() {
               name: "Vive XR Elite",
               os: "Android XR",
               status: "Compatible",
-              color: "text-slate-400",
+              color: "text-slate-300",
             },
             {
               name: "Pico 4 Ultra",
@@ -178,9 +178,9 @@ export function ImmersiveDetail() {
               key={hmd.name}
               className="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06] space-y-1"
             >
-              <p className="text-xs font-bold text-white">{hmd.name}</p>
+              <p className="text-sm font-bold text-white">{hmd.name}</p>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-slate-500 uppercase font-mono">
+                <span className="text-[10px] text-slate-300 uppercase font-mono">
                   {hmd.os}
                 </span>
                 <span
@@ -201,7 +201,7 @@ export function ImmersiveDetail() {
         defaultOpen={true}
       >
         <div className="space-y-4">
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <p className="text-sm text-slate-300 leading-relaxed">
             Connect your Quest, Pico, or Vive headset to this workstation for
             wireless streaming. Requires <strong>ADB</strong> (Android Platform
             Tools) installed on your system.
@@ -210,14 +210,14 @@ export function ImmersiveDetail() {
           {/* Live device detection */}
           <div className="glass-card p-4 border-aurora-500/20">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-xs font-bold text-slate-200 flex items-center gap-2">
+              <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2">
                 <Usb className="w-3.5 h-3.5 text-aurora-400" />
                 Connected Devices
               </h4>
               <button
                 onClick={() => adbRefetch()}
                 disabled={adbLoading}
-                className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 transition-all disabled:opacity-50"
+                className="flex items-center gap-1 px-2 py-1 rounded text-sm bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 transition-all disabled:opacity-50"
               >
                 <RefreshCw
                   className={cn("w-3 h-3", adbLoading && "animate-spin")}
@@ -226,17 +226,17 @@ export function ImmersiveDetail() {
               </button>
             </div>
             {adbLoading && (
-              <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="flex items-center gap-2 text-sm text-slate-300">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 Scanning for ADB devices...
               </div>
             )}
             {adbData && !adbData.success && (
-              <div className="flex items-start gap-2 text-xs text-red-400">
+              <div className="flex items-start gap-2 text-sm text-red-400">
                 <XCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
                 <div>
                   <p className="font-medium">ADB not detected</p>
-                  <p className="text-slate-500 mt-0.5">
+                  <p className="text-slate-300 mt-0.5">
                     {adbData.error ||
                       "Install Android Platform Tools and add adb to PATH."}
                   </p>
@@ -262,7 +262,7 @@ export function ImmersiveDetail() {
                     >
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 text-aurora-400" />
-                        <span className="text-xs font-mono text-slate-200">
+                        <span className="text-sm font-mono text-slate-200">
                           {d.serial}
                         </span>
                       </div>
@@ -280,7 +280,7 @@ export function ImmersiveDetail() {
                   ))}
                 </div>
               ) : (
-                <div className="text-xs text-slate-500">
+                <div className="text-sm text-slate-300">
                   No devices connected. Connect your headset via USB and ensure
                   Developer Mode is enabled.
                 </div>
@@ -327,14 +327,14 @@ export function ImmersiveDetail() {
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">
+                    <span className="text-[10px] font-bold text-slate-300 uppercase">
                       {item.label}
                     </span>
                     <span className="text-[10px] text-slate-600">
                       — {item.desc}
                     </span>
                   </div>
-                  <code className="text-xs font-mono text-cosmos-200 mt-1 block truncate">
+                  <code className="text-sm font-mono text-cosmos-200 mt-1 block truncate">
                     {item.cmd}
                   </code>
                 </div>
@@ -344,7 +344,7 @@ export function ImmersiveDetail() {
                   title={
                     item.disabled ? "Connect a device first" : "Copy command"
                   }
-                  className="p-2 rounded-lg bg-white/[0.05] hover:bg-cosmos-500/20 text-slate-500 hover:text-cosmos-400 transition-all shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white/[0.05] disabled:hover:text-slate-500"
+                  className="p-2 rounded-lg bg-white/[0.05] hover:bg-cosmos-500/20 text-slate-300 hover:text-cosmos-400 transition-all shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white/[0.05] disabled:hover:text-slate-300"
                 >
                   <ShieldCheck
                     className={cn(
@@ -357,7 +357,7 @@ export function ImmersiveDetail() {
             ))}
           </div>
 
-          <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs text-slate-400 leading-relaxed space-y-2">
+          <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-sm text-slate-300 leading-relaxed space-y-2">
             <p className="flex items-center gap-2 text-amber-400 font-bold">
               <AlertTriangle className="w-4 h-4" />
               After port forwarding
@@ -384,7 +384,7 @@ export function ImmersiveDetail() {
         icon={HelpCircle}
         defaultOpen={false}
       >
-        <div className="text-xs text-slate-400 space-y-2">
+        <div className="text-sm text-slate-300 space-y-2">
           <div className="grid grid-cols-2 gap-2">
             {[
               { action: "Orbit / Rotate", input: "Left-click + drag" },
@@ -399,7 +399,7 @@ export function ImmersiveDetail() {
                 className="flex justify-between p-2 rounded bg-white/[0.03] border border-white/[0.06]"
               >
                 <span className="text-slate-200">{i.action}</span>
-                <span className="text-slate-500 font-mono text-[10px]">
+                <span className="text-slate-300 font-mono text-[10px]">
                   {i.input}
                 </span>
               </div>

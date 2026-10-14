@@ -83,7 +83,7 @@ function ManifestHub({
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
 
         <header className="space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cosmos-500/10 border border-cosmos-500/20 text-cosmos-400 text-xs font-black uppercase tracking-[0.2em]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cosmos-500/10 border border-cosmos-500/20 text-cosmos-400 text-sm font-black uppercase tracking-[0.2em]">
             <Zap className="w-3 h-3" />
             Core Infrastructure v2.0
           </div>
@@ -109,10 +109,10 @@ function ManifestHub({
                 <Globe2 className="w-5 h-5 text-slate-300 group-hover:text-cosmos-300" />
               </div>
               <div>
-                <h3 className="text-xs font-black uppercase tracking-widest text-white">
+                <h3 className="text-sm font-black uppercase tracking-widest text-white">
                   {p.name}
                 </h3>
-                <p className="text-xs text-slate-300 mt-1">
+                <p className="text-sm text-slate-300 mt-1">
                   Remote Manifest Portal
                 </p>
               </div>
@@ -125,15 +125,15 @@ function ManifestHub({
           <div className="flex flex-wrap items-center justify-center gap-4">
             <button
               onClick={onBrowse}
-              className="flex items-center gap-2.5 px-6 py-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-xs font-bold text-white transition-all shadow-xl active:scale-95"
+              className="flex items-center gap-2.5 px-6 py-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-sm font-bold text-white transition-all shadow-xl active:scale-95"
             >
               <FolderOpen className="w-4 h-4" />
               Initialize Local Workspace
             </button>
-            <div className="text-xs text-slate-300 uppercase font-black tracking-widest">
+            <div className="text-sm text-slate-300 uppercase font-black tracking-widest">
               or
             </div>
-            <div className="text-xs text-slate-300 italic">
+            <div className="text-sm text-slate-300 italic">
               Drag and drop an{" "}
               <span className="text-cosmos-400 font-bold">.SPZ</span> file here
             </div>
@@ -1554,7 +1554,7 @@ export function SparkViewer() {
               {loadedName || "Spark 2.0 Viewer"}
             </h2>
             {caption && (
-              <p className="text-xs text-slate-300 truncate leading-relaxed">
+              <p className="text-sm text-slate-300 truncate leading-relaxed">
                 {caption}
               </p>
             )}
@@ -1572,7 +1572,7 @@ export function SparkViewer() {
             }
           }}
           className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-xs font-medium",
+            "flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-sm font-medium",
             spatialVoiceEnabled
               ? "bg-aurora-500/20 border-aurora-500/50 text-aurora-400 shadow-[0_0_15px_-3px_rgba(74,222,128,0.3)]"
               : "bg-white/[0.04] border-white/[0.08] text-slate-300 hover:text-slate-300",
@@ -1599,7 +1599,7 @@ export function SparkViewer() {
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-xs text-slate-300 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-sm text-slate-300 transition-all"
         >
           <FolderOpen className="w-3.5 h-3.5" />
           Browse Local…
@@ -1612,12 +1612,12 @@ export function SparkViewer() {
             onChange={(e) => setUrlInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleLoadUrl()}
             placeholder="Paste .rad / .spz URL or select from local history…"
-            className="input-glass text-xs py-1.5 flex-1 min-w-0"
+            className="input-glass text-sm py-1.5 flex-1 min-w-0"
           />
           <button
             onClick={handleLoadUrl}
             disabled={!urlInput.trim()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cosmos-600/40 hover:bg-cosmos-600/60 border border-cosmos-500/30 text-xs text-cosmos-300 disabled:opacity-40 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cosmos-600/40 hover:bg-cosmos-600/60 border border-cosmos-500/30 text-sm text-cosmos-300 disabled:opacity-40 transition-all"
           >
             <Maximize2 className="w-3.5 h-3.5" />
             Initialize
@@ -1652,7 +1652,7 @@ export function SparkViewer() {
                     if (newUrl) loadWorld(newUrl);
                   }}
                   className={cn(
-                    "px-2 py-1 rounded-md text-xs font-bold transition-all",
+                    "px-2 py-1 rounded-md text-sm font-bold transition-all",
                     selectedRes === key
                       ? "bg-cosmos-600/40 text-cosmos-300 shadow-sm"
                       : "text-slate-300 hover:text-slate-300",
@@ -1674,7 +1674,7 @@ export function SparkViewer() {
                 if (!showCachePanel) void updateCacheSize();
               }}
               title={`Cached splats: ${(cacheSize / 1_000_000).toFixed(1)}MB`}
-              className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs text-slate-300 hover:text-slate-300 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-all"
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-sm text-slate-300 hover:text-slate-300 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-all"
             >
               Cache {(cacheSize / 1_000_000).toFixed(1)}MB
             </button>
@@ -1686,17 +1686,17 @@ export function SparkViewer() {
                 />
                 <div className="absolute right-0 top-full mt-2 w-80 glass-card p-4 z-50 shadow-2xl animate-in slide-in-from-top-2 duration-200">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-black uppercase tracking-widest text-cosmos-300">
+                    <h3 className="text-sm font-black uppercase tracking-widest text-cosmos-300">
                       Cache
                     </h3>
                     <button
                       onClick={() => setShowCachePanel(false)}
-                      className="text-slate-300 hover:text-white text-xs"
+                      className="text-slate-300 hover:text-white text-sm"
                     >
                       ✕
                     </button>
                   </div>
-                  <div className="space-y-2 text-xs text-slate-300 mb-3">
+                  <div className="space-y-2 text-sm text-slate-300 mb-3">
                     <div className="flex justify-between">
                       <span>IndexedDB</span>
                       <span className="text-slate-300">
@@ -1733,7 +1733,7 @@ export function SparkViewer() {
                   </div>
                   {cachedItems.length > 0 && (
                     <div className="space-y-1 max-h-48 overflow-y-auto">
-                      <p className="text-xs uppercase font-black text-slate-300 tracking-wider mb-1">
+                      <p className="text-sm uppercase font-black text-slate-300 tracking-wider mb-1">
                         Cached files
                       </p>
                       {cachedItems.map((item) => {
@@ -1753,12 +1753,12 @@ export function SparkViewer() {
                           >
                             <div className="min-w-0 flex-1">
                               <p
-                                className="text-xs text-slate-300 truncate"
+                                className="text-sm text-slate-300 truncate"
                                 title={item.key}
                               >
                                 {label}
                               </p>
-                              <p className="text-xs text-slate-300">
+                              <p className="text-sm text-slate-300">
                                 {(item.size / 1_000_000).toFixed(1)}MB ·{" "}
                                 {ageStr}
                               </p>
@@ -1777,7 +1777,7 @@ export function SparkViewer() {
                   )}
                   <button
                     onClick={handleClearCache}
-                    className="w-full mt-3 px-3 py-1.5 rounded-lg text-xs font-bold text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/30 transition-all"
+                    className="w-full mt-3 px-3 py-1.5 rounded-lg text-sm font-bold text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/30 transition-all"
                   >
                     Clear All Cache
                   </button>
@@ -1814,7 +1814,7 @@ export function SparkViewer() {
         <button
           onClick={() => setShowToolbox(!showToolbox)}
           className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all",
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition-all",
             showToolbox
               ? "bg-cosmos-500/20 border-cosmos-500/50 text-cosmos-300"
               : "bg-white/[0.06] hover:bg-white/[0.1] border-white/[0.08] text-slate-300",
@@ -1836,7 +1836,7 @@ export function SparkViewer() {
       </div>
 
       {/* Formats note */}
-      <div className="flex items-center justify-between text-xs text-slate-300 flex-shrink-0 px-1">
+      <div className="flex items-center justify-between text-sm text-slate-300 flex-shrink-0 px-1">
         <div className="flex items-center gap-1.5">
           <Info className="w-3 h-3" />
           Spark 2.0 (Rust/WASM) Renderer • 100M+ Splat Budget
@@ -1884,7 +1884,7 @@ export function SparkViewer() {
               <p className="text-sm text-slate-300 font-medium">
                 {loadingMsg || "Loading..."}
               </p>
-              <p className="text-xs text-slate-300">
+              <p className="text-sm text-slate-300">
                 {caption || loadedName || ""}
               </p>
             </div>
@@ -1898,7 +1898,7 @@ export function SparkViewer() {
               <XCircle className="w-10 h-10 text-red-400 mx-auto" />
               <div>
                 <h3 className="text-sm font-bold text-white">Engine Fault</h3>
-                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                <p className="text-sm text-slate-300 mt-1 leading-relaxed">
                   {error || "Unknown error"}
                 </p>
               </div>
@@ -1909,13 +1909,13 @@ export function SparkViewer() {
                     setError("");
                     cleanup();
                   }}
-                  className="px-4 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08] text-xs text-slate-300 hover:bg-white/[0.1] transition-all"
+                  className="px-4 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08] text-sm text-slate-300 hover:bg-white/[0.1] transition-all"
                 >
                   Back to Hub
                 </button>
                 <button
                   onClick={() => loadWorld(urlInput)}
-                  className="px-4 py-2 rounded-lg bg-cosmos-600/40 border border-cosmos-500/30 text-xs text-cosmos-300 hover:bg-cosmos-600/60 transition-all"
+                  className="px-4 py-2 rounded-lg bg-cosmos-600/40 border border-cosmos-500/30 text-sm text-cosmos-300 hover:bg-cosmos-600/60 transition-all"
                 >
                   Retry
                 </button>
@@ -1928,7 +1928,7 @@ export function SparkViewer() {
         {showToolbox && (
           <div className="absolute top-4 right-4 w-72 glass-card p-4 z-40 shadow-2xl animate-in slide-in-from-right-4 duration-300 border-cosmos-500/30">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-black uppercase tracking-widest text-cosmos-300 flex items-center gap-2">
+              <h3 className="text-sm font-black uppercase tracking-widest text-cosmos-300 flex items-center gap-2">
                 <Settings2 className="w-4 h-4" />
                 Spatial Command
               </h3>
@@ -1948,7 +1948,7 @@ export function SparkViewer() {
                   key={t}
                   onClick={() => setToolboxTab(t)}
                   className={cn(
-                    "flex-1 text-xs font-black uppercase tracking-tighter py-1.5 rounded-lg transition-all",
+                    "flex-1 text-sm font-black uppercase tracking-tighter py-1.5 rounded-lg transition-all",
                     toolboxTab === t
                       ? "bg-cosmos-500/20 text-cosmos-300 border border-cosmos-500/20"
                       : "text-slate-300 font-bold",
@@ -1962,14 +1962,14 @@ export function SparkViewer() {
             {toolboxTab === "studio" && (
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="space-y-1.5">
-                  <label className="text-xs uppercase font-bold text-slate-300 tracking-wider">
+                  <label className="text-sm uppercase font-bold text-slate-300 tracking-wider">
                     Direct Narration / Asset URL
                   </label>
                   <textarea
                     value={toolboxPrompt}
                     onChange={(e) => setToolboxPrompt(e.target.value)}
                     placeholder="Enter prompt or URL..."
-                    className="input-glass text-xs py-2 w-full min-h-[60px] resize-none"
+                    className="input-glass text-sm py-2 w-full min-h-[60px] resize-none"
                   />
                 </div>
 
@@ -1977,7 +1977,7 @@ export function SparkViewer() {
                   <button
                     onClick={() => broadcastEvent("speech")}
                     disabled={!toolboxPrompt || isBroadcasting}
-                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:bg-aurora-500/10 hover:border-aurora-500/30 transition-all"
+                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-sm font-bold text-slate-300 hover:bg-aurora-500/10 hover:border-aurora-500/30 transition-all"
                   >
                     <Volume2 className="w-3.5 h-3.5" />
                     Narrate
@@ -1985,7 +1985,7 @@ export function SparkViewer() {
                   <button
                     onClick={() => broadcastEvent("audio")}
                     disabled={!toolboxPrompt || isBroadcasting}
-                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:bg-magenta-500/10 hover:border-magenta-500/30 transition-all"
+                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-sm font-bold text-slate-300 hover:bg-magenta-500/10 hover:border-magenta-500/30 transition-all"
                   >
                     <Music className="w-3.5 h-3.5" />
                     Audio
@@ -1993,7 +1993,7 @@ export function SparkViewer() {
                   <button
                     onClick={() => broadcastEvent("avatar")}
                     disabled={!toolboxPrompt || isBroadcasting}
-                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:bg-cosmos-500/10 hover:border-cosmos-500/30 transition-all"
+                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-sm font-bold text-slate-300 hover:bg-cosmos-500/10 hover:border-cosmos-500/30 transition-all"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     Spawn Agent
@@ -2001,7 +2001,7 @@ export function SparkViewer() {
                   <button
                     onClick={() => broadcastEvent("video")}
                     disabled={!toolboxPrompt || isBroadcasting}
-                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all"
+                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 text-sm font-bold text-slate-300 hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all"
                   >
                     <Video className="w-3.5 h-3.5" />
                     Spawn Video
@@ -2044,7 +2044,7 @@ export function SparkViewer() {
                       };
                       void api.broadcastNarration(data as any);
                     }}
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cosmos-500/50 text-xs font-bold text-slate-300 transition-all"
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cosmos-500/50 text-sm font-bold text-slate-300 transition-all"
                   >
                     {p.name}
                     <ExternalLink className="w-3 h-3" />
@@ -2061,14 +2061,14 @@ export function SparkViewer() {
                     onClick={() => {
                       setToolboxPrompt(apiUrl(`/api/local-assets/${f}`));
                     }}
-                    className="w-full text-left p-2 rounded-lg hover:bg-white/5 truncate text-xs text-slate-300 font-bold"
+                    className="w-full text-left p-2 rounded-lg hover:bg-white/5 truncate text-sm text-slate-300 font-bold"
                   >
                     {f}
                   </button>
                 ))}
                 <button
                   onClick={fetchLocalAssets}
-                  className="w-full text-xs font-black text-slate-300 uppercase mt-2"
+                  className="w-full text-sm font-black text-slate-300 uppercase mt-2"
                 >
                   Refresh
                 </button>
@@ -2081,7 +2081,7 @@ export function SparkViewer() {
                   value={plexQuery}
                   onChange={(e) => setPlexQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handlePlexSearch()}
-                  className="input-glass w-full text-xs"
+                  className="input-glass w-full text-sm"
                   placeholder="Search Plex..."
                 />
                 <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
@@ -2089,7 +2089,7 @@ export function SparkViewer() {
                     <button
                       key={m.id}
                       onClick={() => handlePlexStream(m)}
-                      className="w-full flex gap-2 p-1.5 rounded-lg hover:bg-orange-500/10 truncate font-bold text-slate-300 text-xs"
+                      className="w-full flex gap-2 p-1.5 rounded-lg hover:bg-orange-500/10 truncate font-bold text-slate-300 text-sm"
                     >
                       {m.title}
                     </button>
@@ -2100,7 +2100,7 @@ export function SparkViewer() {
 
             {toolboxTab === "handoff" && (
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                <div className="text-sm font-bold uppercase tracking-wider text-slate-300">
                   DCC Export — sends the loaded SPZ to your DCC tool via the
                   bridge.
                 </div>
@@ -2119,10 +2119,10 @@ export function SparkViewer() {
                 ].map(({ target, label, port }) => (
                   <div key={target} className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-300">
+                      <span className="text-sm font-bold text-slate-300">
                         {label}
                       </span>
-                      <span className="text-xs text-slate-300">:{port}</span>
+                      <span className="text-sm text-slate-300">:{port}</span>
                     </div>
                     <div className="flex gap-2">
                       {(["splat", "mesh"] as const).map((type) => {
@@ -2134,7 +2134,7 @@ export function SparkViewer() {
                             disabled={state === "loading"}
                             onClick={() => handleHandoff(target, type)}
                             className={cn(
-                              "flex-1 px-2 py-1.5 rounded-lg text-xs font-bold border transition-all",
+                              "flex-1 px-2 py-1.5 rounded-lg text-sm font-bold border transition-all",
                               state === "loading" &&
                                 "bg-amber-500/20 border-amber-500/30 text-amber-300",
                               state === "ok" &&
@@ -2159,10 +2159,10 @@ export function SparkViewer() {
                 {/* Step into Overte - spawns mesh + viewer panel in a domain */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-300">
+                    <span className="text-sm font-bold text-slate-300">
                       Overte (step in)
                     </span>
-                    <span className="text-xs text-slate-300">:11110</span>
+                    <span className="text-sm text-slate-300">:11110</span>
                   </div>
                   {(() => {
                     const state = exportState["overte-spawn"] ?? "idle";
@@ -2171,7 +2171,7 @@ export function SparkViewer() {
                         disabled={state === "loading"}
                         onClick={handleOverteSpawn}
                         className={cn(
-                          "w-full px-2 py-1.5 rounded-lg text-xs font-bold border transition-all",
+                          "w-full px-2 py-1.5 rounded-lg text-sm font-bold border transition-all",
                           state === "loading" &&
                             "bg-amber-500/20 border-amber-500/30 text-amber-300",
                           state === "ok" &&
@@ -2196,7 +2196,7 @@ export function SparkViewer() {
 
         {/* Local Intelligence Overlay */}
         <div className="absolute bottom-4 left-4 pointer-events-none p-4 z-30">
-          <div className="glass-card px-3 py-1.5 text-xs text-cosmos-300 flex items-center gap-2">
+          <div className="glass-card px-3 py-1.5 text-sm text-cosmos-300 flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-aurora-500 animate-pulse" />
             Sovereign Environment Active • Spark 2.0 Engine
           </div>
