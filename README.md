@@ -1,8 +1,30 @@
-[![FastMCP Version](https://img.shields.io/badge/FastMCP-3.2.0-blue?style=flat-square&logo=python&logoColor=white)](https://github.com/sandraschi/fastmcp) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Linted with Biome](https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat-square&logo=biome&logoColor=white)](https://biomejs.dev/) [![Built with Just](https://img.shields.io/badge/Built_with-Just-000000?style=flat-square&logo=gnu-bash&logoColor=white)](https://github.com/casey/just) [![Marble Adventure](https://img.shields.io/badge/🏆_Marble_Adventure-competition_entry-a855f7?style=flat-square)](docs/COMPETITION.md)
+[![FastMCP Version](https://img.shields.io/badge/FastMCP-3.4.4-blue?style=flat-square&logo=python&logoColor=white)](https://github.com/sandraschi/fastmcp) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Linted with Biome](https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat-square&logo=biome&logoColor=white)](https://biomejs.dev/) [![Built with Just](https://img.shields.io/badge/Built_with-Just-000000?style=flat-square&logo=gnu-bash&logoColor=white)](https://github.com/casey/just) [![Marble Adventure](https://img.shields.io/badge/🏆_Marble_Adventure-competition_entry-a855f7?style=flat-square)](docs/COMPETITION.md)
 
-# worldlabs-mcp (v0.5.0)
+# worldlabs-mcp (v0.5.1)
 
 **MCP gateway to World Labs Marble + Spark 2.0.** Generate navigable 3D worlds from text, images, panoramas, multi-view sets, or video; view them with a streaming Gaussian-splat renderer; and ground a voice agent in scene coordinates.
+
+## Install (Claude Desktop, Windows)
+
+```powershell
+irm https://github.com/sandraschi/worldlabs-mcp/releases/latest/download/install.ps1 | iex
+```
+
+Claude-only one-liner: downloads the released `worldlabs-mcp.mcpb` bundle and
+registers it in Claude Desktop. For every other client (Cursor, Antigravity,
+OpenCode, Claude Code), add the stdio server manually with `uvx`:
+
+```json
+{
+  "mcpServers": {
+    "worldlabs-mcp": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/sandraschi/worldlabs-mcp", "worldlabs-mcp"],
+      "env": { "WORLDLABS_API_KEY": "<your-key>" }
+    }
+  }
+}
+```
 
 ## Table of Contents
 

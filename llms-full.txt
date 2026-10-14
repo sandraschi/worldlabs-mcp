@@ -1,7 +1,7 @@
 # worldlabs-mcp — Full LLM Integration Manifest
 
 > MCP server wrapping the World Labs Marble API for 3D world generation and the Spark 2.0 spatial viewer.
-> Version: 0.5.0 | License: MIT | Author: Sandra Schipal
+> Version: 0.5.1 | License: MIT | Author: Sandra Schipal
 
 ## What this server does
 
@@ -92,6 +92,9 @@ Requires Ollama running at OLLAMA_URL (default: http://localhost:11434).
 **worldlabs_help(detail="standard", topic="")**
 Structured API reference at three detail levels: "quick", "standard", "verbose".
 topic filters by group: generate, upload, poll, world, spatial, meta.
+
+**worldlabs_shutdown()**
+Gracefully shut down the MCP server (fleet agentic workflow; exits ~1s after responding).
 
 ### Community Gallery Tools
 

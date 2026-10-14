@@ -3,6 +3,11 @@
 > MCP server wrapping the World Labs Marble API for 3D world generation and the Spark 2.0 spatial viewer.
 > Generate navigable Gaussian splat worlds from text, images, and video. Includes a full webapp with DCC export to Blender, Unity3D, and Resonite.
 
+## Full manifest
+
+- [llms-full.txt](./llms-full.txt) — complete tool reference, REST endpoints, env vars, ports, architecture
+
+
 ## Documentation
 
 - [README](https://github.com/sandraschi/worldlabs-mcp/blob/main/README.md)

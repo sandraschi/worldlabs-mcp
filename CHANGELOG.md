@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (2026-10-14 assfix: 16 -> rescore pending)
+- **MCPB bundle descriptor repaired (2x CRITICAL)** - `mcpb/manifest.json` used
+  `${PWD}` (never expanded by Claude Desktop) and launched the HTTP sidecar
+  `run_server.py`; now `${__dirname}` + stdio `python -m worldlabs_mcp`
+  (matches `src/worldlabs_mcp/__main__.py`). Tool list rebuilt from the real
+  MCP surface (23 tools, was a stale HTTP-bridge list with leaked
+  `_get_api_key(*)` privates). Version synced to 0.5.1.
+- **Frontend backend URL hardened (HIGH, 1F)** - `web_sota/src/lib/api.ts` no
+  longer hardcodes `http://127.0.0.1:10865`: same-origin relative `/api/...`
+  (vite proxy) by default, absolute only behind a Tauri gate; `spark-viewer.tsx`
+  direct fetches + Apps-page docs link routed through `apiUrl()`/`backendOrigin()`.
+- **Pack scripts un-vendored (MEDIUM)** - deleted `mcpb/pack.ps1`;
+  `scripts/mcpb-pack.ps1` is now the thin fleet shim (`fleet-mcpb-pack.ps1`),
+  so `just mcpb-pack` (via `fleet.just` import) runs the canonical pipeline.
+- **Tool annotations complete (MEDIUM)** - all 23 MCP tools now carry
+  `readOnlyHint`/`destructiveHint` (+ `app=True` Prefab cards already present).
+- **Docs drift (LOW)** - README v0.5.1 + FastMCP 3.4.4 badge + Claude Desktop
+  one-liner + `uvx` stanza; `llms.txt` links `llms-full.txt`; glama tool count 23.
+- **Fleet Starts launcher (MEDIUM)** - new `worldlabs-mcp-start.bat` (repo root,
+  correct webroot); retired wrong-webroot `worldlabs-start.bat`; README row +
+  fleet manifest regenerated (committed in mcp-central-docs).
+
 ### Added (2026-10-02 LLM 3-stage upgrade, vended per WEBAPP_SOTA VI.10)
 - **Backend `src/worldlabs_mcp/llm_providers.py`** - vendored from
   arxiv-mcp (registry, 0600 keystore, cloud proxy, SSE stream, GPU/VRAM,
