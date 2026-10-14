@@ -8,6 +8,7 @@ import {
   Glasses,
   Globe2,
   Images,
+  Inbox,
   Layers,
   LayoutDashboard,
   Library,
@@ -71,6 +72,7 @@ export function useSidebar() {
 const navItems = [
   { to: "/", label: "Overview", icon: LayoutDashboard },
   { to: "/chat", label: "Chat", icon: Bot },
+  { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/skills", label: "Skills", icon: Layers },
   { to: "/tools-explorer", label: "Tools", icon: Wrench },
   { to: "/library", label: "World Library", icon: Library },
@@ -154,7 +156,7 @@ function Sidebar() {
                 collapsed && "justify-center",
                 isActive
                   ? "bg-cosmos-600/30 text-cosmos-300 border border-cosmos-500/30 shadow-[inset_0_1px_0_rgba(92,84,255,0.15)]"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]",
+                  : "text-slate-300 hover:text-slate-200 hover:bg-white/[0.05]",
               )}
               aria-current={isActive ? "page" : undefined}
             >
@@ -180,7 +182,7 @@ function Sidebar() {
                 collapsed && "justify-center",
                 isActive
                   ? "bg-amber-600/30 text-amber-300 border border-amber-500/30 shadow-[inset_0_1px_0_rgba(245,158,11,0.15)]"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]",
+                  : "text-slate-300 hover:text-slate-200 hover:bg-white/[0.05]",
               )}
               aria-current={isActive ? "page" : undefined}
             >
@@ -206,7 +208,7 @@ function Sidebar() {
                 collapsed && "justify-center",
                 isActive
                   ? "bg-void-600/30 text-void-300 border border-void-500/30 shadow-[inset_0_1px_0_rgba(111,84,255,0.15)]"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]",
+                  : "text-slate-300 hover:text-slate-200 hover:bg-white/[0.05]",
               )}
               aria-current={isActive ? "page" : undefined}
             >
@@ -232,7 +234,7 @@ function Sidebar() {
                 collapsed && "justify-center",
                 isActive
                   ? "bg-aurora-600/30 text-aurora-300 border border-aurora-500/30 shadow-[inset_0_1px_0_rgba(74,222,128,0.15)]"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]",
+                  : "text-slate-300 hover:text-slate-200 hover:bg-white/[0.05]",
               )}
               aria-current={isActive ? "page" : undefined}
             >
@@ -251,7 +253,7 @@ function Sidebar() {
               className="w-3 h-3 text-cosmos-400 flex-shrink-0"
               aria-hidden="true"
             />
-            <span className="text-xs text-slate-400">Marble API v1</span>
+            <span className="text-sm text-slate-300">Marble API v1</span>
           </div>
         </div>
       )}
@@ -264,7 +266,7 @@ function Sidebar() {
         className={cn(
           "absolute -right-3 top-1/2 -translate-y-1/2 z-10",
           "w-6 h-6 rounded-full flex items-center justify-center",
-          "bg-[#121024] border border-white/[0.12] text-slate-400",
+          "bg-[#121024] border border-white/[0.12] text-slate-300",
           "hover:text-white hover:border-cosmos-500/50 hover:bg-cosmos-900/50",
           "transition-all duration-150 shadow-md",
         )}
@@ -303,7 +305,7 @@ function Topbar() {
     >
       {/* Mobile menu toggle */}
       <button
-        className="md:hidden text-slate-400 hover:text-white transition-colors"
+        className="md:hidden text-slate-300 hover:text-white transition-colors"
         onClick={() => setCollapsed(!collapsed)}
         title="Toggle sidebar"
         aria-label="Toggle sidebar"
@@ -336,7 +338,7 @@ function Topbar() {
             : "Switch to light (experimental, ugly)"
         }
         aria-label="Toggle light mode (experimental)"
-        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all"
+        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all"
       >
         {light ? (
           <Moon className="w-3.5 h-3.5" aria-hidden="true" />
@@ -367,7 +369,7 @@ function Topbar() {
           aria-hidden="true"
         />
         <span
-          className={`text-xs font-semibold ${
+          className={`text-sm font-semibold ${
             backend.ok === null
               ? "text-gray-400"
               : backend.ok
@@ -388,7 +390,7 @@ function Topbar() {
         href="https://platform.worldlabs.ai"
         target="_blank"
         rel="noopener noreferrer"
-        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all"
+        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all"
         title="World Labs Platform"
       >
         <Globe2 className="w-3.5 h-3.5" aria-hidden="true" />

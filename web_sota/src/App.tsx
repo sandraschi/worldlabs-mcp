@@ -14,6 +14,7 @@ import { Dashboard } from "@/pages/dashboard";
 import { MarbleGallery } from "@/pages/gallery";
 import { Help } from "@/pages/help.jsx";
 import { ImmersiveDetail } from "@/pages/immersive-detail";
+import { InboxPage } from "@/pages/inbox";
 import { WorldLibrary } from "@/pages/library";
 import { LocalLlm } from "@/pages/local-llm";
 import LogsPage from "@/pages/logs";
@@ -63,6 +64,7 @@ function App() {
               <Route path="/tools-explorer" element={<ToolsExplorer />} />
               <Route path="/local-llm" element={<LocalLlm />} />
               <Route path="/chat" element={<ChatPage />} />
+              <Route path="/inbox" element={<InboxPage />} />
               <Route path="/skills" element={<SkillsPage />} />
               <Route path="/apps" element={<Apps />} />
               <Route path="/help" element={<Help />} />

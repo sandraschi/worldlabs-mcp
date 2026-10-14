@@ -1,19 +1,24 @@
 import { expect, test } from "@playwright/test";
 
-const BE = http;
-: //127.0.0.1:10865;
-const FE = http;
-://127.0.0.1:10864;
-test.describe('Fleet Audit', () =>
-{
+const BE = "http://127.0.0.1:10865";
+const FE = "http://127.0.0.1:10864";
+
+test.describe("Fleet Audit", () => {
   test("Backend health", async ({ request }) => {
-    const resp = await request.get(BE + "/health");
+    const resp = await request.get(`${BE}/health`);
     expect(resp.status()).toBe(200);
   });
+
   test("Frontend loads", async ({ page }) => {
     await page.goto(FE, { timeout: 15000 });
     await page.waitForTimeout(3000);
     await expect(page.locator("#root")).toBeAttached();
   });
-}
-)
+
+  test("Inbox route renders the action queue", async ({ page }) => {
+    await page.goto(`${FE}/inbox`, { timeout: 15000 });
+    await expect(page.getByTestId("inbox-page")).toBeVisible({
+      timeout: 15000,
+    });
+  });
+});
