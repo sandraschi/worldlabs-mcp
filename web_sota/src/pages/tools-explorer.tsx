@@ -38,18 +38,18 @@ function ToolCard({
           <div className="text-sm font-semibold text-slate-200 font-mono">
             {tool.name}
           </div>
-          <div className="text-xs text-slate-500 truncate mt-0.5 line-clamp-1">
+          <div className="text-sm text-slate-300 truncate mt-0.5 line-clamp-1">
             {tool.description}
           </div>
         </div>
         {expanded ? (
           <ChevronDown
-            className="w-4 h-4 text-slate-500 flex-shrink-0"
+            className="w-4 h-4 text-slate-300 flex-shrink-0"
             aria-hidden="true"
           />
         ) : (
           <ChevronRight
-            className="w-4 h-4 text-slate-500 flex-shrink-0"
+            className="w-4 h-4 text-slate-300 flex-shrink-0"
             aria-hidden="true"
           />
         )}
@@ -60,7 +60,7 @@ function ToolCard({
           id={`tool-${tool.name}`}
           className="px-4 pb-4 space-y-3 border-t border-white/[0.04] pt-4"
         >
-          <p className="text-sm text-slate-400 leading-relaxed">
+          <p className="text-sm text-slate-300 leading-relaxed">
             {tool.description}
           </p>
           {Object.keys(tool.parameters).length > 0 && (
@@ -68,7 +68,7 @@ function ToolCard({
               <div className="section-label mb-2 flex items-center gap-1.5">
                 <Code2 className="w-3 h-3" aria-hidden="true" /> Parameters
               </div>
-              <pre className="text-xs bg-black/30 border border-white/[0.06] rounded-lg p-3 overflow-x-auto text-slate-300 font-mono leading-relaxed">
+              <pre className="text-sm bg-black/30 border border-white/[0.06] rounded-lg p-3 overflow-x-auto text-slate-300 font-mono leading-relaxed">
                 {JSON.stringify(tool.parameters, null, 2)}
               </pre>
             </div>
@@ -103,7 +103,7 @@ export function ToolsExplorer() {
     <div className="space-y-6 page-enter max-w-3xl mx-auto">
       <div>
         <h2 className="text-lg font-bold gradient-text">MCP Tools</h2>
-        <p className="text-sm text-slate-500 mt-0.5">
+        <p className="text-sm text-slate-300 mt-0.5">
           {isLoading ? "Loading…" : `${tools.length} tools available`}
         </p>
       </div>
@@ -111,7 +111,7 @@ export function ToolsExplorer() {
       {/* Search */}
       <div className="relative">
         <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300"
           aria-hidden="true"
         />
         <input
@@ -143,7 +143,7 @@ export function ToolsExplorer() {
           />
         ))}
         {filtered.length === 0 && !isLoading && (
-          <div className="text-center py-10 text-sm text-slate-500">
+          <div className="text-center py-10 text-sm text-slate-300">
             No tools match &ldquo;{query}&rdquo;
           </div>
         )}

@@ -61,7 +61,7 @@ export function Status() {
         <h2 className="text-3xl font-bold tracking-tight text-white">
           Bridge Health
         </h2>
-        <p className="text-slate-400">
+        <p className="text-slate-300">
           Monitoring spatial intelligence compute and bridge connectivity.
         </p>
       </header>
@@ -134,7 +134,7 @@ export function Status() {
               </p>
             </div>
           </div>
-          <p className="text-xs text-slate-500 mt-3">
+          <p className="text-sm text-slate-300 mt-3">
             {credits?.live_source === "api"
               ? "Live balance from the World Labs API."
               : "Live balance unavailable — check "}
@@ -166,7 +166,7 @@ export function Status() {
               </p>
             </div>
           </div>
-          <p className="text-xs text-slate-500 mt-3">
+          <p className="text-sm text-slate-300 mt-3">
             {credits
               ? `${credits.local_generations} world${credits.local_generations === 1 ? "" : "s"} generated`
               : "No generations recorded yet."}

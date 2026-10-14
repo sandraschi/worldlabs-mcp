@@ -121,7 +121,7 @@ export function LlmOnboarding({ mode }: Props) {
           <p className="text-sm font-semibold text-slate-200">
             {ready ? "AI provider ready" : "Set up AI to enable chat"}
           </p>
-          <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
+          <p className="text-sm text-slate-300 mt-0.5 max-w-2xl">
             {ready
               ? "A local engine or cloud key is configured. Change providers anytime in Settings."
               : state.recommendation.reason}
@@ -140,7 +140,7 @@ export function LlmOnboarding({ mode }: Props) {
           {mode === "banner" && (
             <Link
               to="/settings"
-              className="text-xs text-slate-400 hover:text-slate-200 rounded-lg px-3 py-2 transition"
+              className="text-sm text-slate-300 hover:text-slate-200 rounded-lg px-3 py-2 transition"
             >
               Settings
             </Link>
@@ -168,7 +168,7 @@ export function LlmOnboarding({ mode }: Props) {
               />
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               <span className="font-medium">{p.label}</span>
-              <span className="text-slate-400 text-xs">
+              <span className="text-slate-300 text-sm">
                 detected · free · {p.models?.length ?? 0} models
               </span>
             </label>
@@ -197,7 +197,7 @@ export function LlmOnboarding({ mode }: Props) {
                 )}
               />
               <span className="font-medium">{p.label}</span>
-              <span className="text-slate-400 text-xs">
+              <span className="text-slate-300 text-sm">
                 {p.configured
                   ? "key configured"
                   : `needs ${p.key_env} — cheapest instant path`}
@@ -210,14 +210,14 @@ export function LlmOnboarding({ mode }: Props) {
                   placeholder={`Paste ${p.key_env}`}
                   aria-label={`${p.label} API key`}
                   data-testid={`llm-key-${p.id}`}
-                  className="w-full sm:w-72 rounded border border-white/[0.08] bg-white/[0.05] px-2 py-1 font-mono text-xs mt-1 text-slate-100"
+                  className="w-full sm:w-72 rounded border border-white/[0.08] bg-white/[0.05] px-2 py-1 font-mono text-sm mt-1 text-slate-100"
                 />
               )}
             </label>
           ))}
 
           {state.locals.length > 0 && detectedLocals.length === 0 && (
-            <p className="text-xs text-slate-400 rounded-lg border border-white/[0.08] px-3 py-2">
+            <p className="text-sm text-slate-300 rounded-lg border border-white/[0.08] px-3 py-2">
               No local engine running. Free path: install Ollama (
               <code className="font-mono">
                 winget install -e --id Ollama.Ollama
@@ -227,7 +227,7 @@ export function LlmOnboarding({ mode }: Props) {
             </p>
           )}
 
-          {error && <p className="text-xs text-red-400">{error}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <div className="flex gap-2 pt-1">
             <button
@@ -249,7 +249,7 @@ export function LlmOnboarding({ mode }: Props) {
       )}
 
       {done && mode === "full" && (
-        <p className="text-xs text-emerald-400 mt-3">
+        <p className="text-sm text-emerald-400 mt-3">
           Saved. Chat is enabled with your selection.
         </p>
       )}

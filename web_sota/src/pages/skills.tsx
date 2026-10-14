@@ -101,22 +101,22 @@ export function SkillsPage() {
         <h1 className="text-xl font-bold text-white flex items-center gap-2">
           <Layers className="w-5 h-5 text-cosmos-400" /> Skills & Tools
         </h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="text-sm text-slate-300 mt-1">
           19 MCP tools + REST bridge. Skills are used as the system preprompt
           for Chat (skill-first architecture).
         </p>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-16 text-slate-500 text-sm">
+        <div className="flex items-center justify-center py-16 text-slate-300 text-sm">
           Loading...
         </div>
       ) : tools.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-white/[0.08] rounded-xl">
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-300">
             No skills found. Is the backend running on :10865?
           </p>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-sm text-slate-300 mt-1">
             GET /api/capabilities should return the tool list.
           </p>
         </div>
@@ -141,11 +141,11 @@ export function SkillsPage() {
                     <div className="text-sm font-mono font-medium text-white truncate">
                       {t.name}
                     </div>
-                    <div className="text-xs text-slate-400 mt-1 line-clamp-2">
+                    <div className="text-sm text-slate-300 mt-1 line-clamp-2">
                       {t.description || "MCP tool"}
                     </div>
                     {t.annotations && (
-                      <div className="text-[11px] text-slate-500 mt-1">
+                      <div className="text-[11px] text-slate-300 mt-1">
                         {t.annotations}
                       </div>
                     )}
@@ -161,7 +161,7 @@ export function SkillsPage() {
         <h3 className="text-sm font-semibold text-amber-300 flex items-center gap-2">
           <BookOpen className="w-4 h-4" /> How skills are used
         </h3>
-        <p className="text-xs text-amber-200/70 mt-1">
+        <p className="text-sm text-amber-200/70 mt-1">
           The Chat page fetches{" "}
           <code className="bg-white/10 px-1 rounded">
             GET /api/capabilities
