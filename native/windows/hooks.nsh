@@ -5,7 +5,13 @@
 ; stdio backend in detected AI tools (Claude/Cursor/Antigravity/OpenCode).
 !define MCP_REG_NAME "worldlabs-mcp"
 !define MCP_REG_EXE "worldlabs-mcp-backend.exe"
-!include "mcp-clients.nsh"
+; Sibling-include path note (makensis hard error, 2026-10-14): Tauri includes
+; THIS file by absolute path from the generated installer.nsi under
+; native/target/release/nsis/x64, and makensis resolves a bare relative
+; !include against THAT dir, not windows/. Anchor back up to the source tree:
+; x64 -> nsis -> release -> target -> native (FOUR levels), then down into
+; windows/. Fail-loud if Tauri ever changes the generated layout.
+!include "..\..\..\..\windows\mcp-clients.nsh"
 !macro KillFleetProcesses
   DetailPrint "Stopping worldlabs-mcp processes..."
 
