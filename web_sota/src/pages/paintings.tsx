@@ -149,7 +149,7 @@ export function LocalPaintings() {
           </div>
           <div>
             <h1 className="text-lg font-bold text-white">Local Paintings</h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-300">
               Your painting collection ({data?.artist_count ?? "?"} artists) —
               pick any work and generate a 3D world from it.
             </p>
@@ -159,36 +159,36 @@ export function LocalPaintings() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search paintings or artists..."
           data-testid="paintings-search"
-          className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-cosmos-500/50"
+          className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-300 focus:outline-none focus:border-cosmos-500/50"
         />
       </div>
 
       {isLoading ? (
-        <div className="flex items-center gap-2 text-xs text-slate-500 py-16 justify-center">
+        <div className="flex items-center gap-2 text-sm text-slate-300 py-16 justify-center">
           <Loader2 className="w-4 h-4 animate-spin" />
           Scanning painting collection...
         </div>
       ) : isError || !data || data.status !== "ok" ? (
-        <div className="glass-card p-6 text-xs text-red-400">
+        <div className="glass-card p-6 text-sm text-red-400">
           Could not load the painting collection. Check PAINTINGS_DIR on the
           backend.
         </div>
       ) : (
         <div className="space-y-8">
           {artists.length === 0 && (
-            <div className="glass-card p-8 text-center text-xs text-slate-500">
+            <div className="glass-card p-8 text-center text-sm text-slate-300">
               No paintings match "{search}".
             </div>
           )}
           {artists.map((a) => (
             <section key={a.artist}>
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center gap-2">
                 <Sparkles className="w-3.5 h-3.5 text-cosmos-400" />
                 {a.artist}
                 <span className="text-slate-600 font-mono">({a.count})</span>
@@ -211,13 +211,13 @@ export function LocalPaintings() {
                 <h2 className="text-sm font-bold text-white">
                   {selected.name}
                 </h2>
-                <p className="text-[10px] text-slate-500 font-mono">
+                <p className="text-[10px] text-slate-300 font-mono">
                   {selected.path}
                 </p>
               </div>
               <button
                 onClick={() => setSelected(null)}
-                className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400"
+                className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-300"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
@@ -235,7 +235,7 @@ export function LocalPaintings() {
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Painting name and artist are always included. Add style, atmosphere, scene focus..."
               rows={3}
-              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-aurora-500/50"
+              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white placeholder:text-slate-300 focus:outline-none focus:border-aurora-500/50"
             />
             <p className="text-[10px] text-slate-600">
               The painting title and artist are always sent. Marble recaptions
@@ -249,7 +249,7 @@ export function LocalPaintings() {
                 onClick={generate}
                 disabled={generating || !!opId}
                 data-testid="painting-generate"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-aurora-600 to-cosmos-600 text-white hover:from-aurora-500 hover:to-cosmos-500 transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-aurora-600 to-cosmos-600 text-white hover:from-aurora-500 hover:to-cosmos-500 transition-all disabled:opacity-50"
               >
                 {generating ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -259,7 +259,7 @@ export function LocalPaintings() {
                 {opId ? "Generating..." : "Generate 3D world from painting"}
               </button>
               {opStatus && (
-                <span className="text-[10px] text-slate-400 font-mono">
+                <span className="text-[10px] text-slate-300 font-mono">
                   {opStatus}
                 </span>
               )}

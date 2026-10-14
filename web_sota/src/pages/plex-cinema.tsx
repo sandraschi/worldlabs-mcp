@@ -120,13 +120,13 @@ export default function PlexCinema() {
             <Clapperboard className="w-6 h-6 text-amber-400" />
             Cinema Worlds
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-300 mt-1">
             Watch Plex media inside a World Labs 3D world.
           </p>
         </div>
         <div
           className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold",
+            "flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-semibold",
             status?.available
               ? "bg-aurora-500/10 border-aurora-500/20 text-aurora-400"
               : "bg-red-500/10 border-red-500/20 text-red-400",
@@ -150,13 +150,13 @@ export default function PlexCinema() {
       {/* Search */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             placeholder="Search Plex library..."
-            className="w-full rounded-lg border border-white/10 bg-white/[0.04] pl-9 pr-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500/50"
+            className="w-full rounded-lg border border-white/10 bg-white/[0.04] pl-9 pr-3 py-2 text-sm text-white placeholder:text-slate-300 focus:outline-none focus:border-amber-500/50"
           />
         </div>
         <button
@@ -196,7 +196,7 @@ export default function PlexCinema() {
               <div className="text-sm font-semibold text-white">
                 {lib.title}
               </div>
-              <div className="text-xs text-slate-500 mt-1">
+              <div className="text-sm text-slate-300 mt-1">
                 {lib.count ?? 0} items
               </div>
             </button>
@@ -219,7 +219,7 @@ export default function PlexCinema() {
                   setItems([]);
                   setTotal(0);
                 }}
-                className="text-sm text-slate-400 hover:text-white transition-colors"
+                className="text-sm text-slate-300 hover:text-white transition-colors"
               >
                 ← All libraries
               </button>
@@ -227,13 +227,13 @@ export default function PlexCinema() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-16 text-slate-500">
+            <div className="flex items-center justify-center py-16 text-slate-300">
               <Loader2 className="w-6 h-6 animate-spin mr-2" />
               Loading...
             </div>
           ) : (searchResults.length > 0 ? searchResults : items).length ===
             0 ? (
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] py-16 text-center text-slate-500">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] py-16 text-center text-slate-300">
               No media found.
             </div>
           ) : (
@@ -269,7 +269,7 @@ export default function PlexCinema() {
                         <div className="text-sm font-medium text-white truncate">
                           {item.title}
                         </div>
-                        <div className="text-xs text-slate-500 mt-0.5">
+                        <div className="text-sm text-slate-300 mt-0.5">
                           {item.grandparent_title ??
                             (item.year ? String(item.year) : "")}
                           {item.duration_ms || item.duration_s
@@ -293,7 +293,7 @@ export default function PlexCinema() {
                   >
                     ← Prev
                   </button>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-sm text-slate-300">
                     Page {page + 1} / {totalPages} · {total} items
                   </span>
                   <button

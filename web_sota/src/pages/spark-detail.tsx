@@ -23,7 +23,7 @@ export function SparkDetail() {
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-cosmos-500/10 blur-[120px] rounded-full animate-pulse" />
 
         <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-cosmos-500/10 px-4 py-1.5 text-xs font-bold text-cosmos-400 border border-cosmos-500/20 mb-6 uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 rounded-full bg-cosmos-500/10 px-4 py-1.5 text-sm font-bold text-cosmos-400 border border-cosmos-500/20 mb-6 uppercase tracking-widest">
             <Rocket className="h-3.5 w-3.5" />
             Industrial Engine Spec
             <span data-testid="spark_detail-extra-2" className="hidden" />
@@ -34,7 +34,7 @@ export function SparkDetail() {
               The LoD Splat Engine
             </span>
           </h1>
-          <p className="text-lg text-slate-400 max-w-2xl leading-relaxed">
+          <p className="text-lg text-slate-300 max-w-2xl leading-relaxed">
             A high-performance Radiance Field renderer built for infinite-scale
             3D Gaussian Splatting. Spark 2.0 introduces streaming
             Level-of-Detail (LoD) trees and GPU virtual memory paging.
@@ -49,7 +49,7 @@ export function SparkDetail() {
             <Layers className="w-6 h-6" />
           </div>
           <h3 className="text-xl font-bold text-white">LoD Splat Trees</h3>
-          <p className="text-sm text-slate-500 leading-relaxed">
+          <p className="text-sm text-slate-300 leading-relaxed">
             Organizes radiance fields into hierarchical structures. Render 100M+
             splats with a fixed frame-budget of 500K-2.5M primitives.
           </p>
@@ -59,7 +59,7 @@ export function SparkDetail() {
             <Database className="w-6 h-6" />
           </div>
           <h3 className="text-xl font-bold text-white">.RAD Streaming</h3>
-          <p className="text-sm text-slate-500 leading-relaxed">
+          <p className="text-sm text-slate-300 leading-relaxed">
             A bitstream-optimized format for progressive delivery. Supports HTTP
             Range requests for instant coarse previews followed by progressive
             refinement.
@@ -70,7 +70,7 @@ export function SparkDetail() {
             <Cpu className="w-6 h-6" />
           </div>
           <h3 className="text-xl font-bold text-white">Virtual Paging</h3>
-          <p className="text-sm text-slate-500 leading-relaxed">
+          <p className="text-sm text-slate-300 leading-relaxed">
             Swaps splat pages in/out of GPU memory based on frustum visibility.
             Enables massive world navigation on mobile and standalone XR
             hardware.
@@ -81,7 +81,7 @@ export function SparkDetail() {
       {/* Technical Specification Table */}
       <section className="glass-card overflow-hidden">
         <div className="px-8 py-6 border-b border-white/[0.06] bg-white/[0.02]">
-          <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+          <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2">
             <Activity className="w-4 h-4 text-cosmos-400" />
             Engine Performance Matrix
           </h3>
@@ -89,13 +89,13 @@ export function SparkDetail() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-white/[0.06] text-[10px] uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-white/[0.06] text-[10px] uppercase tracking-wider text-slate-300">
                 <th className="px-8 py-4 font-black">Capability</th>
                 <th className="px-8 py-4 font-black">Implementation</th>
                 <th className="px-8 py-4 font-black">Standard</th>
               </tr>
             </thead>
-            <tbody className="text-xs text-slate-400">
+            <tbody className="text-sm text-slate-300">
               <tr className="border-b border-white/[0.04] hover:bg-white/[0.02]">
                 <td className="px-8 py-4 font-bold text-slate-300">
                   Coordinate Precision
@@ -137,7 +137,7 @@ export function SparkDetail() {
           <h2 className="text-2xl font-bold text-white tracking-tight">
             Industrial Interoperability
           </h2>
-          <p className="text-slate-400 text-sm leading-relaxed">
+          <p className="text-slate-300 text-sm leading-relaxed">
             Spark 2.0 is designed for the modern sovereign workstation. It
             bypasses the bottlenecks of traditional heavy-poly rasterization by
             utilizing volumetric rendering primitives that better represent the
@@ -165,7 +165,7 @@ export function SparkDetail() {
           <h4 className="text-lg font-bold text-cosmos-300 mb-4">
             Industrial Context
           </h4>
-          <p className="text-sm text-slate-500 italic leading-relaxed">
+          <p className="text-sm text-slate-300 italic leading-relaxed">
             "The move to LoD Splat Trees in Spark 2.0 allows us to finally
             decouple scene complexity from GPU memory constraints. We are no
             longer rendering points; we are traversing a probability volume."
@@ -173,10 +173,10 @@ export function SparkDetail() {
           <div className="mt-6 flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-slate-800 border border-white/10" />
             <div>
-              <p className="text-xs font-bold text-white uppercase tracking-tighter">
+              <p className="text-sm font-bold text-white uppercase tracking-tighter">
                 Engineering Lead
               </p>
-              <p className="text-[10px] text-slate-500 font-mono">
+              <p className="text-[10px] text-slate-300 font-mono">
                 Spark Core Team
               </p>
             </div>

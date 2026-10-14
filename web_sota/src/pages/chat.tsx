@@ -241,7 +241,7 @@ export function ChatPage() {
           </div>
           <div>
             <h1 className="text-sm font-bold text-white">Chat</h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-sm text-slate-300">
               Skill-first assistant with local LLM
             </p>
           </div>
@@ -260,7 +260,7 @@ export function ChatPage() {
               setLlmModel(want);
               saveSelection(id, want);
             }}
-            className="hidden sm:block bg-white/[0.05] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-slate-200"
+            className="hidden sm:block bg-white/[0.05] border border-white/[0.08] rounded-lg px-2 py-1 text-sm text-slate-200"
           >
             {providers.map((p) => (
               <option key={p.id} value={p.id} className="bg-zinc-900">
@@ -275,7 +275,7 @@ export function ChatPage() {
               </option>
             ))}
           </select>
-          <span className="text-xs text-slate-400 hidden sm:inline">
+          <span className="text-sm text-slate-300 hidden sm:inline">
             {providerId ? `${providerId} ${llmModel || ""}` : "No LLM selected"}
           </span>
           <span
@@ -307,7 +307,7 @@ export function ChatPage() {
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 placeholder="Custom system prompt..."
-                className="mt-2 w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 min-h-[80px]"
+                className="mt-2 w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-300 min-h-[80px]"
               />
             )}
           </div>
@@ -340,7 +340,7 @@ export function ChatPage() {
                 <button
                   key={p}
                   onClick={() => setInput(p)}
-                  className="w-full text-left text-xs text-slate-400 hover:text-cosmos-300 bg-white/[0.03] hover:bg-white/[0.06] rounded px-2 py-1.5 transition"
+                  className="w-full text-left text-sm text-slate-300 hover:text-cosmos-300 bg-white/[0.03] hover:bg-white/[0.06] rounded px-2 py-1.5 transition"
                 >
                   {p}
                 </button>
@@ -353,7 +353,7 @@ export function ChatPage() {
               data-testid="chat-export"
               onClick={handleExport}
               disabled={messages.length === 0}
-              className="flex-1 flex items-center justify-center gap-1 text-xs bg-white/[0.05] hover:bg-white/[0.08] disabled:opacity-30 rounded-lg px-2 py-2 text-slate-300"
+              className="flex-1 flex items-center justify-center gap-1 text-sm bg-white/[0.05] hover:bg-white/[0.08] disabled:opacity-30 rounded-lg px-2 py-2 text-slate-300"
             >
               <Download className="w-3 h-3" /> Export
             </button>
@@ -361,7 +361,7 @@ export function ChatPage() {
               data-testid="chat-clear"
               onClick={handleClear}
               disabled={messages.length === 0}
-              className="flex-1 flex items-center justify-center gap-1 text-xs bg-white/[0.05] hover:bg-white/[0.08] disabled:opacity-30 rounded-lg px-2 py-2 text-slate-300"
+              className="flex-1 flex items-center justify-center gap-1 text-sm bg-white/[0.05] hover:bg-white/[0.08] disabled:opacity-30 rounded-lg px-2 py-2 text-slate-300"
             >
               <Eraser className="w-3 h-3" /> Clear
             </button>
@@ -380,7 +380,7 @@ export function ChatPage() {
                 <h3 className="text-sm font-semibold text-white mb-1">
                   Welcome to World Labs Chat
                 </h3>
-                <p className="text-xs text-slate-400 max-w-sm">
+                <p className="text-sm text-slate-300 max-w-sm">
                   Ask about world generation, Spark rendering, or DCC export.
                   The assistant uses your selected personality + world skills as
                   the system prompt. Local LLM is detected automatically.
@@ -393,7 +393,7 @@ export function ChatPage() {
                     <button
                       key={p}
                       onClick={() => setInput(p)}
-                      className="text-xs text-cosmos-300 bg-cosmos-500/10 border border-cosmos-500/20 rounded-full px-3 py-1"
+                      className="text-sm text-cosmos-300 bg-cosmos-500/10 border border-cosmos-500/20 rounded-full px-3 py-1"
                     >
                       {p}
                     </button>
@@ -437,7 +437,7 @@ export function ChatPage() {
                   ? "Ask about worlds, Spark, or export..."
                   : "Pick a provider in Settings first, then chat..."
               }
-              className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-full px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cosmos-500/50"
+              className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-full px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-300 focus:outline-none focus:border-cosmos-500/50"
             />
             <button
               data-testid="chat-send"

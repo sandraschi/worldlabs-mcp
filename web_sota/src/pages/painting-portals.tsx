@@ -117,7 +117,7 @@ export function PaintingPortals() {
         </div>
         <div>
           <h1 className="text-lg font-bold text-white">Painting Portals</h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-300">
             Step inside famous works of art. Each painting generates a 3D world
             you can walk through.
           </p>
@@ -139,12 +139,12 @@ export function PaintingPortals() {
               <h3 className="text-sm font-bold text-white">
                 {activePainting.title}
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-sm text-slate-300">
                 {activePainting.artist} · {activePainting.year}
               </p>
 
               {!opId && (
-                <div className="flex items-center gap-2 mt-3 text-amber-400 text-xs">
+                <div className="flex items-center gap-2 mt-3 text-amber-400 text-sm">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   Starting generation...
                 </div>
@@ -152,14 +152,14 @@ export function PaintingPortals() {
 
               {opId && !completedWorld && (
                 <div className="mt-3 space-y-2">
-                  <div className="flex items-center gap-2 text-xs">
+                  <div className="flex items-center gap-2 text-sm">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-cosmos-400" />
                     <span className="text-slate-300">
                       {status?.description ||
                         "Generating 3D world from painting..."}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-slate-500">
+                  <div className="flex items-center gap-3 text-sm text-slate-300">
                     <span className="font-mono tabular-nums">
                       {fmtTime(elapsed)}
                     </span>
@@ -172,7 +172,7 @@ export function PaintingPortals() {
                       style={{ width: "35%" }}
                     />
                   </div>
-                  <p className="text-[10px] text-slate-500">
+                  <p className="text-[10px] text-slate-300">
                     Marble is extrapolating the painted scene into navigable 3D
                     space. Typical generation takes 1–5 minutes depending on
                     scene complexity.
@@ -182,14 +182,14 @@ export function PaintingPortals() {
 
               {completedWorld && (
                 <div className="mt-3 flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 text-aurora-400 text-xs">
+                  <div className="flex items-center gap-1.5 text-aurora-400 text-sm">
                     <CheckCircle className="w-3.5 h-3.5" />
                     World generated
                   </div>
                   {splatUrl && (
                     <Link
                       to={`/spark-viewer?url=${encodeURIComponent(splatUrl)}&name=${encodeURIComponent(activePainting.title)}`}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-500 hover:to-orange-500 transition-all"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-500 hover:to-orange-500 transition-all"
                     >
                       <Eye className="w-3.5 h-3.5" />
                       Enter the Painting
@@ -201,7 +201,7 @@ export function PaintingPortals() {
             <button
               data-testid="painting_portals-action"
               onClick={cancelGeneration}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-all shrink-0"
+              className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all shrink-0"
               title="Cancel"
             >
               <X className="w-4 h-4" />
@@ -261,10 +261,10 @@ export function PaintingPortals() {
               </div>
               {/* Info */}
               <div className="p-2.5 space-y-1">
-                <h3 className="text-xs font-semibold text-white truncate group-hover:text-amber-300 transition-colors">
+                <h3 className="text-sm font-semibold text-white truncate group-hover:text-amber-300 transition-colors">
                   {painting.title}
                 </h3>
-                <p className="text-[10px] text-slate-500 truncate">
+                <p className="text-[10px] text-slate-300 truncate">
                   {painting.artist} · {painting.year}
                 </p>
                 <span className="inline-block text-[9px] text-amber-500/80 bg-amber-500/10 px-1.5 py-0.5 rounded">
@@ -278,7 +278,7 @@ export function PaintingPortals() {
 
       {/* Info footer */}
       <div className="glass-card p-4">
-        <p className="text-xs text-slate-500 leading-relaxed">
+        <p className="text-sm text-slate-300 leading-relaxed">
           <strong className="text-slate-300">How it works:</strong> Each
           painting is fed as an image to the Marble API, which extrapolates the
           2D scene into a navigable 3D Gaussian splat world. Paintings with

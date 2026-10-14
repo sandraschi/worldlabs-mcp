@@ -74,16 +74,16 @@ function EntryCard({
             href={entry.marble_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-bold text-white hover:text-aurora-400 transition-colors line-clamp-1"
+            className="text-sm font-bold text-white hover:text-aurora-400 transition-colors line-clamp-1"
           >
             {entry.display_name}
           </a>
-          <span className="flex items-center gap-1 text-[10px] text-slate-500 shrink-0">
+          <span className="flex items-center gap-1 text-[10px] text-slate-300 shrink-0">
             <Heart className="w-3 h-3" /> {entry.like_count}
           </span>
         </div>
 
-        <p className="text-[10px] text-slate-500 flex items-center gap-2">
+        <p className="text-[10px] text-slate-300 flex items-center gap-2">
           <span className="text-cosmos-400">@{entry.owner}</span>
           <span className="uppercase font-mono">{entry.model}</span>
           {entry.seed != null && (
@@ -93,7 +93,7 @@ function EntryCard({
 
         <p
           className={cn(
-            "text-[11px] text-slate-400 leading-relaxed whitespace-pre-line",
+            "text-[11px] text-slate-300 leading-relaxed whitespace-pre-line",
             !expanded && "line-clamp-3",
           )}
         >
@@ -113,7 +113,7 @@ function EntryCard({
             onClick={copyPrompt}
             data-testid="gallery-copy-prompt"
             title="Copy prompt"
-            className="flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white transition-all"
+            className="flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 hover:text-white transition-all"
           >
             {copied ? (
               <Check className="w-3 h-3 text-aurora-400" />
@@ -135,7 +135,7 @@ function EntryCard({
             href={entry.marble_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto flex items-center gap-1 px-2 py-1 rounded text-[10px] text-slate-500 hover:text-cosmos-400 transition-colors"
+            className="ml-auto flex items-center gap-1 px-2 py-1 rounded text-[10px] text-slate-300 hover:text-cosmos-400 transition-colors"
           >
             View <ExternalLink className="w-3 h-3" />
           </a>
@@ -205,7 +205,7 @@ export function MarbleGallery() {
             <h1 className="text-lg font-bold text-white">
               Marble Community Gallery
             </h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-300">
               Public worlds shared on marble.worldlabs.ai — prompts, seeds, and
               splat assets from the community. This is not your local World
               Library or the Style Gallery presets.
@@ -222,10 +222,10 @@ export function MarbleGallery() {
             onClick={() => switchTag(t)}
             data-testid={`gallery-tab-${t}`}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+              "px-3 py-1.5 rounded-lg text-sm font-bold transition-all",
               tag === t
                 ? "bg-aurora-500/15 text-aurora-300 border border-aurora-500/30"
-                : "bg-white/[0.03] text-slate-400 border border-white/[0.06] hover:bg-white/[0.07]",
+                : "bg-white/[0.03] text-slate-300 border border-white/[0.06] hover:bg-white/[0.07]",
             )}
           >
             {t}
@@ -235,20 +235,20 @@ export function MarbleGallery() {
 
       {/* Grid */}
       {isLoading ? (
-        <div className="flex items-center gap-2 text-xs text-slate-500 py-16 justify-center">
+        <div className="flex items-center gap-2 text-sm text-slate-300 py-16 justify-center">
           <Loader2 className="w-4 h-4 animate-spin" />
           Fetching community worlds...
         </div>
       ) : isError ? (
         <div
-          className="glass-card p-6 text-xs text-red-400"
+          className="glass-card p-6 text-sm text-red-400"
           data-testid="gallery-error"
         >
           Gallery request failed:{" "}
           {error instanceof Error ? error.message : "unknown error"}
         </div>
       ) : !data || data.entries.length === 0 ? (
-        <div className="glass-card p-6 text-xs text-slate-500 text-center py-16">
+        <div className="glass-card p-6 text-sm text-slate-300 text-center py-16">
           No entries in this tag yet.
         </div>
       ) : (
@@ -270,7 +270,7 @@ export function MarbleGallery() {
               onClick={prevPage}
               disabled={tokenStack.length === 0}
               data-testid="gallery-prev"
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-3.5 h-3.5" /> Previous
             </button>
@@ -281,7 +281,7 @@ export function MarbleGallery() {
               onClick={nextPage}
               disabled={!data.next_page_token}
               data-testid="gallery-next"
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Next <ChevronRight className="w-3.5 h-3.5" />
             </button>

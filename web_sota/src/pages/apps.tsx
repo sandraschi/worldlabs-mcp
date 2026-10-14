@@ -103,13 +103,13 @@ function AppCard({ app }: { app: AppLink }) {
             )}
             {isExternal && (
               <ExternalLink
-                className="w-3 h-3 text-slate-600 group-hover:text-slate-400 transition-colors"
+                className="w-3 h-3 text-slate-600 group-hover:text-slate-300 transition-colors"
                 aria-hidden="true"
               />
             )}
           </div>
         </div>
-        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+        <p className="text-sm text-slate-300 mt-1 leading-relaxed">
           {app.desc}
         </p>
         {app.port && (
@@ -164,7 +164,7 @@ export function Apps() {
     <div className="space-y-6 page-enter max-w-3xl mx-auto">
       <div>
         <h2 className="text-lg font-bold gradient-text">Apps Hub</h2>
-        <p className="text-sm text-slate-500 mt-0.5">
+        <p className="text-sm text-slate-300 mt-0.5">
           Fleet navigation — World Labs ecosystem and local services
         </p>
       </div>
@@ -192,7 +192,7 @@ export function Apps() {
               }`}
               data-testid="marble-adventure-status"
             />
-            <span className="text-[10px] uppercase font-mono text-slate-500">
+            <span className="text-[10px] uppercase font-mono text-slate-300">
               {gameRunning === null
                 ? "checking"
                 : gameRunning
@@ -200,13 +200,13 @@ export function Apps() {
                   : "stopped"}
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+          <p className="text-sm text-slate-300 mt-1 leading-relaxed">
             Godot hub with 8 portal worlds. Portal worlds open in this webapp's
             Spark viewer.
           </p>
           {launchMsg && (
             <p
-              className="text-[10px] text-slate-500 mt-1"
+              className="text-[10px] text-slate-300 mt-1"
               data-testid="marble-adventure-message"
             >
               {launchMsg}
@@ -217,7 +217,7 @@ export function Apps() {
           onClick={launchGame}
           disabled={launching || gameRunning === true}
           data-testid="marble-adventure-play"
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 ${
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold transition-all shrink-0 ${
             gameRunning
               ? "bg-aurora-500/15 text-aurora-400 cursor-default"
               : "bg-purple-500/15 text-purple-300 hover:bg-purple-500/25 border border-purple-500/20 disabled:opacity-50"
@@ -240,13 +240,13 @@ export function Apps() {
 
       <div className="glass-card p-4 flex items-center gap-3">
         <Grid3x3
-          className="w-4 h-4 text-slate-500 flex-shrink-0"
+          className="w-4 h-4 text-slate-300 flex-shrink-0"
           aria-hidden="true"
         />
-        <p className="text-xs text-slate-500">
+        <p className="text-sm text-slate-300">
           This hub links to all services in the World Labs MCP ecosystem. Add
           more apps by editing{" "}
-          <span className="font-mono text-slate-400">src/pages/apps.tsx</span>.
+          <span className="font-mono text-slate-300">src/pages/apps.tsx</span>.
         </p>
       </div>
     </div>

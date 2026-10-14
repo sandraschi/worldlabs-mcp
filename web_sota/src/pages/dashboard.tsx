@@ -129,7 +129,7 @@ export function Dashboard() {
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-3">
             World Labs MCP
           </h1>
-          <p className="text-slate-400 max-w-2xl text-sm md:text-base leading-relaxed">
+          <p className="text-slate-300 max-w-2xl text-sm md:text-base leading-relaxed">
             Generate 3D worlds from text, images, or video — then view them in
             the Spark viewer, browse the community gallery, or launch the Marble
             Adventure hub.
@@ -164,7 +164,7 @@ export function Dashboard() {
                 <span className="text-sm font-bold">
                   Set up your World Labs API key to start generating
                 </span>
-                <span className="text-xs font-semibold bg-white text-red-600 rounded-full px-3 py-1 ml-2">
+                <span className="text-sm font-semibold bg-white text-red-600 rounded-full px-3 py-1 ml-2">
                   Onboarding
                 </span>
               </Link>
@@ -199,7 +199,7 @@ export function Dashboard() {
           data-testid="kpi-server"
           className="rounded-xl border border-slate-800 bg-slate-900/30 p-4 backdrop-blur-sm"
         >
-          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+          <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
             Backend
           </div>
           <div className="flex items-center gap-2">
@@ -225,7 +225,7 @@ export function Dashboard() {
           data-testid="kpi-tools"
           className="rounded-xl border border-slate-800 bg-slate-900/30 p-4 backdrop-blur-sm"
         >
-          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+          <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
             Tools
           </div>
           <div className="text-sm font-medium text-white">
@@ -240,7 +240,7 @@ export function Dashboard() {
           data-testid="kpi-marble"
           className="rounded-xl border border-slate-800 bg-slate-900/30 p-4"
         >
-          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+          <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
             Marble API
           </div>
           <div className="flex items-center gap-2">
@@ -256,7 +256,7 @@ export function Dashboard() {
           data-testid="kpi-credits"
           className="rounded-xl border border-slate-800 bg-slate-900/30 p-4"
         >
-          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+          <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
             Credits left
           </div>
           <div className="text-sm font-medium text-white">
@@ -279,7 +279,7 @@ export function Dashboard() {
           <h3 className="text-sm font-bold text-white mb-1">
             Generate a world
           </h3>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <p className="text-sm text-slate-300 leading-relaxed">
             From text, an image, or video.
           </p>
         </Link>
@@ -289,7 +289,7 @@ export function Dashboard() {
         >
           <Box className="h-6 w-6 text-void-400 mb-3" />
           <h3 className="text-sm font-bold text-white mb-1">World library</h3>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <p className="text-sm text-slate-300 leading-relaxed">
             Browse and open your generated worlds.
           </p>
         </Link>
@@ -301,7 +301,7 @@ export function Dashboard() {
           <h3 className="text-sm font-bold text-white mb-1">
             Community gallery
           </h3>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <p className="text-sm text-slate-300 leading-relaxed">
             Browse and search public Marble worlds.
           </p>
         </Link>
@@ -313,7 +313,7 @@ export function Dashboard() {
           <h3 className="text-sm font-bold text-white mb-1">
             Marble Adventure
           </h3>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <p className="text-sm text-slate-300 leading-relaxed">
             Launch the game hub, or open the apps list.
           </p>
         </Link>

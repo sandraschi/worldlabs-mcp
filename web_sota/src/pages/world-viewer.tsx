@@ -141,7 +141,7 @@ export function WorldViewer() {
         <Globe2 className="w-5 h-5 text-cosmos-400" aria-hidden="true" />
         <div>
           <h2 className="text-lg font-bold gradient-text">Splat Viewer</h2>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-300 mt-0.5">
             {loadedName
               ? `Viewing: ${loadedName}`
               : "Load a .spz or .ply file to view"}
@@ -164,7 +164,7 @@ export function WorldViewer() {
         <button
           data-testid="world_viewer-action"
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-xs text-slate-300 hover:text-white transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-sm text-slate-300 hover:text-white transition-all"
         >
           <FolderOpen className="w-3.5 h-3.5" aria-hidden="true" />
           Open File…
@@ -178,13 +178,13 @@ export function WorldViewer() {
             onChange={(e) => setUrlInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleLoadUrl()}
             placeholder="Paste .spz / .ply URL and press Enter…"
-            className="input-glass text-xs py-1.5 flex-1 min-w-0"
+            className="input-glass text-sm py-1.5 flex-1 min-w-0"
             aria-label="Splat file URL"
           />
           <button
             onClick={handleLoadUrl}
             disabled={!urlInput.trim()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cosmos-600/40 hover:bg-cosmos-600/60 border border-cosmos-500/30 text-xs text-cosmos-300 disabled:opacity-40 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cosmos-600/40 hover:bg-cosmos-600/60 border border-cosmos-500/30 text-sm text-cosmos-300 disabled:opacity-40 transition-all"
             aria-label="Load world from URL"
           >
             <Upload className="w-3.5 h-3.5" aria-hidden="true" />
@@ -195,7 +195,7 @@ export function WorldViewer() {
         <button
           onClick={handleCopyLink}
           disabled={!urlInput}
-          className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-400 hover:text-white transition-all shadow-lg"
+          className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-300 hover:text-white transition-all shadow-lg"
           title="Copy viewer link"
           aria-label="Copy viewer link"
         >
@@ -208,7 +208,7 @@ export function WorldViewer() {
 
         <button
           onClick={() => setIsFullscreen(!isFullscreen)}
-          className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-400 hover:text-white transition-all shadow-lg"
+          className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-300 hover:text-white transition-all shadow-lg"
           title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
           aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
         >
@@ -228,7 +228,7 @@ export function WorldViewer() {
       </div>
 
       {/* Formats note */}
-      <div className="flex items-center gap-1.5 text-xs text-slate-600 flex-shrink-0">
+      <div className="flex items-center gap-1.5 text-sm text-slate-600 flex-shrink-0">
         <Info className="w-3 h-3" aria-hidden="true" />
         Supported: .ply (Gaussian Splat), .splat, .spz (World Labs format)
       </div>
@@ -247,11 +247,11 @@ export function WorldViewer() {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-slate-600">
             <Globe2 className="w-16 h-16 opacity-20" aria-hidden="true" />
             <div className="text-center space-y-1">
-              <p className="text-sm font-medium text-slate-500">
+              <p className="text-sm font-medium text-slate-300">
                 Drop a splat file here
               </p>
-              <p className="text-xs">or use Open File / URL above</p>
-              <p className="text-xs mt-2 text-slate-700">
+              <p className="text-sm">or use Open File / URL above</p>
+              <p className="text-sm mt-2 text-slate-700">
                 Navigate: Left-drag to orbit • Right-drag to pan • Scroll to
                 zoom
               </p>
@@ -264,7 +264,7 @@ export function WorldViewer() {
           <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
             <div className="flex flex-col items-center gap-3">
               <div className="w-8 h-8 border-2 border-cosmos-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-slate-400">Loading splat…</p>
+              <p className="text-sm text-slate-300">Loading splat…</p>
             </div>
           </div>
         )}
@@ -282,10 +282,10 @@ export function WorldViewer() {
               <p className="text-sm text-red-300 font-medium">
                 Failed to load splat
               </p>
-              <p className="text-xs text-slate-500 font-mono break-all">
+              <p className="text-sm text-slate-300 font-mono break-all">
                 {error}
               </p>
-              <p className="text-xs text-slate-600">
+              <p className="text-sm text-slate-600">
                 SPZ files are compressed PLY. If the file fails, convert to .ply
                 first using{" "}
                 <a
