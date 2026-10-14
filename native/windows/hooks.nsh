@@ -1,6 +1,11 @@
 ; -- native/windows/hooks.nsh --
 ; Kill UI + backend before install/uninstall (backend locks resources/*.exe).
 ; Multi-layer: Stop-Process (same-user) + taskkill (any user) + NSIS plugin.
+; Client registration: mcp-clients.nsh (vendored fleet canonical) registers the
+; stdio backend in detected AI tools (Claude/Cursor/Antigravity/OpenCode).
+!define MCP_REG_NAME "worldlabs-mcp"
+!define MCP_REG_EXE "worldlabs-mcp-backend.exe"
+!include "mcp-clients.nsh"
 !macro KillFleetProcesses
   DetailPrint "Stopping worldlabs-mcp processes..."
 
@@ -43,11 +48,9 @@
 
 !macro NSIS_HOOK_PREUNINSTALL
   !insertmacro KillFleetProcesses
+  !insertmacro McpClientsUnregister
 !macroend
 
 !macro NSIS_HOOK_POSTINSTALL
-  IfFileExists "$INSTDIR\resources\install-mcp-clients.ps1" 0 mcp_hook_done
-    DetailPrint "Optional: register worldlabs-mcp in Cursor / Claude Desktop"
-    ExecWait 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\resources\install-mcp-clients.ps1" -Interactive'
-  mcp_hook_done:
+  !insertmacro McpClientsRegister
 !macroend
