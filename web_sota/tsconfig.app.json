@@ -5,7 +5,7 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
-    "types": ["node", "@webgpu/types", "webgl-ext", "webgl2"],
+    "types": ["node", "webgl-ext", "webgl2"],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

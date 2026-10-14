@@ -30,8 +30,8 @@ foreach ($dir in $frontendDirs) {
         Push-Location $frontend
         npm install --silent 2>$null
 
-        Write-Host "  tsc --noEmit..." -ForegroundColor Gray
-        $tscOut = npx tsc --noEmit 2>&1
+        Write-Host "  tsc -b (both project refs; bare --noEmit on the root config checks zero files)..." -ForegroundColor Gray
+        $tscOut = npx tsc -b 2>&1
         $tscExit = $LASTEXITCODE
         if ($tscExit -ne 0) {
             Write-Host "  TypeScript compilation FAILED -- fix errors before building NSIS" -ForegroundColor Red

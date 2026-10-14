@@ -107,7 +107,7 @@ certify:
     Set-Location '{{justfile_directory()}}'; uv run ruff format . --check
     Set-Location '{{justfile_directory()}}'; uv run pyright src/
     Set-Location '{{justfile_directory()}}'; uv run pytest tests/ -q
-    Set-Location '{{justfile_directory()}}\web_sota'; npx tsc --noEmit
+    Set-Location '{{justfile_directory()}}\web_sota'; npx tsc -b
     Set-Location '{{justfile_directory()}}\web_sota'; npx @biomejs/biome ci .
 
 # Auto-fix and format Python (ruff check --fix + ruff format)
@@ -128,9 +128,10 @@ fix-all:
 typecheck:
     Set-Location '{{justfile_directory()}}'; uv run mypy src/ --ignore-missing-imports
 
-# Run TypeScript type checking (frontend)
+# Run TypeScript type checking (frontend; -b builds both project refs - bare
+# --noEmit on the root config checks zero files because it only holds references)
 typecheck-fe:
-    Set-Location '{{justfile_directory()}}\web_sota'; npx tsc --noEmit
+    Set-Location '{{justfile_directory()}}\web_sota'; npx tsc -b
 
 # --- Testing ---
 

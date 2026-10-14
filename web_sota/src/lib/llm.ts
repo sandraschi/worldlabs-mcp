@@ -2,7 +2,7 @@
 // WEBAPP_SOTA_STANDARDS.md section VI.10) - do not rewrite the contracts; fix upstream
 // and re-vend. Worldlabs adaptation: imports from @/lib/api (full-path
 // apiGet/apiPost over API_BASE, no /api auto-prefix) instead of @/api/client.
-import { API_BASE, apiDelete, apiGet, apiPost } from "@/lib/api";
+import { API_BASE, apiGet, apiPost } from "@/lib/api";
 
 export type ProviderKind = "local" | "cloud";
 export type ModelSource = "live" | "curated" | "none";
