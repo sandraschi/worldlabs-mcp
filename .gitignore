@@ -26,6 +26,8 @@ web_sota/node_modules/
 web_sota/dist/
 web_sota/.vite-cache/
 web_sota/*.tsbuildinfo
+web_sota/test-results/
+web_sota/playwright-report/
 
 # Build artifacts
 *.mcpb

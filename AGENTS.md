@@ -2,19 +2,19 @@
 
 ## Overview
 
-MCP server wrapping the World Labs Marble API for 3D world generation (text/image/video-to-world via Marble 1.1) and the Spark 2.0 spatial viewer. 20 MCP tools + FastAPI bridge (`:10865`) + webapp (`:10864`) + Tauri NSIS shell.
+MCP server wrapping the World Labs Marble API for 3D world generation (text/image/video-to-world via Marble 1.1) and the Spark 2.0 spatial viewer. 23 MCP tools + FastAPI bridge (`:10865`) + webapp (`:10864`) + Tauri NSIS shell.
 
 ## Entry Points
 
 - `uv run worldlabs-mcp` → `worldlabs_mcp.server:main` (stdio, Claude Desktop)
-- `MCP_TRANSPORT=http uv run worldlabs-mcp` → HTTP on `:10865`
+- `WORLDLABS_MCP_PORT=10865 uv run python run_server.py` → HTTP on `:10865` (server.py main() is stdio-only and takes no --port flag)
 - `uv run uvicorn worldlabs_mcp.server:app --host 127.0.0.1 --port 10865` → direct ASGI
 - `.\start.ps1` / `just serve` → full stack via FleetStartMode.ps1 (ports 10864/10865)
 
 ## Quick Ref
 
 ```powershell
-uv run pytest tests/ -q          # 49 passed 8 skipped
+uv run pytest tests/ -q          # 52 passed 8 skipped
 uv run ruff check src/ --fix && uv run ruff format src/
 uv run pyright src/              # 0 errors (basic mode)
 just certify                     # five-gate: ruff + pyright + pytest + tsc + biome
@@ -36,9 +36,9 @@ Registered in `mcp-central-docs/operations/WEBAPP_PORTS.md`. Never use 3000/5000
 
 - FastMCP 3.4.4 `>=3.4.4,<4` portmanteau pattern (tools use `operation` enum where >15 related)
 - Responses: `{success, message, data}` dialogic, `logger.exception()` in error paths, `_error_response()` helper
-- Dual transport: stdio (Claude Desktop) + HTTP (`MCP_TRANSPORT=http`)
+- Dual transport: stdio (`server:main`, Claude Desktop) + HTTP (`run_server.py` with `WORLDLABS_MCP_PORT`, or direct ASGI `uvicorn worldlabs_mcp.server:app`)
 - Prefab UI: `@mcp.tool(app=True)` on `show_worlds_card`/`show_world_card`
-- Annotations: `readOnlyHint`/`destructiveHint` on 9+ tools
+- Annotations: `readOnlyHint`/`destructiveHint` on all tools
 - Resources: `world://{world_id}`, `gallery://{tag}`; Prompts: `world-gen`, `spark-viewer`
 - Docs: `docs/CONFIGURATION.md`, `DEVELOPMENT.md`, `TOOLS.md`, `TROUBLESHOOTING.md`, `ONBOARDING.md`
 - See [mcp-central-docs](https://github.com/sandraschi/mcp-central-docs) fleet standards

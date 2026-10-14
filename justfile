@@ -372,14 +372,12 @@ industrialize:
 build-sidecar:
     powershell.exe -NoProfile -File native\build-sidecar.ps1
 
-# Build the Tauri NSIS desktop installer (full pipeline: frontend -> sidecar -> Rust -> NSIS)
+# Build the Tauri NSIS desktop installer (full pipeline: frontend -> sidecar -> Rust -> NSIS).
+# Single -File call: just runs each recipe line in its own shell, so inline
+# $env:Path/vcvars exports never reached `npx tauri build` ("cargo: program
+# not found", 2026-10-14). native/build-nsis.ps1 owns the whole environment.
 build-native: build-sidecar
-    $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
-    $vcvars = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
-    $envOutput = cmd /c "`"$vcvars`" > nul & set" | Where-Object { $_ -match '^(INCLUDE|LIB|LIBPATH|VCToolsVersion|WindowsSdkDir|UniversalCRTSdkDir|UCRTVersion)=' }
-    foreach ($line in $envOutput) { $parts = $line.Split('=', 2); Set-Item -Path "env:$($parts[0])" -Value $parts[1] -ErrorAction SilentlyContinue }
-    Set-Location '{{justfile_directory()}}\native'
-    npx @tauri-apps/cli build --bundles nsis
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\native\build-nsis.ps1'
 
 # (cua-nsis-test comes from scripts/just/fleet.just)
 # --- Playwright E2E ---
@@ -388,8 +386,12 @@ build-native: build-sidecar
 e2e-install:
     Set-Location '{{justfile_directory()}}\web_sota'; npx playwright install chromium
 
-# Run Playwright E2E smoke tests (start backend first: just start-backend)
+# Run Playwright E2E smoke tests (Playwright manages backend + preview servers;
+# frontend preview needs a fresh dist, so build first; bun resolved via
+# USERPROFILE so the recipe works without bun on PATH and without hardcoding
+# an author-machine absolute path)
 e2e:
+    Set-Location '{{justfile_directory()}}\web_sota'; & (Join-Path $env:USERPROFILE '.bun\bin\bun.exe') run build
     Set-Location '{{justfile_directory()}}\web_sota'; npx playwright test
 
 
