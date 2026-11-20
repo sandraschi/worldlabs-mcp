@@ -2782,7 +2782,7 @@ async def proxy_plex_video(part_path: str, request: Request) -> StreamingRespons
     return StreamingResponse(
         _stream(),
         media_type="video/mp4",
-        headers={"Access-Control-Allow-Origin": "*"},
+        headers={"Access-Control-Allow-Origin": "http://localhost:10864"},
     )
 
 
