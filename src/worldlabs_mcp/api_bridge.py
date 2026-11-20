@@ -2451,7 +2451,7 @@ async def proxy_splat_asset(url: str = Query(...)) -> StreamingResponse:
     return StreamingResponse(
         _stream(),
         media_type="application/octet-stream",
-        headers={"Access-Control-Allow-Origin": "*"},
+        headers={"Access-Control-Allow-Origin": "http://localhost:10864"},
     )
 
 
